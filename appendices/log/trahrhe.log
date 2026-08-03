@@ -1,0 +1,182 @@
+trahrhe -d"[N, M] -> { [i, j, k] : 0 <= i < N and i <= j < M and j < k < N }" -g -o header.h -p -t2
+[trahrhe-cli] Starting trahrhe-blitzcrank cli 6.0
+[trahrhe-cli] Using isl isl-0.27-GMP
+[trahrhe-cli] Domain: [N, M] -> { [i, j, k] : 0 <= i < N and i <= j < M and j < k < N }
+[trahrhe-cli] Print results: enabled
+[trahrhe-cli] Dichotomy search: enabled
+[trahrhe-cli] Tiling level: 2
+[trahrhe-cli] Header generation: header.h
+[trahrhe-cli] Verbose mode: enabled
+[trahrhe-cli] computing Ehrhart polynomial...
+[trahrhe] DEBUG: computing Ehrhart polynomials...
+[trahrhe] DEBUG: computing tiling sets...
+[trahrhe-cli] computing ranking polynomials...
+[trahrhe-cli] computing trahrhe expressions...
+[trahrhe-cli] generating header file "header.h"...
+Trahrhe computations:
+Domain:
+[N, M] -> { [i, j, k] : 0 <= i < N and i <= j < M and j < k < N }
+
+Tiling level 0:
+Ehrhart polynomial:
+==== Ehrhart Polynomials ====
+-----------------------------
+Case no. 0
+----------
+Validity domain :
+    0 < M < N
+Ehrhart Expression :
+    ((-1/6 + 1/2 * N) * M + (-1/2 + 1/2 * N) * M^2 - 1/3 * M^3) 
+
+Case no. 1
+----------
+Validity domain :
+    N >= 2 and M >= N 
+Ehrhart Expression :
+    (-1/6 * N + 1/6 * N^3) 
+
+
+Ranking polynomial:
+==== Ranking Polynomials ====
+-----------------------------
+Case no. 0
+----------
+Validity domain :
+    M < N and i > 0 and i < j < M and j < k < N
+Ranking Expression :
+    (((((1/3 - 1/2 * N) + (-1/2 + N) * M - 1/2 * M^2) * i + (1/2 - 1/2 * N) * i^2 + 1/6 * i^3) + (-3/2 + N) * j - 1/2 * j^2) + k) 
+
+Case no. 1
+----------
+Validity domain :
+    j = i and M < N and 0 < i < M and i < k < N
+Ranking Expression :
+    ((((-7/6 + 1/2 * N) + (-1/2 + N) * M - 1/2 * M^2) * i + -1/2 * N * i^2 + 1/6 * i^3) + k) 
+
+Case no. 2
+----------
+Validity domain :
+    M >= N and i > 0 and i < j < M and j < k < N
+Ranking Expression :
+    ((((1/3 - N + 1/2 * N^2) * i + (1/2 - 1/2 * N) * i^2 + 1/6 * i^3) + (-3/2 + N) * j - 1/2 * j^2) + k) 
+
+Case no. 3
+----------
+Validity domain :
+    j = i and M >= N and 0 < i < M and i < k < N
+Ranking Expression :
+    (((-7/6 + 1/2 * N^2) * i + -1/2 * N * i^2 + 1/6 * i^3) + k) 
+
+Case no. 4
+----------
+Validity domain :
+    i = 0 and 0 < j < M and j < k < N and (M >= N or M < N)
+Ranking Expression :
+    (((-3/2 + N) * j - 1/2 * j^2) + k) 
+
+Case no. 5
+----------
+Validity domain :
+    i = 0 and j = 0 and 0 < k < N and (M >= N or (0 < M < N)) 
+Ranking Expression :
+    (-j + k) 
+
+Trahrhe expressions:
+(no trahrhe expressions when dichotomy is enabled)
+
+Tiling level 1:
+Ehrhart polynomial:
+==== Ehrhart Polynomials ====
+-----------------------------
+Case no. 0
+----------
+Validity domain :
+    M < N and lbi >= 0 and lbi <= ubi < M
+Ehrhart Expression :
+    ((((-1/2 + N) * M - 1/2 * M^2) + ((1/6 - 1/2 * N) + (1/2 - N) * M + 1/2 * M^2) * lbi + 1/2 * N * lbi^2 - 1/6 * lbi^3) + ((1/3 - 1/2 * N) + (-1/2 + N) * M - 1/2 * M^2) * ubi + (1/2 - 1/2 * N) * ubi^2 + 1/6 * ubi^3) 
+
+Case no. 1
+----------
+Validity domain :
+    M >= N and lbi >= 0 and lbi <= ubi <= -2 + N 
+Ehrhart Expression :
+    (((-1/2 * N + 1/2 * N^2) + (1/6 - 1/2 * N^2) * lbi + 1/2 * N * lbi^2 - 1/6 * lbi^3) + (1/3 - N + 1/2 * N^2) * ubi + (1/2 - 1/2 * N) * ubi^2 + 1/6 * ubi^3) 
+
+
+Ranking polynomial:
+==== Ranking Polynomials ====
+-----------------------------
+Case no. 0
+----------
+Validity domain :
+    M >= N and lbi >= 0 and j >= 2 + ubi and lbi < i <= ubi and j < k < N
+Ranking Expression :
+    ((((((7/6 - 3/2 * N) * lbi + 1/2 * N * lbi^2 - 1/6 * lbi^3) + (1/3 - 1/2 * N) * ubi + (1/2 - 1/2 * N) * ubi^2 + 1/6 * ubi^3) + (((-3/2 + N) + (3/2 - N) * lbi) + (-1/2 + N) * ubi) * j + ((-1/2 + 1/2 * lbi) - 1/2 * ubi) * j^2) + ((-1 + N) - j) * i) + k) 
+
+Case no. 1
+----------
+Validity domain :
+    i = lbi and M >= N and lbi >= 0 and ubi >= lbi and j >= 2 + ubi and j < k < N
+Ranking Expression :
+    (((((1/6 - 1/2 * N) * lbi + 1/2 * N * lbi^2 - 1/6 * lbi^3) + (1/3 - 1/2 * N) * ubi + (1/2 - 1/2 * N) * ubi^2 + 1/6 * ubi^3) + (((-3/2 + N) + (1/2 - N) * lbi) + (-1/2 + N) * ubi) * j + ((-1/2 + 1/2 * lbi) - 1/2 * ubi) * j^2) + k) 
+
+Case no. 2
+----------
+Validity domain :
+    M >= N and lbi >= 0 and ubi <= -2 + N and j <= 1 + ubi and lbi < i <= j and i <= ubi and j < k < N
+Ranking Expression :
+    (((((7/6 - 3/2 * N) * lbi + 1/2 * N * lbi^2 - 1/6 * lbi^3) + ((-7/6 + 1/2 * N) + (3/2 - N) * lbi) * j + ((-1/2 + 1/2 * N) + 1/2 * lbi) * j^2 - 1/3 * j^3) + ((-1 + N) - j) * i) + k) 
+
+Case no. 3
+----------
+Validity domain :
+    i = lbi and M >= N and lbi >= 0 and ubi <= -2 + N and lbi < j <= 1 + ubi and j < k < N
+Ranking Expression :
+    ((((1/6 - 1/2 * N) * lbi + 1/2 * N * lbi^2 - 1/6 * lbi^3) + ((-7/6 + 1/2 * N) + (1/2 - N) * lbi) * j + ((-1/2 + 1/2 * N) + 1/2 * lbi) * j^2 - 1/3 * j^3) + k) 
+
+Case no. 4
+----------
+Validity domain :
+    M < N and lbi >= 0 and ubi < M and 2 + ubi <= j < M and lbi < i <= j and i <= ubi and j < k < N
+Ranking Expression :
+    ((((((7/6 - 3/2 * N) * lbi + 1/2 * N * lbi^2 - 1/6 * lbi^3) + (1/3 - 1/2 * N) * ubi + (1/2 - 1/2 * N) * ubi^2 + 1/6 * ubi^3) + (((-3/2 + N) + (3/2 - N) * lbi) + (-1/2 + N) * ubi) * j + ((-1/2 + 1/2 * lbi) - 1/2 * ubi) * j^2) + ((-1 + N) - j) * i) + k) 
+
+Case no. 5
+----------
+Validity domain :
+    i = lbi and M < N and lbi >= 0 and lbi <= ubi < M and j >= lbi and 2 + ubi <= j < M and j < k < N
+Ranking Expression :
+    (((((1/6 - 1/2 * N) * lbi + 1/2 * N * lbi^2 - 1/6 * lbi^3) + (1/3 - 1/2 * N) * ubi + (1/2 - 1/2 * N) * ubi^2 + 1/6 * ubi^3) + (((-3/2 + N) + (1/2 - N) * lbi) + (-1/2 + N) * ubi) * j + ((-1/2 + 1/2 * lbi) - 1/2 * ubi) * j^2) + k) 
+
+Case no. 6
+----------
+Validity domain :
+    M < N and lbi >= 0 and ubi < M and j <= 1 + ubi and j < M and lbi < i <= j and i <= ubi and j < k < N
+Ranking Expression :
+    (((((7/6 - 3/2 * N) * lbi + 1/2 * N * lbi^2 - 1/6 * lbi^3) + ((-7/6 + 1/2 * N) + (3/2 - N) * lbi) * j + ((-1/2 + 1/2 * N) + 1/2 * lbi) * j^2 - 1/3 * j^3) + ((-1 + N) - j) * i) + k) 
+
+Case no. 7
+----------
+Validity domain :
+    i = lbi and M < N and lbi >= 0 and lbi <= ubi < M and lbi < j <= 1 + ubi and j < M and j < k < N
+Ranking Expression :
+    ((((1/6 - 1/2 * N) * lbi + 1/2 * N * lbi^2 - 1/6 * lbi^3) + ((-7/6 + 1/2 * N) + (1/2 - N) * lbi) * j + ((-1/2 + 1/2 * N) + 1/2 * lbi) * j^2 - 1/3 * j^3) + k) 
+
+Case no. 8
+----------
+Validity domain :
+    j = lbi and i = lbi and M >= N and lbi >= 0 and lbi <= ubi <= -2 + N and lbi < k < N
+Ranking Expression :
+    (-j + k) 
+
+Case no. 9
+----------
+Validity domain :
+    j = lbi and i = lbi and M < N and lbi >= 0 and lbi <= ubi < M and lbi < k < N 
+Ranking Expression :
+    (-j + k) 
+
+Trahrhe expressions:
+(no trahrhe expressions when dichotomy is enabled)
+[trahrhe-cli] computation time: 0.04535 seconds
+[trahrhe-cli] codegen time: 0.00272 seconds

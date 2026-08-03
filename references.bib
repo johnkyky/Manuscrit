@@ -1,0 +1,286 @@
+@ARTICLE{diamond,
+  author={Bondhugula, Uday and Bandishti, Vinayaka and Pananilath, Irshad},
+  journal={IEEE Transactions on Parallel and Distributed Systems}, 
+  title={Diamond Tiling: Tiling Techniques to Maximize Parallelism for Stencil Computations}, 
+  year={2017},
+  volume={28},
+  number={5},
+  pages={1285-1298},
+  keywords={Face;Diamond;Parallel processing;Shape;Indexes;Silicon;Optimization;Compilers;program transformation;loop tiling;parallelism;locality;stencils},
+  doi={10.1109/TPDS.2016.2615094}
+}
+
+@inproceedings{Delinearization,
+author = {Grosser, Tobias and Ramanujam, J. and Pouchet, Louis-Noel and Sadayappan, P. and Pop, Sebastian},
+title = {Optimistic Delinearization of Parametrically Sized Arrays},
+year = {2015},
+isbn = {9781450335591},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/2751205.2751248},
+doi = {10.1145/2751205.2751248},
+booktitle = {Proceedings of the 29th ACM on International Conference on Supercomputing},
+pages = {351–360},
+numpages = {10},
+keywords = {linear memory layout, multi-dimensional arrays, polyhedral analysis},
+location = {Newport Beach, California, USA},
+series = {ICS '15}
+}
+
+@inproceedings{ISL,
+ author = {Verdoolaege, Sven},
+ title = {{ISL}: An Integer Set Library for the Polyhedral Model},
+ booktitle = {Proc. of the Third Int. Conf. on Math. Software},
+ series = {LNCS 6327},
+ year = {2010},
+ isbn = {3-642-15581-2, 978-3-642-15581-9},
+ pages = {299--302}
+} 
+
+@misc{openscop,
+    author = {Bastoul, Cédric},
+    title = {{OpenScop: A Specification and a Library for Data Exchange in Polyhedral Compilation Tools}},
+     url = {https://github.com/periscop/openscop}
+}
+
+@INPROCEEDINGS{polly1,
+  AUTHOR = {Grosser, Tobias and Zheng, Hongbin and Aloor, Ragesh and Simb{\"u}rger, Andreas  and Gr{\"o}{\ss}linger, Armin and Pouchet, Louis-No{\"e}l},
+  TITLE = {Polly - Polyhedral Optimization in {LLVM}},
+  BOOKTITLE = {1st International Workshop on Polyhedral Compilation Techniques (IMPACT)},
+  YEAR = {2011},
+  EDITOR = {C. Alias and C. Bastoul},
+  ADDRESS = {Chamonix, France},
+  ABSTRACT = {
+    Various powerful polyhedral techniques exist to optimize computation intensive programs ectively. Applying these techniques on any non-trivial program is still surprisingly dincult and often not as ective as expected. Most polyhedral tools are limited to a specific programming language.  Even for this language, relevant code needs to match specific syntax that rarely appears in existing code. It is therefore hard or even impossible to process existing programs automatically. In addition, most tools target C or OpenCL code, which prevents effective communication with compiler internal optimizers. As a result target architecture specific optimizations are either little ective or not approached at all. 
+    In this paper we present Polly, a project to enable polyhedral optimizations in LLVM. Polly automatically detects and transforms relevant program parts in a language independent and syntactically transparent way. Therefore, it supports programs written in most common programming languages and constructs like C++ iterators, goto based loops and pointer arithmetic. Internally it provides a state-of-the-art polyhedral library with full support for Z -polyhedra, advanced data dependency analysis and support for external optimizers. Polly includes integrated SIMD and OpenMP code generation. Through LLVM, machine code for CPUs and GPU accelerators, C source code and even hardware descriptions can be targeted.
+  },
+  URL = {http://perso.ens-lyon.fr/christophe.alias/impact2011/impact-07.pdf}
+}
+
+@phdthesis{polly2,
+  author = {Tobias Grosser},
+  title = {Enabling Polyhedral Optimizations in LLVM},
+  school = {Department of Computer Science and Engineering, Indian Institute of Technology, Madras},
+  year = 2011,
+  type = {PhD Thesis},
+  url = {https://polly.llvm.org/publications/grosser-diploma-thesis.pdf}
+}
+
+@article{polly3,
+  author = {Grosser, Tobias and Groesslinger, Armin and Lengauer, Christian},
+  title = {{POLLY — Performing Polyhedral Optimizations on a Low-Level Intermediate Representation}},
+  journal = {Parallel Processing Letters},
+  volume = {22},
+  number = {04},
+  year = {2012},
+  doi = {10.1142/S0129626412500107}
+}
+
+@phdthesis{pollyomp,
+  author = {Tobias Grosser},
+  title = {A Framework for Automatic OpenMP Code Generation},
+  school = {Department of Informatics and Mathematics University of Passau},
+  year = 2011,
+  type = {PhD Thesis},
+  url = {https://polly.llvm.org/publications/raghesh-a-masters-thesis.pdf}
+}
+
+@inbook{polyedric1,
+  author = {Feautrier, Paul and Lengauer, Christian},
+  year = {2011},
+  month = {09},
+  pages = {1581-1592},
+  title = {Polyhedron Model},
+  isbn = {978-0-387-09765-7},
+  doi = {10.1007/978-0-387-09766-4_502}
+}
+
+@phdthesis{polyedric2,
+  author       = {Cédric Bastoul},
+  title        = {Contributions to High-Level Program Optimization},
+  school       = {University of Paris-Sud},
+  year         = 2012,
+  month        = {December},
+  type         = {Habilitation to Supervise Research},
+  address      = {Paris, France},
+  url          = {https://icps.u-strasbg.fr/~bastoul/research/papers/Bastoul\_HDR.pdf}
+}
+
+@article{ppcg,
+  author = {Verdoolaege, Sven and Juega, Juan and Cohen, Albert and Gomez, J.I. and Tenllado, Christian and Catthoor, Francky},
+  year = {2013},
+  month = {01},
+  pages = {54},
+  title = {Polyhedral Parallel Code Generation for CUDA},
+  volume = {9},
+  journal = {ACM Transactions on Architecture and Code Optimization (TACO)},
+  doi = {10.1145/2400682.2400713}
+}
+
+
+@INPROCEEDINGS{kokkos,
+  author={Edwards, H. Carter and Trott, Christian R.},
+  booktitle={20k3 Extreme Scaling Workshop (xsw 2013)}, 
+  title={Kokkos: Enabling Performance Portability Across Manycore Architectures}, 
+  year={2013},
+  volume={},
+  number={},
+  pages={18-24},
+  keywords={Layout;Performance evaluation;Arrays;Indexes;Programming;Libraries;Kernel},
+  doi={10.1109/XSW.2013.7}
+}
+
+
+@ARTICLE{kokkos2,
+  author={Trott, Christian R. and Lebrun-Grandié, Damien and Arndt, Daniel and Ciesko, Jan and Dang, Vinh and Ellingwood, Nathan and Gayatri, Rahulkumar and Harvey, Evan and Hollman, Daisy S. and Ibanez, Dan and Liber, Nevin and Madsen, Jonathan and Miles, Jeff and Poliakoff, David and Powell, Amy and Rajamanickam, Sivasankaran and Simberg, Mikael and Sunderland, Dan and Turcksin, Bruno and Wilke, Jeremiah},
+  journal={IEEE Transactions on Parallel and Distributed Systems}, 
+  title={Kokkos 3: Programming Model Extensions for the Exascale Era}, 
+  year={2022},
+  volume={33},
+  number={4},
+  pages={805-817},
+  keywords={Programming;Hardware;Kernel;Graphics processing units;Layout;Laboratories;Benchmark testing;Performance portability;programming models;high-performance computing;heterogeneous computing;exascale},
+  doi={10.1109/TPDS.2021.3097283}}
+
+
+@inproceedings{pluto1,
+  author = {Uday Bondhugula and Muthukaruppan Baskaran and Sanjay Krishnamoorthy and Jayaram Ramanujam and Atanas Rountev and P. Sadayappan},
+  title = {Automatic Transformations for Communication-Minimized Parallelization and Locality Optimization in the Polyhedral Model},
+  booktitle = {Proceedings of the International Conference on Compiler Construction (ETAPS CC)},
+  year = {2008},
+  month = {April},
+  address = {Budapest, Hungary},
+}
+@inproceedings{pluto2,
+  author = {Uday Bondhugula and Albert Hartono and Jayaram Ramanujam and P. Sadayappan},
+  title = {A Practical Automatic Polyhedral Parallelizer and Locality Optimizer},
+  booktitle = {Proceedings of the ACM SIGPLAN Conference on Programming Language Design and Implementation (PLDI)},
+  year = {2008},
+  month = {June},
+  address = {Tucson, Arizona, USA},
+}
+
+@article{apollo,
+    title = {APOLLO: Automatic speculative POLyhedral Loop Optimizer},
+    journal = {7th International Workshop on Polyhedral Compilation Techniques (IMPACT)},
+    author = {Juan Manuel Martinez Caamano and Aravind Sukumaran-Rajam and Artiom Baloian and Manuel Selva and Philippe Clauss},
+    month = {January},
+    year = {2017},
+    address = {Stockholm, Sweden},
+}
+
+
+@article{polybench,
+  author = {Louis-Noël Pouchet},
+  title = {PolyBench: The Polyhedral Benchmark Suite},
+  journal = {URL: http://www.cs.colostate.edu/~pouchet/software/polybench},
+  year = {2011}
+}
+
+
+@INPROCEEDINGS{polybenchgpu,
+  author={Grauer-Gray, Scott and Xu, Lifan and Searles, Robert and Ayalasomayajula, Sudhee and Cavazos, John},
+  booktitle={2012 Innovative Parallel Computing (InPar)}, 
+  title={Auto-tuning a high-level language targeted to GPU codes}, 
+  year={2012},
+  volume={},
+  number={},
+  pages={1-10},
+  keywords={Graphics processing unit;Abstracts;Programming;Nickel;Tiles;Benchmark testing;Auto-tuning;GPU;CUDA;OpenCL;Optimization;Belief Propagation},
+  doi={10.1109/InPar.2012.6339595}
+}
+
+
+@article{surveypolyedric,
+author = {Thangamani, Arun and Loechner, Vincent and Genaud, St\'{e}phane},
+title = {A Survey of General-purpose Polyhedral Compilers},
+year = {2024},
+issue_date = {December 2024},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {21},
+number = {4},
+issn = {1544-3566},
+url = {https://doi.org/10.1145/3674735},
+doi = {10.1145/3674735},
+abstract = {Since the 1990s, many implementations of polyhedral compilers have been written and distributed, either as source-to-source translating compilers or integrated into wider-purpose compilers. This article provides a survey on those various available implementations as of today, 2024.First, we list and describe most commonly available polyhedral schedulers and compiler implementations. Then, we compare the general-purpose polyhedral compilers using two main criteria—robustness and performance—on the PolyBench/C set of benchmarks.},
+journal = {ACM Trans. Archit. Code Optim.},
+month = nov,
+articleno = {72},
+numpages = {26},
+keywords = {Polyhedral compilation, benchmark, performance analysis}
+}
+
+@techreport{raja,
+  author       = {Hornung, Richard D. and Keasler, Jeffrey A.},
+  title        = {The RAJA Portability Layer: Overview and Status},
+  institution  = {Lawrence Livermore National Lab. (LLNL), Livermore, CA (United States)},
+  annote       = {As computer architectures become increasingly complex and diverse, application developers face difficult challenges to achieve high performance while maintaining code portability. The problem is especially acute for large ASC multiphysics codes. Efficient parallel execution often requires tuning algorithms and data access to match processor and memory system constraints. Changing compiler directives and parallel programming model constructs on thousands of individual loops in a large code is disruptive and unwieldy. RAJA is a programming approach that we have been developing at Lawrence Livermore National Laboratory to encapsulate platform-specific concerns, related to both hardware and parallel programming models. The RAJA abstraction layer simplifies porting C/C++ codes to various programming models and architectures by reducing effort and developer disruption. In this report, we motivate and describe key aspects of RAJA. We also present a preliminary assessment of RAJA based on exploration in three ASC hydrodynamics codes at LLNL, which was one part of a three-part ASC Level 2 milestone, completed in September 2014.},
+  doi          = {10.2172/1169830},
+  url          = {https://www.osti.gov/biblio/1169830},
+  place        = {United States},
+  year         = {2014},
+  month        = {09}
+}
+
+@inproceedings{plutoscheduler,
+author = {Bondhugula, Uday and Hartono, Albert and Ramanujam, J. and Sadayappan, P.},
+title = {A practical automatic polyhedral parallelizer and locality optimizer},
+year = {2008},
+isbn = {9781595938602},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/1375581.1375595},
+doi = {10.1145/1375581.1375595},
+abstract = {We present the design and implementation of an automatic polyhedral source-to-source transformation framework that can optimize regular programs (sequences of possibly imperfectly nested loops) for parallelism and locality simultaneously. Through this work, we show the practicality of analytical model-driven automatic transformation in the polyhedral model -- far beyond what is possible by current production compilers. Unlike previous works, our approach is an end-to-end fully automatic one driven by an integer linear optimization framework that takes an explicit view of finding good ways of tiling for parallelism and locality using affine transformations. The framework has been implemented into a tool to automatically generate OpenMP parallel code from C program sections. Experimental results from the tool show very high speedups for local and parallel execution on multi-cores over state-of-the-art compiler frameworks from the research community as well as the best native production compilers. The system also enables the easy use of powerful empirical/iterative optimization for general arbitrarily nested loop sequences.},
+booktitle = {Proceedings of the 29th ACM SIGPLAN Conference on Programming Language Design and Implementation},
+pages = {101–113},
+numpages = {13},
+keywords = {tiling, polyhedral model, loop transformations, locality optimization, automatic parallelization, affine transformations},
+location = {Tucson, AZ, USA},
+series = {PLDI '08}
+}
+
+@inproceedings{pollyacc,
+  author={Tobias Grosser and Torsten Hoefler},
+  title={{Polly-ACC: Transparent compilation to heterogeneous hardware}},
+  year={2016},
+  month={Jun.},
+  booktitle={Proceedings of the the 30th International Conference on Supercomputing (ICS'16)},
+}
+
+
+@INPROCEEDINGS{9286233,
+  author={Baskaran, Muthu and Jin, Charles and Meister, Benoit and Springer, Jonathan},
+  booktitle={2020 IEEE High Performance Extreme Computing Conference (HPEC)}, 
+  title={Automatic Mapping and Optimization to Kokkos with Polyhedral Compilation}, 
+  year={2020},
+  volume={},
+  number={},
+  pages={1-7},
+  keywords={Productivity;Program processors;Computational modeling;Programming;Hardware;Software;Optimization;Compiler;mapping;exascale programming models;Kokkos;E3SM application},
+  doi={10.1109/HPEC43674.2020.9286233}
+}
+
+@inproceedings{pykokkos,
+  author = {Al Awar, Nader and Zhu, Steven and Biros, George and Gligoric, Milos},
+  title = {A Performance Portability Framework for Python},
+  booktitle = {International Conference on Supercomputing},
+  pages = {467-478},
+  year = {2021},
+}
+
+@inproceedings{Polygeist,
+  title={Polygeist: Affine C in MLIR},
+  author={William S. Moses},
+  year={2021},
+  url={https://api.semanticscholar.org/CorpusID:231771924}
+}
+
+@article{ramon2018autoparallel,
+  title={AutoParallel: A Python module for automatic parallelization and distributed execution of affine loop nests},
+  author={Ramon-Cortes, Cristian and Amela, Ramon and Ejarque, Jorge and Clauss, Philippe and Badia, Rosa M},
+  journal={arXiv preprint arXiv:1810.11268},
+  year={2018}
+}
+
