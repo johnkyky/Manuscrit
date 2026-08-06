@@ -1,12 +1,52 @@
 #import "../src/common.typ": *
 
-= State of the art on Kokkos optimization <chapter:stateoftheart>
+= State of the art <chapter:stateoftheart>
 
-- article @ramon2018autoparallel application du modele polyedrique sur du numpy
-- polygist @Polygeist autre outil polyedrique sur de l'ir
-- PyKokkos @pykokkos wrapper python pour kokkos
-- PPCG @ppcg
-- Kokkos comme backend pour un compilo polyedrique @9286233
-- Kokkos avec des tuiles pour le mdrange @kokkos2
+The evolution of hardware complexity in modern supercomputers has led to a massive increase in both the number of available cores and their computational power. These multi-core architectures are frequently coupled with specialized hardware accelerators, making the development of scientific codes a real challenge. To address this issue, developers have invented distinct programming approaches, relying primarily on two of them: high-level frameworks designed to abstract the hardware and maintain a single source code for multiple architectures, and specialized compilers dedicated to code optimization.
 
-https://kokkos.org/kokkos-core-wiki/citation.html
+On one hand, high-level performance portability frameworks aim to provide developers with a unified interface to manage parallelism and memory. On the other hand, specialized compilers, such as polyhedral compilers, focus on the mathematical rigor of loop optimization and the exposition of fine-grained parallelism through advanced transformations based on the source code.
+
+Although these two domains coexist, making them interoperate seamlessly remains a major challenge for the compilation community. Extracting a mathematical model from code heavily abstracted by the high-level C++ structures of these frameworks is exceedingly difficult, as the compiler loses critical semantic information during the lowering process. Conversely, the frameworks themselves lack the internal infrastructure required to perform complex static analyses and automatic structural loop transformations.
+
+This chapter reviews the existing literature surrounding these two ecosystems. It first explores how high-level performance portability frameworks achieve performance independently of the target architecture. It then analyzes the evolution of polyhedral compilers, from source-to-source tools to modern IR frameworks, highlighting their inherent limitations when confronted with heavy abstractions. Finally, it explores hybrid approaches and domain-specific languages that attempt to bridge this gap, ultimately demonstrating the need for the novel, deeply integrated approach proposed in this thesis.
+
+== Performance Portability Frameworks
+
+Le paysage du calcul haute performance en C++ s'appuie sur des framework de portabilité de performance similaires a Kokkos (@sec:kokkos) comme RAJA~@raja, développé par le Lawrence Livermore National Laboratory (LLNL), ou encore sur des standards émergents tels que SYCL~@sycl et le C++ Standard Parallelism (`std::par`)~@isostdpar. Tous ces outils partagent une philosophie commune : la séparation stricte entre l'expression de l'algorithme et son modèle d'exécution. Pour y parvenir, ils s'appuient massivement sur les fonctionnalités modernes du C++, notamment les expressions lambdas et les foncteurs, afin d'encapsuler les noyaux de calcul. Ils utilisent également des espaces d'exécution (Execution Spaces) et des espaces mémoire (Memory Spaces) pour gérer la répartition des calculs et la localité des données sur des architectures hétérogènes.
+
+Bien que l'objectif principal de ces frameworks soit la portabilité, ils offrent tout de même certaines capacités d'optimisation structurelle. Par exemple, le tuilage de boucle est proposé dans Kokkos, RAJA et SYCL. Cela permet aux développeurs d'appliquer un tuilage statique sur les nids de boucles, ce qui améliore la localité des données dans les caches de l'architecture cible. Kokkos possede un algorithme permettant de choisir automatique des tailles de tuiles efficaces basé sur l'architexture mais tres limité en raison du manque d'information statique recolté dans Kokkos.
+Des travaux dans Kokkos ont été réalisé pour ajouter des `kokkos-tools`~@kokkostools, une extention permettant de monitorer/tracer le code, mais aussi d'autotuner des kernels grace a des outils externe comme Apex~@apex ou Apollo~@apollotuning permettant de spécialiser le code pour chercher encore plus de performance.
+
+Cependant, la limite fondamentale de ces frameworks réside dans leur fonctionnement déclaratif. Ils agissent principalement comme des moteurs de mapping : ils associent les itérations d'une boucle aux threads d'un CPU ou aux blocs d'un GPU en faisant aveuglément confiance au code écrit par le développeur. Ces bibliothèques ne possèdent aucun moteur d'analyse statique interne capable d'analyser les dépendances de données du noyaux de calcul.
+
+Par conséquent, il leur est techniquement et mathématiquement impossible de restructurer le code de manière automatique. Des transformations complexes qui modifient l'ordre d'exécution des itérations des boucles (e.g. fission, skewing) sont hors de portée de ces outils. En d'autres termes, si le développeur écrit un nid de boucle structurellement sous-optimal, le framework le parallélisera fidèlement, mais de manière sous-optimale. L'optimisation profonde du code reste donc à la charge exclusive du développeur, ce qui limite le potentiel de performance maximale atteignable automatiquement.
+
+== Polyhedral Model and Implementations
+
+Il existe aujourd'hui de nombreuses implémentations de compilateurs et d'outils s'appuyant sur le modèle polyédrique. Historiquement, ces outils reposent sur des approches source-à-source et se limitent à l'analyse d'un sous-ensemble du langage C. L'un des compilateurs les plus reconnus pour la qualité de son ordonnanceur est Pluto~@plutoscheduler. Il permet la compilation source-à-source de code C en explorant un vaste espace de transformations (comme le diamond tiling). Un autre outil de référence est PPCG (Polyhedral Parallel Code Generation)~@ppcg, un compilateur source-à-source conçu pour générer du code GPU optimisé à partir de code C séquentiel. Cette approche purement textuelle facilite l'extraction du modèle : les accès mémoire, tels que les tableaux multidimensionnels (par exemple A[i][j]), sont directement visibles sous forme d'indices, ce qui simplifie grandement l'analyse mathématique.
+
+Bien que ces outils permettent d'obtenir d'excellentes performances, leur champ d'application reste très limité. Reposant sur des parseurs rudimentaires, ils n'ont absolument pas été conçus pour analyser les codes complexes issus de frameworks de portabilité de performance, qui font un usage intensif de métaprogrammation et de structures C++ modernes.
+
+Pour s'affranchir de la complexité liée à l'analyse syntaxique des langages de haut niveau, la communauté de la compilation polyédrique a adopté une nouvelle approche : abaisser le niveau d'analyse. En s'appuyant sur des Représentations Intermédiaires (IR) comme celle de LLVM, les outils polyédriques parviennent à faire abstraction du langage source (C, C++, Fortran) et des complexités du front-end du compilateur.
+
+Graphite~@graphite a été l'un des premiers compilateurs polyédriques de production à utiliser cette méthode, en s'intégrant directement sur l'IR de GCC. Dans l'écosystème LLVM, l'outil Polly~@polly1 utilise l'IR de LLVM (LLVM-IR) pour reconstruire et appliquer le modèle polyédrique. Plus récemment, des outils comme Polygeist~@Polygeist s'appuient sur MLIR, une représentation de plus haut niveau qui permet de conserver certaines informations structurelles (comme la sémantique des boucles for) sans avoir à les reconstruire depuis un graphe de flot de contrôle trop proche de la machine.
+
+Pourtant, malgré l'utilisation d'IR, les outils modernes comme Polly ou Polygeist échouent à optimiser les codes générés par des bibliothèques telles que Kokkos. Ce blocage est dû au fossé sémantique. L'architecture de ces frameworks, pensée pour offrir la meilleure portabilité et généralisation possibles à l'utilisateur, repose en interne sur un réseau complexe d'expressions lambdas, de foncteurs et d'arithmétique de pointeurs. Lors de la compilation, ces abstractions masquent la linéarité des accès mémoire, génèrent des incertitudes d'aliasing, et cassent purement et simplement les heuristiques nécessaires à la construction du modèle polyédrique.
+
+
+== Combining High-Level Abstractions and Polyhedral Optimization
+
+Une autre approche pour pallier les problèmes précédemment exposés consiste à élever le niveau d'abstraction sémantique en utilisant des langages de plus haut niveau (comme Python ou des DSLs) ou des bibliothèques offrant une plus grande expressivité. Ainsi, la sémantique mathématique des opérations devient beaucoup plus évidente à interpréter pour les outils de compilation, réduisant drastiquement le fossé sémantique entre le code source et l'application du modèle polyédrique.
+
+Tiramisu~@tiramisu illustre parfaitement cette dynamique. Il s'agit d'un framework C++ fonctionnant, dans sa conception, comme un langage dédié (DSL) pour le calcul intensif. L'utilisateur y déclare formellement les calculs, la taille des données, le domaine d'itération, ainsi que les transformations mathématiques à appliquer (tiling, unrolling, parallélisation). En imposant cette déclaration explicite, l'outil peut appliquer les transformations polyédriques et générer un code C++ hautement optimisé sans que le compilateur n'ait à deviner la structure sous-jacente du programme.
+
+Dans cette même logique d'abstraction, d'autres travaux se sont tournés dans l'écosystème Python pour s'affranchir de la gestion mémoire complexe du C++. Par exemple, @ramon2018autoparallel ont démontré l'efficacité de l'application du modèle polyédrique directement sur des opérations Numpy. De manière similaire, des initiatives telles que PyKokkos~@pykokkos proposent des interfaces Python de haut niveau. Ces surcouches permettent de capturer les opérations mathématiques de manière très abstraite, rendant l'extraction du modèle polyédrique presque triviale tout en masquant la complexité matérielle.
+
+Bien que ces approches apportent des solutions extrêmement efficaces aux problèmes de performances, elles imposent un coût d'entrée prohibitif pour l'industrie du HPC. En effet, elles exigent des scientifiques la réécriture intégrale de leurs codes de simulation historiques et massifs vers de nouveaux langages ou de nouvelles API très spécifiques.
+
+Pour contourner cette barrière de réécriture, certains travaux ont exploré l'approche inverse : utiliser les frameworks de portabilité comme cibles de compilation. Par exemple, des chercheurs @polykokkosbackend ont utilisé des outils polyédriques pour analyser du code C séquentiel classique afin de générer automatiquement du code Kokkos. Cette stratégie combine l'optimisation mathématique réalisée en amont avec la portabilité matérielle garantie par Kokkos en aval.
+
+Cependant, si cette méthode (forward engineering) est pertinente pour moderniser d'anciens codes, elle ne résout absolument pas le problème central de l'écosystème actuel : l'optimisation des codes déjà écrites nativement en Kokkos. À ce jour, il n'existe aucun outil capable d'ingérer un code source Kokkos, de l'analyser mathématiquement, et d'en restructurer les boucles de l'intérieur de manière transparente. C'est pour combler ce vide scientifique que cette thèse propose une intégration du modèle polyédrique, capable d'opérer directement sous les abstractions de Kokkos.
+
+
+

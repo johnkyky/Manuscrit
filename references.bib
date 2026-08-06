@@ -223,6 +223,71 @@ keywords = {Polyhedral compilation, benchmark, performance analysis}
   month        = {09}
 }
 
+@misc{sycl,
+      title={Evaluating SYCL as a Unified Programming Model for Heterogeneous Systems}, 
+      author={Ami Marowka},
+      year={2026},
+      eprint={2604.16043},
+      archivePrefix={arXiv},
+      primaryClass={cs.DC},
+      url={https://arxiv.org/abs/2604.16043}, 
+}
+
+@techreport{isostdpar,
+  title       = {Programming Languages --- Technical Specification for C++ Extensions for Parallelism},
+  institution = {ISO/IEC},
+  number      = {ISO/IEC TS 19570:2018},
+  year        = {2018},
+  url         = {https://www.iso.org/standard/70588.html}
+}
+
+@INPROCEEDINGS{apex,
+  author={Huck, Kevin A.},
+  booktitle={2022 IEEE/ACM 7th International Workshop on Extreme Scale Programming Models and Middleware (ESPM2)}, 
+  title={Broad Performance Measurement Support for Asynchronous Multi-Tasking with APEX}, 
+  year={2022},
+  volume={},
+  number={},
+  pages={20-29},
+  keywords={Measurement;Concurrent computing;Runtime;System performance;Graphics processing units;Programming;Multitasking;asynchronous multitasking;performance measurement;HPX;OpenMP;Kokkos;GPU programming},
+  doi={10.1109/ESPM256814.2022.00008}}
+
+
+@INPROCEEDINGS{apollotuning,
+  author={Beckingsale, David and Pearce, Olga and Laguna, Ignacio and Gamblin, Todd},
+  booktitle={2017 IEEE International Parallel and Distributed Processing Symposium (IPDPS)}, 
+  title={Apollo: Reusable Models for Fast, Dynamic Tuning of Input-Dependent Code}, 
+  year={2017},
+  volume={},
+  number={},
+  pages={307-316},
+  keywords={Kernel;Tuning;Runtime;Hydrodynamics;Computer architecture;C++ languages;Training;machine learning;autotuning;performance;programming models},
+  doi={10.1109/IPDPS.2017.38}}
+
+@InProceedings{kokkostools,
+author="Hammond, Simon D.
+and Trott, Christian R.
+and Ibanez, Daniel
+and Sunderland, Daniel",
+title="Profiling and Debugging Support for the Kokkos Programming Model",
+booktitle="High Performance Computing",
+year="2018",
+publisher="Springer International Publishing",
+address="Cham",
+pages="743--754",
+isbn="978-3-030-02465-9"
+}
+
+@misc{tiramisu,
+      title={Tiramisu: A Polyhedral Compiler for Expressing Fast and Portable Code}, 
+      author={Riyadh Baghdadi and Jessica Ray and Malek Ben Romdhane and Emanuele Del Sozzo and Abdurrahman Akkas and Yunming Zhang and Patricia Suriana and Shoaib Kamil and Saman Amarasinghe},
+      year={2018},
+      eprint={1804.10694},
+      archivePrefix={arXiv},
+      primaryClass={cs.PL},
+      url={https://arxiv.org/abs/1804.10694}, 
+}
+
 @inproceedings{plutoscheduler,
 author = {Bondhugula, Uday and Hartono, Albert and Ramanujam, J. and Sadayappan, P.},
 title = {A practical automatic polyhedral parallelizer and locality optimizer},
@@ -250,7 +315,7 @@ series = {PLDI '08}
 }
 
 
-@INPROCEEDINGS{9286233,
+@INPROCEEDINGS{polykokkosbackend,
   author={Baskaran, Muthu and Jin, Charles and Meister, Benoit and Springer, Jonathan},
   booktitle={2020 IEEE High Performance Extreme Computing Conference (HPEC)}, 
   title={Automatic Mapping and Optimization to Kokkos with Polyhedral Compilation}, 
@@ -269,6 +334,21 @@ series = {PLDI '08}
   pages = {467-478},
   year = {2021},
 }
+
+@inproceedings{graphite,
+  TITLE = {{Design of graphite and the Polyhedral Compilation Package}},
+  AUTHOR = {Sj{\"o}din, Jan and Pop, Sebastian and Jagasia, Harsha and Grosser, Tobias and Pop, Antoniu},
+  URL = {https://minesparis-psl.hal.science/hal-00408759},
+  BOOKTITLE = {{GCC Developers' Summit}},
+  ADDRESS = {Montr{\'e}al, Canada},
+  HAL_LOCAL_REFERENCE = {A/406/CRI},
+  YEAR = {2009},
+  MONTH = Jun,
+  PDF = {https://minesparis-psl.hal.science/hal-00408759v1/file/A-406.pdf},
+  HAL_ID = {hal-00408759},
+  HAL_VERSION = {v1},
+}
+
 
 @inproceedings{Polygeist,
   title={Polygeist: Affine C in MLIR},
