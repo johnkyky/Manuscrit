@@ -58,7 +58,7 @@ While imperfect loop nests are natural for developers to write, they pose a sign
 
 == The Kokkos Programming Model <sec:kokkos>
 
-Originally developed to abstract hardware parallelism, the Kokkos programming model has become a cornerstone in High-Performance Computing (HPC) and scientific simulation. It provides a unified C++ interface for heterogeneous parallel programming, with a primary focus on performance portability. By offering high-level abstractions for both memory management and execution control, Kokkos simplifies the development process while ensuring that applications achieve optimal performance regardless of the target architecture.
+Originally developed to abstract hardware parallelism, the Kokkos programming model has established itself as a reference framework in the High-Performance Computing (HPC) and scientific simulation. It provides a unified C++ interface for heterogeneous parallel programming, with a primary focus on performance portability. By offering high-level abstractions for both memory management and execution control, Kokkos simplifies the development process while ensuring that applications achieve optimal performance regardless of the target architecture.
 
 === Spaces: Execution and Memory
 
@@ -103,11 +103,11 @@ Kokkos provides several specialized view types for advanced use cases (e.g., `Du
 
 === Parallel Execution
 
-In the Kokkos programming model, launching a computational kernel requires combining an execution pattern, an execution policy, and the kernel body (typically defined via a C++ lambda function or a functor). This separation of concerns allows developers to express the semantics of their algorithm independently of the underlying hardware mapping.
+In the Kokkos programming model, launching a computational kernel requires combining an execution pattern, an execution policy, and the kernel body (typically defined via a C++ lambda function or a functor). This separation of concepts allows developers to express the semantics of their algorithm independently of the underlying hardware mapping.
 
 ==== Execution Patterns
 
-To abstract hardware specific parallel programming models (e.g., OpenMP, CUDA, HIP), Kokkos provides three fundamental parallel execution patterns. An execution pattern dictates the semantics of the operation—essentially defining *what* kind of computation is being performed:
+To abstract hardware specific parallel programming models (e.g., OpenMP, CUDA), Kokkos provides three fundamental parallel execution patterns. An execution pattern dictates the semantics of the operation:
 
 - `Kokkos::parallel_for`: Maps an independent operation over an iteration space. It represents standard data-parallel loops where no dependencies exist between iterations.
 - `Kokkos::parallel_reduce`: Computes a reduction (e.g., sum, min, max, or custom reductions) across an iteration space. Kokkos automatically manages architecture specific data races and concurrency.
@@ -148,6 +148,21 @@ To illustrate how Kokkos exposes multi-dimensional iteration spaces, @code:mdran
 The polyhedral model is a powerful mathematical framework enabling the precise analysis and transformation of loop nests. Unlike traditional compilers that apply local, syntactic transformations directly on an #gls("ir") or an #gls("ast"), the polyhedral model relies entirely on algebraic abstractions. This mathematical foundation guarantees the semantic correctness of the applied transformations. To represent loop nests, the model utilizes a geometric representation of iteration domains, memory accesses, data dependencies, and instruction schedules, all expressed through mathematical sets and relations.
 
 #definition(
+  title: "Set",
+)[
+  A _set_ is a collection of coordinates in a single space $E$ of dimension $k$. In the context of the polyhedral model, a set can be formally viewed as a special case of a relation where the input space is zero-dimensional.
+
+  A set can be represented as a parametric polyhedron restricting the valid coordinates:
+  $
+    S(arrow(p)) = { arrow(x) in E mid(|) A dot.op vec(arrow(x), arrow(p), 1) polyrelcst arrow(0)}
+  $
+  where:
+  - $arrow(p)$ is a vector of $N$ parameters,
+  - $arrow(x) in E$ is a coordinate vector,
+  - $A$ is an $m times (k + N + 1)$ integer matrix that encodes the $m$ affine constraints defining the boundaries of the set.
+]
+
+#definition(
   title: "Relation",
 )[
   A _relation_ #box($R : E -> F$) is a mapping from a set of input coordinates in an input space $E$ of dimension $k$ to a set of output coordinates in an output space $F$ of dimension $l$.
@@ -161,6 +176,8 @@ The polyhedral model is a powerful mathematical framework enabling the precise a
   - $arrow(x)_"in" in E$ is an input coordinate,
   - $arrow(x)_"out" in F$ is an output coordinate,
   - $A$ is an $m times (k + l + N + 1)$ integer matrix that encodes the $m$ affine constraints of the relation.
+
+  *Note:* In the context of the polyhedral model (and underlying libraries such as ISL), an _integer set_ is fundamentally treated as a special case of a relation where the input space $E$ has a dimension of zero ($k = 0$). It effectively maps from a zero-dimensional space to an output space $F$, reducing to a pure parametric polyhedron that defines a domain of coordinates.
 ]
 
 By representing loop nests in this manner, the polyhedral model reasons exclusively over mathematical objects, providing significantly greater freedom to safely apply complex transformations. While traditional #gls("ast") or #gls("ir") representations allow for a wide range of standard compiler passes, complex loop optimizations remain highly constrained. However, this mathematical rigor restricts the application domain: the polyhedral model can only optimize loop nests with affine memory accesses and affine loop bounds, formally known as #glspl("scop").
@@ -188,43 +205,6 @@ To illustrate these concepts throughout this section, @fig:scientificbackground:
   caption: [Example of a simple loop nest with two statements.],
 ) <fig:scientificbackground:scopexample>
 
-=== Polyhedron
-
-#definition(
-  title: "Rational Polyhedron/Polytope",
-)[
-  A rational _$d$-dimensional polyhedron_ $cal(P)$ is a subspace of $bb(Q)^d$ that can be defined by a system of $n in bb(N)^+$ inequalities:
-  #math.equation(
-    block: true,
-    alt: "P is a set of x in rationals constained by n inequalities",
-    $
-      cal(P) = { arrow(x) in bb(Q)^d | A dot.op arrow(x) + a >= arrow(0) }
-    $,
-  )
-
-  where $A$ is an $n times d$ integer matrix and $a in bb(Z)^n$. This is called the _implicit representation_ of a
-  polyhedron.
-
-  Since a polyhedron may include some infinite directions, a bounded convex polyhedron is called a _polytope_.
-]
-
-
-Dans la majeur des partie des codes réels, les bornes de boucles ne sont pas définies explicitement. Pour pallier au probleme, on introduit des parametres symboliques pour representer les bornes de boucles. Le modele polyedrique utilise des parametric polytopes.
-
-#definition(
-  title: "Parametric polytope",
-)[
-  A parametric _d-polytope_ $cal(P)(arrow(p))$ is a bounded parametric polyhedron defined by:
-  $
-    cal(P)(arrow(p)) = { arrow(x) in bb(Q)^(d) | A dot.op vec(arrow(x), arrow(p), 1) polyrelcst arrow(0) }
-  $
-  where $arrow(p)$ is the symbolic _p-vector_ of the parameters, $A$ is a $m times (d+p+1)$ integer matrix with $m$ being
-  the number of constraints.\
-  Note that constraints can be equalities or inequalities. The couple of constraints $x_i >= 0 and - x_i >= 0$ can be used
-  to represent the equality $x_i = 0$.
-]
-
-Dans cette these, nous utiliserons exclusivement des _parametric polytopes_ pour representer les loopnest.
 
 === Polyhedron
 
@@ -259,16 +239,6 @@ In the vast majority of real world applications, loop bounds are not explicitly 
 
 Throughout this thesis, we will exclusively use parametric polytopes to geometrically represent loop nests.
 
-=== Statement
-
-#definition(
-  title: "Statement instance",
-)[
-  A _statement instance_ is a given execution of a statement $S$ during a particular iteration of its $k$ surrounding loops.
-  Each statement instance can ve associated with a the value of the outer loop iterators.
-]
-
-@fig:scientificbackground:scopexample illustrates a simple example of a #gls("scop") with a single statement $S$ nested within two loops.
 
 === Statement
 
@@ -321,7 +291,7 @@ The exhaustive set of all iteration vectors for which a given statement is execu
 
 === Data Dependencies
 
-For the polyhedral model to generate valid transformations that yield the exact same results as the original code, it must strictly respect the program's original data dependencies. Data dependencies act as constraints that restrict the legal execution order of statement instances. They arise when multiple statement instances access the same memory location.
+For the polyhedral model to generate valid transformations that yield the exact same results as the original code, it must strictly respect the program's original data dependencies. Data dependencies act as constraints that restrict the legal execution order of statement instances. They are introduced when multiple statement instances access the same memory location.
 
 #definition(
   title: "Data Dependency",
@@ -330,9 +300,9 @@ For the polyhedral model to generate valid transformations that yield the exact 
 ]
 
 There are three primary types of data dependencies that restrict statement reordering:
-- *RAW (Read-After-Write) or Flow Dependency:* A source statement writes to a memory location that is subsequently read by a target statement.
-- *WAR (Write-After-Read) or Anti-Dependency:* A source statement reads from a memory location before it is overwritten by a target statement.
-- *WAW (Write-After-Write) or Output Dependency:* A source statement writes to a memory location that is later overwritten by a target statement.
+- *Read-After-Write (RAW):* A source statement writes to a memory location that is subsequently read by a target statement.
+- *Write-After-Read (WAR):* A source statement reads from a memory location before it is overwritten by a target statement.
+- *Write-After-Write (WAW):* A source statement writes to a memory location that is later overwritten by a target statement.
 
 The polyhedral model geometrically represents these data dependencies as affine relations between the iteration vectors of the source and target statements.
 
@@ -397,7 +367,7 @@ The schedule abstraction allows compilers to reason about time using multidimens
   $
 ]
 
-Returning to our running example from @fig:scientificbackground:scopexample, the original, unmodified execution schedule maps the 2D iteration domain to a 3D logical time space. The first dimension ($t_0$) encodes the textual appearance of the statements, while the remaining dimensions encode the iterators. The corresponding schedule relations are:
+Returning to our running example from @fig:scientificbackground:scopexample, the original, unmodified execution schedule maps the 2D iteration domain to a 3D logical time space. The first dimension ($t_0$) encodes the lexical order of the statements, while the remaining dimensions encode the iterators. The corresponding schedule relations are:
 
 $
   theta_(S_1)(arrow(p)) & = { vec(i, j) -> vec(t_0, t_1, t_2) mid(|) t_0 = 0 "and" t_1 = i "and" t_2 = j } \
@@ -429,7 +399,7 @@ By transforming the 2D spatial domain into a 3D temporal domain, the schedule is
 
 While the mathematical abstractions of the polyhedral model provide a powerful framework for loop optimization, applying these transformations automatically to real-world programs requires robust software infrastructures. Over the past decades, the compilation community has developed a rich ecosystem to manipulate polyhedral representations, perform dependence analysis, and generate optimized code.
 
-This section explores the core components of this ecosystem, categorizing it into foundational mathematical tools and full-fledged polyhedral compilers.
+This section explores the core components of this ecosystem, categorizing it into polyhedral tools and compilers.
 
 === Polyhedral Tools
 
@@ -437,15 +407,14 @@ The application of the polyhedral model relies heavily on underlying mathematica
 
 ==== Integer Set Library (isl) <sec:isl>
 
-To manipulate polyhedra and solve Integer Linear Programming (ILP) problems, the #gls("isl"), developed by Sven Verdoolaege, it is widely used in the polyhedral community. isl is C library designed for manipulating sets and relations of integer points bounded by affine constraints.
+To manipulate polyhedra, the #gls("isl"), developed by Sven Verdoolaege~@ISL, it is widely used in the polyhedral community. isl is C library designed for manipulating sets and relations of integer points bounded by affine constraints.
 
-Unlike earlier polyhedral libraries that strictly manipulated basic polyhedra, isl relies on Presburger arithmetic. It operates primarily on two fundamental mathematical objects:
 - *Sets:* Used to represent iteration domains.
 - *Maps:* Used to represent access functions, dependencies, and schedules by mapping elements from one set to another.
 
 isl provides highly optimized implementations for essential polyhedral operations, including intersection, union, set difference, emptiness checks, and calculating lexicographic minimums or maximums.
 
-Beyond basic set operations, one of the most critical features of modern isl is its built-in *scheduling engine*. Based on a variant of the Pluto algorithm, isl can automatically compute affine schedules that respect all data dependencies while concurrently maximizing data locality and exposing parallelism.
+Beyond basic set operations, one of the most critical features of modern isl is its built-in *scheduling engine*. Based on a variant of the Pluto algorithm~@pluto1, isl can automatically compute affine schedules that respect all data dependencies while concurrently maximizing data locality and exposing parallelism.
 
 Finally, once the optimal schedule has been computed, isl features an advanced AST (Abstract Syntax Tree) generator. This component translates the transformed polyhedral representation back into a standard loop nest structure. Because it encapsulates the entire mathematical pipeline, isl serves as the fundamental engine behind almost all modern polyhedral compilers.
 
@@ -455,7 +424,7 @@ Finally, once the optimal schedule has been computed, isl features an advanced A
 
 ==== Standardized OpenScop Representation
 
-OpenScop is an open specification designed to ensure interoperability by allowing different polyhedral tools to seamlessly exchange data. It models the mathematical systems of affine inequalities (domains, access functions, and schedules) using a structured matrix format, where columns correspond to loop iterators, global parameters, and constant terms, and rows represent affine constraints. @code:openscopexample:source shows a simple loop nest, while its corresponding OpenScop representation is detailed in @code:openscopexample:representation.
+OpenScop~@openscop is an open specification designed to ensure interoperability by allowing different polyhedral tools to seamlessly exchange data. It models the mathematical systems of affine inequalities (domains, access functions, and schedules) using a structured matrix format, where columns correspond to loop iterators, global parameters, and constant terms, and rows represent affine constraints. @code:openscopexample:source shows a simple loop nest, while its corresponding OpenScop representation is detailed in @code:openscopexample:representation.
 
 
 #subpar.super(
@@ -521,27 +490,27 @@ To ease integration, it is accompanied by the #gls("osl"), a lightweight C API u
 
 The research community has developed various compilers to automate loop optimizations. While they all share the same theoretical foundation, they target different levels of the compilation stack and diverse hardware architectures. Some of the most notable polyhedral frameworks include:
 
-- *Pluto:* A source-to-source C compiler renowned for its scheduling algorithm, which automatically computes affine transformations to simultaneously maximize data locality and expose parallelism on multicore architectures.
-- *PPCG (Polyhedral Parallel Code Generator):* A source-to-source compiler designed specifically for heterogeneous architectures, transforming sequential C loop nests into highly optimized CUDA or OpenCL code for GPU execution.
-- *Apollo (Automatic speculative POLyhedral Loop Optimizer):* A framework that extends the traditional static model by applying transformations dynamically at runtime, enabling the optimization of loop nests with unresolved memory accesses or data-dependent control flow.
-- *Polygeist:* A modern C/C++ frontend and optimization framework built on top of MLIR (Multi-Level Intermediate Representation), which leverages the Affine dialect to perform polyhedral transformations within a progressive lowering pipeline.
-- *LLVM Polly:* An integrated loop optimizer within the LLVM compiler infrastructure that operates directly on the #gls("ir"), abstracting away the source language to perform advanced memory access optimizations and auto-parallelization.
+- *Pluto~@pluto1*: A source-to-source C compiler renowned for its scheduling algorithm, which automatically computes affine transformations to simultaneously maximize data locality and expose parallelism on multicore CPUs.
+- *PPCG (Polyhedral Parallel Code Generator)~@ppcg:* A source-to-source compiler designed specifically for heterogeneous architectures, transforming sequential C loop nests into highly optimized CUDA or OpenCL code for GPU execution.
+- *Apollo (Automatic speculative POLyhedral Loop Optimizer)~@apollo:* A framework that extends the traditional static model by applying transformations dynamically at runtime, enabling the optimization of loop nests with unresolved memory accesses or data-dependent control flow.
+- *Polygeist~@Polygeist:* A modern C/C++ frontend and optimization framework built on top of MLIR (Multi-Level Intermediate Representation), which leverages the Affine dialect to perform polyhedral transformations within a progressive lowering pipeline.
+- *LLVM Polly~@polly1:* An integrated loop optimizer within the LLVM compiler infrastructure that operates directly on the #gls("ir"), abstracting away the source language to perform advanced memory access optimizations and auto-parallelization.
 
-While each of these tools successfully optimizes the performance of the transformed codes, the work presented in this thesis relies primarily on the LLVM infrastructure, utilizing Polly to intercept and optimize Kokkos abstractions. Consequently, the following section provides a comprehensive deep dive into the architecture and the compilation pipeline of LLVM Polly.
+While each of these tools successfully optimizes the performance of the transformed codes, the work presented in this thesis relies primarily on the LLVM infrastructure, utilizing Polly to intercept and optimize Kokkos codes. Consequently, the following section provides a comprehensive deep dive into the architecture and the compilation pipeline of LLVM Polly.
 
 
 
 == Deep Dive into LLVM Polly <sec:polly>
 
-Polly is a low level polyhedral loop analysis and optimization framework seamlessly integrated into the LLVM middle-end optimizer. It can be natively invoked through the Clang compiler frontend (e.g., using command-line flags like `-O3 -mllvm -polly`). A key strategic advantage of Polly is its reliance on the LLVM #gls("ir"). By operating strictly at the #gls("ir") level, Polly is completely decoupled from the frontend source language, allowing it to optimize loops regardless of whether the original source code was written in C, C++, Fortran, or any other language supported by the LLVM ecosystem.
+Polly~@polly2 is a low level polyhedral loop analysis and optimization framework seamlessly integrated into the LLVM middle-end optimizer. It can be natively invoked through the Clang compiler frontend (e.g., using command-line flags like `-O3 -mllvm -polly`). A key strategic advantage of Polly is its reliance on the LLVM #gls("ir"). By operating strictly at the #gls("ir") level, Polly is completely decoupled from the frontend source language, allowing it to optimize loops regardless of whether the original source code was written in C, C++, Fortran, or any other language supported by the LLVM ecosystem.
 
 This #gls("ir") driven architecture is particularly advantageous when targeting modern high-level parallel frameworks such as Kokkos. Kokkos relies heavily on advanced C++ features, including template metaprogramming, lambda functions, and complex object abstractions, which are notoriously difficult for traditional source-to-source polyhedral compilers to parse and analyze accurately. By positioning Polly in the middle-end, it intercepts the code only after the Clang frontend has fully instantiated the templates, resolved the high-level abstractions, and performed aggressive function inlining. Consequently, Polly operates on a "cleaned up" and canonicalized representation where the underlying multi-dimensional loop nests and memory accesses are explicitly exposed, entirely bypassing the syntactic complexity of the original C++ source code.
 
 === Architecture and Pipeline Integration
 
-Within the LLVM compiler infrastructure, optimizations are applied as a sequence of discrete passes orchestrated by the Pass Manager. Polly integrates natively into this middle-end pipeline, and its exact point of execution can be controlled via the `-polly-position` command-line flag.
+Within the LLVM compiler infrastructure, optimizations are applied as a sequence of passes orchestrated by the Pass Manager. Polly integrates natively into this middle-end pipeline, and its exact point of execution can be controlled via the `-polly-position` command-line flag.
 
-By default—and strictly adhered to throughout all the experimental work presented in this thesis—Polly is scheduled at the `before-vectorizer` position. This specific placement is highly strategic. Before Polly even inspects the code, the #gls("ir") has already been heavily optimized and canonicalized by standard LLVM passes. Passes such as `mem2reg` (which promotes memory allocations to SSA registers), `simplifycfg` (which cleans up the control-flow graph), and aggressive function inlining have already stripped away the high-level C++ abstraction overhead. Consequently, Polly operates on clean, normalized loop structures and feeds its highly optimized, parallelizable output directly into LLVM's native auto-vectorizer.
+By default—and used during all the experimental work presented in this thesis—Polly is scheduled at the `before-vectorizer` position. This specific placement is highly strategic. Before Polly even inspects the code, the #gls("ir") has already been heavily optimized and canonicalized by standard LLVM passes. Passes such as `mem2reg` (which promotes memory allocations to SSA registers), `simplifycfg` (which cleans up the control-flow graph), and aggressive function inlining have already stripped away the high-level C++ abstraction overhead. Consequently, Polly operates on clean, normalized loop structures and feeds its highly optimized, parallelizable output directly into LLVM's native auto-vectorizer.
 
 #figure(
   rect(width: 100%, height: 150pt, stroke: 1pt + black, align(center + horizon)[
@@ -563,7 +532,7 @@ The detailed mechanisms of each of these internal passes are explored in the fol
 
 ==== Code Preparation
 
-Before identifying polyhedral regions, Polly must ensure the LLVM #gls("ir") is in a highly canonical and simplified state. The `CodePreparation` pass acts as a specialized bridge between the standard LLVM middle-end optimizations and Polly's strict mathematical requirements. It performs targeted transformations, such as simplifying loop exit blocks, normalizing induction variables, rotating loops to obtain the correct structural form, and ensuring that basic blocks are structured in a way that facilitates polyhedral extraction. This preparatory step maximizes the number of loop nests that can be subsequently recognized as valid SCoPs.
+Before identifying polyhedral regions, Polly must ensure the LLVM #gls("ir") is in a highly canonical and simplified state. The `CodePreparation` pass acts as a specialized bridge between the standard LLVM middle-end optimizations and Polly's strict mathematical requirements. It performs transformations, such as simplifying loop exit blocks, normalizing induction variables, rotating loops to obtain the correct structural form, and ensuring that basic blocks are structured in a way that facilitates polyhedral extraction. This preparatory step maximizes the number of loop nests that can be subsequently recognized as valid SCoPs.
 
 ==== SCoP Detection
 
@@ -575,7 +544,7 @@ Furthermore, this pass performs a rigorous legality and safety check. The SESE r
 
 ==== SCoP Building
 
-Once a valid SESE region is successfully detected, the `ScopInfo` pass is executed to translate the underlying LLVM #gls("ir") into the mathematical abstractions of the polyhedral model. This process involves mapping the imperative code structures into #gls("isl") objects.
+Once a valid SESE region is successfully detected, the `ScopInfo` pass is executed to translate the underlying LLVM #gls("ir") into the mathematical abstractions of the polyhedral model. This process involves mapping the code structures into #gls("isl") objects.
 
 For each basic block within the region, `ScopInfo` defines a mathematical statement. It then constructs the exact *iteration domain* by translating the affine constraints of the surrounding loops (captured via SCEV) into isl sets. Similarly, memory instructions (such as `load` and `store`) are converted into isl access relations, mapping the logical execution of a statement to specific memory addresses.
 
@@ -606,6 +575,6 @@ Finally, to guarantee absolute semantic correctness, Polly employs a loop versio
 While LLVM Polly provides a mechanism for loop optimization, its architectural choice to operate exclusively at the #gls("ir") level introduces several inherent limitations. These challenges are particularly pronounced when analyzing heavily abstracted C++ code like Kokkos.
 
 - *The Semantic Gap and Information Reconstruction:* Operating on LLVM #gls("ir") means that all high-level language constructs have been lowered and flattened. To apply the polyhedral model, Polly must artificially reverse-engineer the original program structure from low-level instructions. This involves recovering multi-dimensional array structures (delinearization), reconstructing loop hierarchies, and logically grouping instructions into mathematical statements. If the original C++ code relies on complex template abstractions, this reconstruction process becomes highly fragile, frequently causing Polly to fail in recognizing valid SCoPs.
-- *Lack of GPU Support:* Polly is primarily engineered to optimize data locality and parallelism for multi-core CPUs (via OpenMP and SIMD vectorization). While experimental extensions like Polly-ACC were historically developed to generate GPU code, they are not actively maintained in the upstream LLVM compiler. Consequently, Polly natively lacks the robust capability to generate optimized CUDA or HIP code for modern heterogeneous architectures.
+- *Lack of GPU Support:* Polly is primarily engineered to optimize data locality and parallelism for multi-core CPUs (via OpenMP and SIMD vectorization). While experimental extensions like Polly-ACC~@pollyacc were historically developed to generate GPU code, they are not actively maintained in the upstream LLVM compiler. Consequently, Polly natively lacks the robust capability to generate optimized CUDA or HIP code for modern heterogeneous architectures.
 
 These inherent structural and hardware-targeting limitations underscore the difficulty of applying standard polyhedral compilers directly to performance-portable frameworks. Overcoming these barriers to unlock polyhedral optimizations for tools like Kokkos, which provide high-level abstractions for both CPU and GPU architectures, forms the core motivation for the methodologies developed in the subsequent chapters of this thesis.
