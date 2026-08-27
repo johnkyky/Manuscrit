@@ -236,27 +236,39 @@
 #show "e.g.": emph
 #show "i.e.": emph
 
-#show "Kokkos": it => software(it)
-#show "RAJA": it => software(it)
-#show "Pluto": it => software(it)
-#show "Clang": it => software(it)
-#show "GCC": it => software(it)
-#show "LLVM": it => software(it)
-#show "Polly": it => software(it)
-#show "Apollo": it => software(it)
-#show "PPCG": it => software(it)
-#show "OpenScop library": it => software(it)
-#show "OpenScop": it => software(it)
-#show regex("\b(isl)\b"): it => software(it)
-#show "Integer Set Library": it => software(it)
+#let softwares = (
+  "Kokkos",
+  "RAJA",
+  "Pluto",
+  "Clang",
+  "GCC",
+  "LLVM",
+  "Polly",
+  "Apollo",
+  "PPCG",
+  "OpenScop library",
+  "OpenScop",
+  regex("\b(isl)\b"),
+  "Integer Set Library",
+  "PET",
+  "Graphite",
+  "PolyLib",
+  "Polyhedral Library",
+  "PIPLib",
+  "Parametric Integer Programming Library",
+  "std::par",
+)
 
-#show "PET": it => software(it)
-#show "Graphite": it => software(it)
-#show "PolyLib": it => software(it)
-#show "Polyhedral Library": it => software(it)
-#show "PolyLib": it => software(it)
-#show "PIPLib": it => software(it)
-#show "Parametric Integer Programming Library": it => software(it)
+#for s in softwares {
+  show s: it => software(it)
+}
+
+#show raw: it => {
+  for s in softwares {
+    show s: name => name
+  }
+  it
+}
 
 #show: lt(overwrite: false)
 
