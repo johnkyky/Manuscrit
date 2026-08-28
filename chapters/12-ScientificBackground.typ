@@ -416,10 +416,45 @@ isl provides highly optimized implementations for essential polyhedral operation
 
 Beyond basic set operations, one of the most critical features of modern isl is its built-in *scheduling engine*. Based on a variant of the Pluto algorithm~@pluto1, isl can automatically compute affine schedules that respect all data dependencies while concurrently maximizing data locality and exposing parallelism.
 
-Finally, once the optimal schedule has been computed, isl features an advanced AST (Abstract Syntax Tree) generator. This component translates the transformed polyhedral representation back into a standard loop nest structure. Because it encapsulates the entire mathematical pipeline, isl serves as the fundamental engine behind almost all modern polyhedral compilers.
+Finally, once the optimal schedule has been computed, isl features an advanced AST (Abstract Syntax Tree) generator. This component translates the transformed polyhedral representation back into a standard loop nest structure. Because it encapsulates the entire mathematical pipeline, isl serves as the fundamental engine behind almost all modern polyhedral compilers. @fig:isl_syntax_example illustrates how a standard C loop nest is mathematically modeled using isl's sets and maps syntax.
 
 
-#edit("mettre un exemple de code et son ecriture en isl")
+#subpar.super(
+  grid(
+    columns: 1,
+    rows: 2,
+    inset: 0.5cm,
+    [
+      #figure(
+        ```C
+        for (int i = 0; i < N; i++)
+          for (int j = 0; j < M; j++)
+            A[i][j] = B[i] + C[j]; // S1
+        ```,
+        caption: [Source input code],
+      )
+    ],
+    [
+      #figure(
+        ```text
+        // Iteration Set Domain
+        [N, M] -> { S1[i, j] : 0 <= i < N and 0 <= j < M }
+
+        // Execution Map Schedule
+        [N, M] -> { S1[i, j] -> [i, j] }
+
+        // Memory Maps Accesses
+        [N, M] -> { S1[i, j] -> A[i, j] } // Write
+        [N, M] -> { S1[i, j] -> B[i] }    // Read
+        [N, M] -> { S1[i, j] -> C[j] }    // Read
+        ```,
+        caption: [isl representation of the iteration domain, schedule, and access functions for the example code.],
+      )
+    ],
+  ),
+  caption: [Example of a simple loop nest and its corresponding isl representation.],
+  label: <fig:isl_syntax_example>,
+)
 
 
 ==== Standardized OpenScop Representation
