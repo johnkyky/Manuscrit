@@ -1,8 +1,8 @@
 #import "../src/common.typ": *
 
-= State of the art <chapter:stateoftheart>
+= State of the Art <chapter:stateoftheart>
 
-The evolution of hardware complexity in modern supercomputers has led to a massive increase in both the number of available cores and their computational power. These multi-core architectures are frequently coupled with specialized hardware accelerators, making the development of scientific codes a real challenge. To address this issue, developers have invented distinct programming approaches, relying primarily on two of them: high-level performance portabilité frameworks designed to abstract the hardware and maintain a single source code for multiple architectures, and specialized compilers dedicated to code optimization.
+The evolution of hardware complexity in modern supercomputers has led to a massive increase in both the number of available cores and their computational power. These multi-core architectures are frequently coupled with specialized hardware accelerators, making the development of scientific codes a real challenge. To address this issue, developers have invented distinct programming approaches, relying primarily on two of them: high-level performance portability frameworks designed to abstract the hardware and maintain a single source code for multiple architectures, and specialized compilers dedicated to code optimization.
 
 On one hand, high-level performance portability frameworks aim to provide developers with a unified interface to manage parallelism and memory. On the other hand, specialized compilers, such as polyhedral compilers, focus on the mathematical rigor of loop optimization and the exposition of fine-grained parallelism through advanced transformations based on the source code.
 
@@ -99,7 +99,7 @@ Consequently, it is technically and mathematically impossible for them to restru
 
 == Polyhedral Model and Implementations
 
-Today, there are numerous implementations of compilers and tools based on the polyhedral model. Historically, these tools relied on source-to-source approaches and were limited to analyzing a subset of the C language. One of the most renowned compilers for the quality of its scheduler is Pluto~@plutoscheduler. It enables source-to-source compilation of C code by exploring a vast space of transformations (such as diamond tiling). Another reference tool is PPCG (Polyhedral Parallel Code Generation)~@ppcg, a source-to-source compiler designed to generate optimized GPU code from sequential C code. These purely textual approaches facilitate the extraction of the model: memory accesses, such as multidimensional arrays (for example, A[i][j]), are directly visible as indices, which greatly simplifies the mathematical analysis (@fig:polyhedral_s2s).
+Today, there are numerous implementations of compilers and tools based on the polyhedral model. Historically, these tools relied on source-to-source approaches and were limited to analyzing a subset of the C language. One of the most renowned compilers for the quality of its scheduler is Pluto~@plutoscheduler. It enables source-to-source compilation of C code by exploring a vast space of transformations (such as diamond tiling). Another reference tool is PPCG (Polyhedral Parallel Code Generator)~@ppcg, a source-to-source compiler designed to generate optimized GPU code from sequential C code. These purely textual approaches facilitate the extraction of the model: memory accesses, such as multidimensional arrays (for example, A[i][j]), are directly visible as indices, which greatly simplifies the mathematical analysis (@fig:polyhedral_s2s).
 
 #[
   #figure(
@@ -195,7 +195,7 @@ Following this same logic of abstraction, other works have turned to the Python 
 Similarly, initiatives such as PyKokkos~@pykokkos offer high-level Python interfaces. These abstraction layers make it possible to capture mathematical operations in a highly abstract manner. Having access to this preserved semantic information would be highly beneficial for extracting the polyhedral model, all while continuing to hide hardware complexity. An example of this high-level syntax is provided in @fig:pykokkos_syntax.
 
 #[
-  #show figure: set block(breakable: true)
+  #show figure: set block(breakable: false)
   #figure(
     ```python
     import pykokkos as pk
@@ -219,6 +219,6 @@ Similarly, initiatives such as PyKokkos~@pykokkos offer high-level Python interf
 
 Although these approaches provide highly effective solutions to performance problems, they impose a prohibitive entry cost for the HPC industry. Indeed, they require scientists to completely rewrite their historical and massive simulation codes into new languages or highly specific APIs.
 
-To bypass this rewriting barrier, some works have explored the reverse approach: using portability frameworks as compilation targets. For example, researchers @polykokkosbackend used polyhedral tools to analyze classic sequential C code in order to automatically generate Kokkos code. This strategy combines the mathematical optimization performed upstream with the hardware portability guaranteed by Kokkos downstream.
+To bypass this rewriting barrier, some works have explored the reverse approach: using portability frameworks as compilation targets. For example, the authors of @polykokkosbackend used polyhedral tools to analyze classic sequential C code in order to automatically generate Kokkos code. This strategy combines the mathematical optimization performed upstream with the hardware portability guaranteed by Kokkos downstream.
 
 However, while this method is relevant for modernizing legacy codes, it absolutely does not solve the central problem of the current ecosystem: optimizing codes already written natively in Kokkos. To date, there is no tool capable of ingesting Kokkos source code, analyzing it mathematically, and restructuring its loops from the inside transparently. It is to fill this scientific void that this thesis proposes an integration of the polyhedral model, capable of operating directly beneath Kokkos' abstractions.

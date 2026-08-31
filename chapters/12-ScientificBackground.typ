@@ -4,7 +4,7 @@
 
 This thesis focuses on applying the polyhedral model to statically optimize the loop nests expressed by Kokkos @kokkos kernels. Because this work bridges high-level performance portability frameworks with low-level mathematical loop transformations, a solid understanding of both domains is required.
 
-This chapter provides the necessary theoretical foundations for the remainder of the manuscript. First, @sec:loopnests presents the Loop nest concept. Then, @sec:kokkos introduces the Kokkos programming model, detailing its memory and execution abstractions. @sec:polyhedral explores the polyhedral representation and @sec:polyhedralecosystem discribes the Polyhedral ecosystem tools and compilers with a specific focus in @sec:polly on the Polly's tool that form the base of our implementation.
+This chapter provides the necessary theoretical foundations for the remainder of the manuscript. First, @sec:loopnests presents the Loop nest concept. Then, @sec:kokkos introduces the Kokkos programming model, detailing its memory and execution abstractions. @sec:polyhedral explores the polyhedral representation and @sec:polyhedralecosystem describes the Polyhedral ecosystem tools and compilers with a specific focus in @sec:polly on the Polly tool that forms the base of our implementation.
 
 
 == Loop Nests <sec:loopnests>
@@ -58,7 +58,7 @@ While imperfect loop nests are natural for developers to write, they pose a sign
 
 == The Kokkos Programming Model <sec:kokkos>
 
-Originally developed to abstract hardware parallelism, the Kokkos programming model has established itself as a reference framework in the High-Performance Computing (HPC) and scientific simulation. It provides a unified C++ interface for heterogeneous parallel programming, with a primary focus on performance portability. By offering high-level abstractions for both memory management and execution control, Kokkos simplifies the development process while ensuring that applications achieve optimal performance regardless of the target architecture.
+Originally developed to abstract hardware parallelism, the Kokkos programming model has established itself as a reference framework in High-Performance Computing (HPC) and scientific simulation. It provides a unified C++ interface for heterogeneous parallel programming, with a primary focus on performance portability. By offering high-level abstractions for both memory management and execution control, Kokkos simplifies the development process while ensuring that applications achieve optimal performance regardless of the target architecture.
 
 === Spaces: Execution and Memory
 
@@ -115,7 +115,7 @@ To abstract hardware specific parallel programming models (e.g., OpenMP, CUDA), 
 
 ==== Execution Policies
 
-While the pattern defines *what* operation is performed, the execution policy defines *how* and *where* it is executed. It defines the iteration domain, hints the scheduling strategy depending of the stucture type and specifies the target execution space.
+While the pattern defines *what* operation is performed, the execution policy defines *how* and *where* it is executed. It defines the iteration domain, hints the scheduling strategy depending on the structure type and specifies the target execution space.
 
 ===== RangePolicy and MDRangePolicy
 `Kokkos::RangePolicy` and `Kokkos::MDRangePolicy` describe basic iteration spaces for one-dimensional and $n$ dimensional perfectly nested loops, respectively. Under the hood, MDRangePolicy automatically applies architecture specific tiling and index linearization to maximize cache locality and memory coalescing.
@@ -123,7 +123,7 @@ While the pattern defines *what* operation is performed, the execution policy de
 ===== TeamPolicy
 For more complex algorithms, flat iteration spaces and basic scheduling are often insufficient. `Kokkos::TeamPolicy` addresses this issue by exposing hierarchical parallelism, which is crucial for fully exploiting specific hardware topologies, particularly on GPUs. It logically divides the iteration space into a one dimensional array of _Leagues_ where each league consists of multiple _Teams_ of threads. When mapped to a GPU, a league typically corresponds to a grid of thread blocks, while a team corresponds to an individual block of threads. On a CPU, a league might map to the available physical cores, with teams utilizing hardware threads or vector lanes. With this more advanced approach, developers gain fine grained control over hardware resources such as exploiting user-managed shared memory on GPUs or explicitly managing cache memory on CPUs to the detriment of development simplicity.
 
-To illustrate how Kokkos exposes multi-dimensional iteration spaces, @code:mdrangeexample demonstrates a simple 2D matrix addition implemented with an `Kokkos::MDRangePolicy`.In this example, the policy explicitly defines a two-dimensional iteration domain (indicated by `Kokkos::Rank<2>`) ranging from $(0, 0)$ to $(N, M)$. The third argument of `Kokkos::parallel_for` is the lambda function, which describes the computational kernel itself. As arguments, this lambda function takes the iteration indices $i$ and $j$ to perform the element wise operations on the multi-dimensional views.
+To illustrate how Kokkos exposes multi-dimensional iteration spaces, @code:mdrangeexample demonstrates a simple 2D matrix addition implemented with an `Kokkos::MDRangePolicy`. In this example, the policy explicitly defines a two-dimensional iteration domain (indicated by `Kokkos::Rank<2>`) ranging from $(0, 0)$ to $(N, M)$. The third argument of `Kokkos::parallel_for` is the lambda function, which describes the computational kernel itself. As arguments, this lambda function takes the iteration indices $i$ and $j$ to perform the element-wise operations on the multi-dimensional views.
 
 #figure(
   ```cpp
@@ -316,7 +316,7 @@ The polyhedral model geometrically represents these data dependencies as affine 
   $
     delta_(S,T)(arrow(p)) = {arrow(x)_S -> arrow(x)_T | R_(S,T) op(dot) vec(arrow(x)_S, arrow(x)_T, arrow(p), 1) >= arrow(0)}
   $
-  where $R_(S,T)$ is a $m times (k + l + N 1)$ integer matrix, with $m$ the number of constraints, $k = "dim"(arrow(x)_S)$ the
+  where $R_(S,T)$ is a $m times (k + l + N + 1)$ integer matrix, with $m$ the number of constraints, $k = "dim"(arrow(x)_S)$ the
   depth of the source statement, $l = "dim"(arrow(x)_T)$ the depth of the target statement and $N = "dim"(arrow(p))$ the
   number of parameters.
 ]
@@ -407,7 +407,7 @@ The application of the polyhedral model relies heavily on underlying mathematica
 
 ==== Integer Set Library (isl) <sec:isl>
 
-To manipulate polyhedra, the #gls("isl"), developed by Sven Verdoolaege~@ISL, it is widely used in the polyhedral community. isl is C library designed for manipulating sets and relations of integer points bounded by affine constraints.
+To manipulate polyhedra, the #gls("isl"), developed by Sven Verdoolaege~@ISL, is widely used in the polyhedral community. isl is a C library designed for manipulating sets and relations of integer points bounded by affine constraints.
 
 - *Sets:* Used to represent iteration domains.
 - *Maps:* Used to represent access functions, dependencies, and schedules by mapping elements from one set to another.
@@ -557,7 +557,7 @@ By defaultâ€”and used during all the experimental work presented in this thesisâ
 Once invoked, Polly executes its own specialized internal pipeline. This subsystem closely mirrors the theoretical polyhedral workflow and consists of a strict sequence of sequential LLVM passes, as illustrated in @fig:pollypipeline:
 
 - *`CodePreparation`:* Performs final transformations to canonicalize the #gls("ir"), ensuring that loop structures and memory accesses are in a form suitable for polyhedral analysis.
-- *`ScopDetect`:* Analyzes the control-flow graph to identify valid Single-Entry Single-Exit (SESE) regions that valid with polyhedral representation.
+- *`ScopDetect`:* Analyzes the control-flow graph to identify valid Single-Entry Single-Exit (SESE) regions that are valid for polyhedral representation.
 - *`ScopInfo`:* Extracts the #gls("ir") instructions from valid regions and translates them into exact mathematical isl representations (domains, accesses, exact data dependencies, and original scheduling).
 - *`ScheduleOptimizer`:* Invokes the built-in isl scheduling engine to compute optimal affine transformations that maximize data locality and expose parallelism.
 - *`IslAst`:* Generates a new #gls("ast") representing the structure of the optimally scheduled loop nest.
@@ -571,7 +571,7 @@ Before identifying polyhedral regions, Polly must ensure the LLVM #gls("ir") is 
 
 ==== SCoP Detection
 
-Following the preparatory transformations, the `ScopDetect` pass is responsible for identifying segments of the LLVM #gls("ir") that can be legally optimized using the polyhedral model. Polly operate on the Control-Flow Graph (CFG) to isolate maximal Single-Entry Single-Exit (SESE) regions.
+Following the preparatory transformations, the `ScopDetect` pass is responsible for identifying segments of the LLVM #gls("ir") that can be legally optimized using the polyhedral model. Polly operates on the Control-Flow Graph (CFG) to isolate maximal Single-Entry Single-Exit (SESE) regions.
 
 For a SESE region to be validated as a Static Control Part (SCoP), Polly enforces strict acceptance criteria. It relies heavily on LLVM's Scalar Evolution (SCEV) analysis to inspect loop induction variables, bounds, and conditional branches. The region is accepted only if `ScopDetect` can definitively prove that all loop bounds and control-flow conditions are purely affine expressions.
 
