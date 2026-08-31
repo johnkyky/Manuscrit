@@ -548,10 +548,8 @@ Within the LLVM compiler infrastructure, optimizations are applied as a sequence
 By default—and used during all the experimental work presented in this thesis—Polly is scheduled at the `before-vectorizer` position. This specific placement is highly strategic. Before Polly even inspects the code, the #gls("ir") has already been heavily optimized and canonicalized by standard LLVM passes. Passes such as `mem2reg` (which promotes memory allocations to SSA registers), `simplifycfg` (which cleans up the control-flow graph), and aggressive function inlining have already stripped away the high-level C++ abstraction overhead. Consequently, Polly operates on clean, normalized loop structures and feeds its highly optimized, parallelizable output directly into LLVM's native auto-vectorizer.
 
 #figure(
-  rect(width: 100%, height: 150pt, stroke: 1pt + black, align(center + horizon)[
-    Polly's pipeline
-  ]),
-  caption: [Integration of Polly passes within the LLVM middle-end optimization pipeline at the `before-vectorizer` position.],
+  image(fig.scientificbackground-pollypipeline),
+  caption: [Integration of Polly passes within the LLVM middle-end optimization pipeline at the `before-vectorizer` position. (Source: #link("https://polly.llvm.org/docs/Architecture.html")[LLVM Polly Documentation])],
 ) <fig:pollypipeline>
 
 Once invoked, Polly executes its own specialized internal pipeline. This subsystem closely mirrors the theoretical polyhedral workflow and consists of a strict sequence of sequential LLVM passes, as illustrated in @fig:pollypipeline:
