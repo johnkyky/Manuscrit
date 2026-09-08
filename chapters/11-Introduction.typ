@@ -40,7 +40,11 @@ This thesis introduces and implements a hybrid approach combining the polyhedral
 
 #chref(<chapter:stateoftheart>) presents the state of the art, reviewing existing research on Kokkos optimizations, specific polyhedral tools, ecosystem developments around Kokkos, and research to optimize software python libraries using the polyhedral model.
 
-In #chref(<chapter:loopkerneloptimizations>), the implementation of the proposed hybrid approach is detailed. This chapter introduces the modifications made to Kokkos to expose its computational kernels to polyhedral optimization via LLVM Polly, which was itself extended to process Kokkos constructs. It details the implementation phases, the Kokkos API adaptations, the internal modifications to Polly, and the compilation for GPU architectures within the polyhedral pipeline.
+In #chref(<chapter:kokkosvisibility>), the first part of the implementation of the proposed hybrid approach is detailed. This chapter introduces the modifications made to Kokkos to expose its computational kernels to polyhedral optimization via LLVM Polly, which was itself extended to process Kokkos constructs.
+
+#chref(<chapter:complexexecutionpatterns>) delves into complex execution patterns, detailing how we extend the polyhedral vision beyond a single kernel, and handle challenges like static naming and triangular loops.
+
+#chref(<chapter:schedulingheterogeneous>) covers the scheduling and heterogeneous code generation phases, including the integration of external schedulers like Pluto and the generation of GPU code via PPCG.
 
 #chref(<chapter:evaluations>) presents the experimental evaluation of this hybrid toolchain. The framework is tested against various scientific codes, and its performance is compared against both standard Kokkos optimized versions and Kokkos with polyhedral optimizion versions. These experimental results validate the efficiency and viability of the proposed hybrid approach.
 
@@ -86,7 +90,11 @@ Finally, #chref(<chapter:conclusion>) concludes this manuscript and discusses po
 //
 // #chref(<chapter:stateoftheart>) introduit l'état de l'art des différents travaux réalisés sur l'optimisation de kokkos, des différents outils polyedrique spécifiques, des outils autour de kokkos ou des optimsation de librairies avec le modele polyedrique.
 //
-// In #chref(<chapter:loopkerneloptimizations>), l'implémentation de l'approche hybride est detaillé. Elle introduira les modifications apportées à Kokkos pour permettre l'optimisation des noyaux de calculs par le modèle polyédrique grâce a Polly, lui meme transformé pour accueillir les code Kokkos. Elle détaillera également les différentes étapes de l'implémentation, les changements de l'API Kokkos, les modifications de Polly et les différentes étapes de l'implémentation ainsi que la gestion des architectures CPU et GPU dans Polly.
+// In #chref(<chapter:kokkosvisibility>), la première partie de l'implémentation de l'approche hybride est detaillée. Elle introduit les modifications apportées à Kokkos pour permettre l'optimisation des noyaux de calculs par le modèle polyédrique grâce a Polly, lui meme transformé pour accueillir les code Kokkos.
+//
+// #chref(<chapter:complexexecutionpatterns>) se concentre sur les motifs d'exécution complexes, expliquant comment étendre la vision polyédrique au-delà d'un seul noyau et gérer les défis comme le nommage statique et les boucles triangulaires.
+//
+// #chref(<chapter:schedulingheterogeneous>) aborde l'ordonnancement et la génération de code hétérogène, incluant l'intégration de Pluto et la génération de code GPU via PPCG.
 //
 // #chref(<chapter:evaluations>) présente les résultats expérimentaux de cette aproche hybride. L'outils sera confronté à différents codes scientifiques et les performances seront comparées avec les versions optimisées par Kokkos et les versions optimisées par le modèle polyédrique. Les résultats expérimentaux permettront de valider l'efficacité de l'approche hybride proposée.
 //

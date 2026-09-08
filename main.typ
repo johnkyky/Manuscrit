@@ -298,10 +298,12 @@
 
 #include "chapters/12-ScientificBackground.typ"
 #include "chapters/13-StateOfTheArt.typ"
-#include "chapters/14-LoopKernelOptimizationWithinKokkos.typ"
-#include "chapters/15-Evalutions.typ"
+#include "chapters/14-KokkosVisibility.typ"
+#include "chapters/15-ComplexExecutionPatterns.typ"
+#include "chapters/16-SchedulingHeterogeneous.typ"
+#include "chapters/17-Evaluations.typ"
 
-#include "chapters/20-Conclusion.typ"
+#include "chapters/18-Conclusion.typ"
 
 /**
  * Back matter
