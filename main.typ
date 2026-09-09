@@ -57,19 +57,35 @@
 #let title-en = "Disambiguation of C++ Complexity for Advanced Program Optimization and Parallelization"
 #let title-fr = "Désambiguïsation de la complexité du C++ pour l'optimisation et la parallélisation avancées de programmes"
 
-#set document(title: title-en, author: "Ugo Battiston", date: datetime(day: 18, month: 12, year: 2026))
+#set document(title: title-en, author: "Ugo Battiston", date: datetime(
+  day: 18,
+  month: 12,
+  year: 2026,
+))
 
 #set page(paper: "a4", number-align: center, numbering: none, footer: none)
-#set text(font: "Brill", size: 12pt, hyphenate: false, lang: "en", features: (lnum: 1, onum: 0))
+#set text(font: "Brill", size: 12pt, hyphenate: false, lang: "en", features: (
+  lnum: 1,
+  onum: 0,
+))
 #set figure(placement: none)
 #set align(left)
 #show smallcaps: set text(font: "Libertinus Serif")
-#show raw: set text(font: "FiraCode Nerd Font Mono", size: 8pt, ligatures: false, features: (calt: 0))
+#show raw: set text(
+  font: "FiraCode Nerd Font Mono",
+  size: 8pt,
+  ligatures: false,
+  features: (calt: 0),
+)
 #show raw.where(block: false): it => {
   box(it)
 }
 
-#show math.equation: set text(font: "New Computer Modern Math", weight: "regular", size: 11pt)
+#show math.equation: set text(
+  font: "New Computer Modern Math",
+  weight: "regular",
+  size: 11pt,
+)
 
 /**
  * Front matter
@@ -141,7 +157,12 @@
 #pagebreak()
 #pagebreak(to: "odd")
 
-#set par(leading: 1.2em, spacing: 1.8em, justify: true, first-line-indent: 1.5em)
+#set par(
+  leading: 1.2em,
+  spacing: 1.8em,
+  justify: true,
+  first-line-indent: 1.5em,
+)
 #set heading(numbering: none)
 #set page(numbering: "i", margin: (x: 3cm), footer: context {
   align(center, counter(page).display())
@@ -199,7 +220,11 @@
 #show heading: it => block(it + v(0.5cm))
 
 #show heading.where(level: 1): set text(size: 34pt, weight: "bold")
-#show heading.where(level: 1): set par(spacing: 1.1em, first-line-indent: 0in, justify: false)
+#show heading.where(level: 1): set par(
+  spacing: 1.1em,
+  first-line-indent: 0in,
+  justify: false,
+)
 
 #show heading.where(level: 1): it => {
   custom-break()
@@ -218,8 +243,14 @@
 #show heading.where(level: 2): set text(size: 22pt, weight: "bold")
 #show heading.where(level: 2): it => block(v(0.5em) + it)
 
-#show heading.where(level: 3).or(heading.where(level: 4)): set text(size: 18pt, weight: "semibold")
-#show heading.where(level: 3).or(heading.where(level: 4)): it => pad(left: 2em, it)
+#show heading.where(level: 3).or(heading.where(level: 4)): set text(
+  size: 18pt,
+  weight: "semibold",
+)
+#show heading.where(level: 3).or(heading.where(level: 4)): it => pad(
+  left: 2em,
+  it,
+)
 
 // Pad lists
 #show list: it => pad(left: 1em, top: 0em, it)
