@@ -98,10 +98,16 @@
 
       // middle block
       #align(center + horizon, [
-        #text(size: accent_font_size, weight: "bold", upper("Thèse")) présentée par #linebreak()
+        #text(size: accent_font_size, weight: "bold", upper("Thèse")) présentée
+        par #linebreak()
         #text(size: accent_font_size, weight: "bold", author)
         #linebreak()
-        soutenue le : #icu.fmt(defense-date, locale: "fr", date-fields: "YMD", length: "long")
+        soutenue le : #icu.fmt(
+          defense-date,
+          locale: "fr",
+          date-fields: "YMD",
+          length: "long",
+        )
         #linebreak()
         #grid(
           columns: (1fr, 1.5fr),
@@ -123,7 +129,13 @@
         )
         #rect(width: 85%, inset: 20pt, fill: none, [
           #align(center + horizon, [
-            #text(font: "Unistra C", size: title_font_size, weight: "bold", hyphenate: false, title)
+            #text(
+              font: "Unistra C",
+              size: title_font_size,
+              weight: "bold",
+              hyphenate: false,
+              title,
+            )
           ])
         ])
       ])
@@ -138,7 +150,7 @@
       // }
       // align(center, text(1.3em, weight: 100, deadline-text))
       // supervisors
-      #let columns = (0.8cm, 3.5cm, auto)
+      #let columns = (0.8cm, 3.6cm, auto)
       #align(left + bottom, [
         #upper("Thèse") dirigée par:
         #linebreak()
@@ -150,7 +162,10 @@
           ..supervisors
             .map(p => (
               grid.cell(align: left, text(weight: "bold", p.civility)),
-              grid.cell(align: left, text(weight: "bold", upper(p.lastname) + " " + p.firstname)),
+              grid.cell(align: left, text(
+                weight: "bold",
+                upper(p.lastname) + " " + p.firstname,
+              )),
               grid.cell(align: left, p.position + ", " + p.affiliation),
             ))
             .flatten()
@@ -165,7 +180,10 @@
         ..thesis-referees
           .map(p => (
             grid.cell(align: left, text(weight: "bold", p.civility)),
-            grid.cell(align: left, text(weight: "bold", upper(p.lastname) + " " + p.firstname)),
+            grid.cell(align: left, text(
+              weight: "bold",
+              upper(p.lastname) + " " + p.firstname,
+            )),
             grid.cell(align: left, p.position + ", " + p.affiliation),
           ))
           .flatten()
@@ -179,7 +197,10 @@
         ..jury-members
           .map(p => (
             grid.cell(align: left, text(weight: "bold", p.civility)),
-            grid.cell(align: left, text(weight: "bold", upper(p.lastname) + " " + p.firstname)),
+            grid.cell(align: left, text(
+              weight: "bold",
+              upper(p.lastname) + " " + p.firstname,
+            )),
             grid.cell(align: left, p.position + ", " + p.affiliation),
           ))
           .flatten()

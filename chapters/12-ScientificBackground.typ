@@ -1,87 +1,173 @@
 #import "../src/common.typ": *
 
-= Scientific Background <chapter:scientificbackground>
+= Contexte Scientifique <sec:scientificbackground>
 
-This thesis focuses on applying the polyhedral model to statically optimize the loop nests expressed by Kokkos @kokkos kernels. Because this work bridges high-level performance portability frameworks with low-level mathematical loop transformations, a solid understanding of both domains is required.
+Cette thèse se concentre sur l'application du modèle polyédrique pour optimiser
+statiquement les nids de boucles exprimés en Kokkos @kokkos. Étant donné que ces
+travaux font le pont entre les frameworks de portabilité des performances de
+haut niveau et les transformations mathématiques de boucles de bas niveau, une
+solide compréhension de ces deux domaines est requise.
 
-This chapter provides the necessary theoretical foundations for the remainder of the manuscript. First, @sec:loopnests presents the Loop nest concept. Then, @sec:kokkos introduces the Kokkos programming model, detailing its memory and execution abstractions. @sec:polyhedral explores the polyhedral representation and @sec:polyhedralecosystem describes the Polyhedral ecosystem tools and compilers with a specific focus in @sec:polly on the Polly tool that forms the base of our implementation.
+Ce chapitre fournit les bases théoriques nécessaires pour la suite du manuscrit.
+Tout d'abord, le @sec:scientificbackground:loopnests présente le concept de nid
+de boucles. Ensuite, le @sec:scientificbackground:kokkos introduit le modèle de
+programmation Kokkos, en détaillant ses abstractions de mémoire et d'exécution.
+Le @sec:scientificbackground:polyhedral explore la représentation polyédrique et
+le @sec:scientificbackground:polyhedralecosystem décrit les outils et
+compilateurs de l'écosystème polyédrique, avec une attention particulière portée
+dans le @sec:scientificbackground:polly à l'outil Polly qui constitue la base de
+notre implémentation.
 
 
-== Loop Nests <sec:loopnests>
+== Nids de Boucles <sec:scientificbackground:loopnests>
 
-A fundamental loop is programmatically and mathematically defined by an iteration variable $i$ (often called the iterator or index), a lower bound, an upper bound, and a stride.
+En programmation comme en mathématiques, une boucle fondamentale est
+caractérisée par une variable d'itération $i$ (souvent appelée itérateur ou
+indice), une borne inférieure, une borne supérieure et un pas (stride).
 
-When one or more loops are enclosed within another loop, the resulting structure is called a *loop nest*. The number of nested loops defines the *depth* of the nest (e.g., a depth of $n$). At any given execution step, the state of a loop nest of depth $n$ is uniquely identified by its *iteration vector* $arrow(i) = (i_1, i_2, dots, i_n)^T$, which groups the current values of all enclosing loop indices.
+Lorsqu'une ou plusieurs boucles sont imbriquées dans une autre boucle, la
+structure résultante est appelée un *nid de boucles*. Le nombre de boucles
+imbriquées définit la *profondeur* du nid. À toute étape d'exécution donnée,
+l'état d'un nid de boucles de profondeur $n$ est identifié de manière unique par
+son *vecteur d'itération* $arrow(i) = (i_1, i_2, dots, i_n)^T$, qui regroupe les
+valeurs actuelles de tous les indices des boucles englobantes.
 
-Within these loops, a *statement* represents the actual computational instruction or operation that is executed at a given iteration point.
+À l'intérieur de ces boucles, une *instruction* représente l'opération ou
+l'instruction de calcul réelle qui est exécutée à un point d'itération donné.
 
-These structures are widely used in High Performance Computing and scientific codes, as they provide the primary mechanism for traversing and manipulating large multi-dimensional data structures such as vectors, matrices and tensors.
+Ces structures sont largement utilisées dans le calcul haute performance (HPC)
+et les codes scientifiques, car elles fournissent le mécanisme principal pour
+parcourir et manipuler de grandes structures de données multidimensionnelles
+telles que les vecteurs, les matrices et les tenseurs.
 
-=== Perfectly Nested Loops
+=== Boucles Parfaitement Imbriquées
 
-A loop nest is considered *perfectly nested* if all the computational statements are located exclusively within the innermost loop. There is no code executed between the `for` statements of the outer and inner loops.
+Un nid de boucles est considéré comme *parfaitement imbriqué* si toutes les
+instructions de calcul sont situées exclusivement dans la boucle la plus
+interne. Il n'y a pas de code exécuté entre les instructions `for` des boucles
+externes et internes.
 
-@code:perfectnest illustrates a perfectly nested loop of depth 2 with one statement `S1`.
+Le @code:scientificbackground:perfectnest illustre une boucle parfaitement
+imbriquée de profondeur 2 avec une seule instruction `S1`.
 
 #figure(
   ```cpp
   for (int i = 0; i < N; i++) {
       for (int j = 0; j < M; j++) {
-          C[i][j] = A[i][j] + B[i][j];  // Statement S1 (Depth 2)
+          C[i][j] = A[i][j] + B[i][j];  // Instruction S1 (Profondeur 2)
       }
   }
   ```,
-  caption: [Example of a perfectly nested loop of depth 2.],
-) <code:perfectnest>
+  caption: [Exemple d'un nid de boucles parfaitement imbriqué de profondeur 2.],
+) <code:scientificbackground:perfectnest>
 
-=== Imperfectly Nested Loops
+=== Boucles Imparfaitement Imbriquées
 
-In practice, many scientific algorithms cannot be written as perfectly nested loops. We generalize the concept to *imperfectly nested loops*, which occur when computational statements exist at different nesting levels. In other words, statements are interleaved between the loops.
+En pratique, de nombreux algorithmes scientifiques ne peuvent pas être écrits
+sous forme de boucles parfaitement imbriquées. Nous généralisons le concept aux
+*boucles imparfaitement imbriquées*, qui se produisent lorsque des instructions
+de calcul existent à différents niveaux d'imbrication. En d'autres termes, les
+instructions sont intercalées entre les boucles.
 
-@code:imperfectnest demonstrates an imperfect loop nest where an initialization statement `S1` is executed within the outer loop `i`, but outside the inner loop `j` with the second statement `S2`.
+Le @code:scientificbackground:imperfectnest présente un nid de boucles imparfait
+où une instruction d'initialisation `S1` est exécutée à l'intérieur de la boucle
+externe `i`, mais à l'extérieur de la boucle interne `j` qui contient la seconde
+instruction `S2`.
 
 #figure(
   ```cpp
   for (int i = 0; i < N; i++) {
-      row_sum[i] = 0;                  // Statement S1 (Depth 1)
+      row_sum[i] = 0;                  // Instruction S1 (Profondeur 1)
       for (int j = 0; j < M; j++) {
-          row_sum[i] += A[i][j];       // Statement S2 (Depth 2)
+          row_sum[i] += A[i][j];       // Instruction S2 (Profondeur 2)
       }
   }
   ```,
-  caption: [Example of an imperfectly nested loop where statements exist at different depths.],
-) <code:imperfectnest>
+  caption: [Exemple d'un nid de boucles imparfaitement imbriqué où les
+    instructions existent à des profondeurs différentes.],
+) <code:scientificbackground:imperfectnest>
 
-While imperfect loop nests are natural for developers to write, they pose a significant challenge for parallelization frameworks like Kokkos, which will be detailed in @sec:kokkos. Extracting parallelism and optimizing data locality in these imperfect nests requires complex code transformations. This mathematical complexity is precisely what the polyhedral model, introduced in the following @sec:polyhedral, is designed to resolve.
+Bien que les nids de boucles imparfaits soient naturels à écrire pour les
+développeurs, ils posent un défi important pour les frameworks de
+parallélisation comme Kokkos, détaillés dans le
+@sec:scientificbackground:kokkos. L'extraction du parallélisme et l'optimisation
+de la localité des données dans ces nids imparfaits nécessitent des
+transformations de code complexes. Cette complexité mathématique est précisément
+ce que le modèle polyédrique, introduit dans le
+@sec:scientificbackground:polyhedral suivant, vise à résoudre.
 
 
 
-== The Kokkos Programming Model <sec:kokkos>
+== Le Modèle de Programmation Kokkos <sec:scientificbackground:kokkos>
 
-Originally developed to abstract hardware parallelism, the Kokkos programming model has established itself as a reference framework in High-Performance Computing (HPC) and scientific simulation. It provides a unified C++ interface for heterogeneous parallel programming, with a primary focus on performance portability. By offering high-level abstractions for both memory management and execution control, Kokkos simplifies the development process while ensuring that applications achieve optimal performance regardless of the target architecture.
+Initialement développé pour abstraire le parallélisme matériel, le modèle de
+programmation Kokkos s'est imposé comme un framework de référence dans le calcul
+haute performance (HPC) et la simulation scientifique. Il fournit une interface
+C++ unifiée pour la programmation parallèle hétérogène, avec un accent principal
+sur la portabilité des performances. En offrant des abstractions de haut niveau
+pour la gestion de la mémoire et le contrôle de l'exécution, Kokkos simplifie le
+processus de développement tout en garantissant l'obtention de performances,
+quelle que soit l'architecture cible.
 
-=== Spaces: Execution and Memory
+=== Espaces : Exécution et Mémoire
 
-To successfully target various hardware architectures, Kokkos introduces the concept of spaces to abstract the complex execution units and memory hierarchies of modern supercomputers. A typical HPC node is heterogeneous, often coupling a host processor (CPU) with one or more device accelerators (GPUs), each possessing its own distinct physical memory. Kokkos manages this heterogeneity by clearly decoupling where the code runs from where the data resides:
+Pour cibler avec succès diverses architectures matérielles, Kokkos introduit le
+concept d'espaces pour abstraire les unités d'exécution complexes et les
+hiérarchies de mémoire des supercalculateurs modernes. Un noeud HPC typique est
+hétérogène, couplant souvent un processeur hôte (CPU) avec un ou plusieurs
+accélérateurs (GPU), chacun possédant sa propre mémoire physique distincte.
+Kokkos gère cette hétérogénéité en découplant clairement l'endroit où le code
+s'exécute de l'endroit où résident les données :
 
-- *Execution Spaces* define where the computational kernels are executed. They map the parallel operations to a specific hardware backend and its underlying programming model. For instance, `Kokkos::Serial` or `Kokkos::OpenMP` dictate that the code will run on the host CPU, whereas `Kokkos::Cuda` or `Kokkos::HIP` target GPU accelerators.
-- *Memory Spaces* define where the data is physically allocated. They abstract the memory hierarchy of the target machine. Common examples include `Kokkos::HostSpace` for standard CPU RAM, `Kokkos::CudaSpace` for Cuda GPU device memory, or `Kokkos::CudaUVMSpace` for Unified Virtual Memory.
+- *Espaces d'Exécution* définissent où les noyaux de calcul sont exécutés. Ils
+  mappent les opérations parallèles vers un backend matériel spécifique et de
+  l'implémentation du modèle de programmation. Par exemple, `Kokkos::Serial` ou
+  `Kokkos::OpenMP` dictent que le code s'exécutera sur le CPU hôte, tandis que
+  `Kokkos::Cuda` ou `Kokkos::HIP` ciblent les accélérateurs GPU.
+- *Espaces Mémoire* définissent où les données sont physiquement allouées. Ils
+  abstraient la hiérarchie de la mémoire de la machine cible. Des exemples
+  courants incluent `Kokkos::HostSpace` pour la RAM CPU standard,
+  `Kokkos::CudaSpace` pour la mémoire du périphérique GPU Cuda, ou
+  `Kokkos::CudaUVMSpace` pour la mémoire virtuelle unifiée (UVM).
 
-This concept of spaces is tightly coupled with Kokkos's data abstractions and parallel execution patterns, which are discussed in the following sections.
+Ce concept d'espaces est étroitement lié aux abstractions de données et aux
+motifs d'exécution parallèle de Kokkos, qui sont abordés dans les sections
+suivantes.
 
-=== Data Abstraction
+=== Abstraction des Données
 
-To simplify data management across heterogeneous architectures, Kokkos provides a core data abstraction: the Kokkos::View. This templated C++ data structure acts as a lightweight, reference-counted multi-dimensional array. A View encapsulates the data pointer, its dimensions, the target memory space, and its memory layout, effectively abstracting the underlying hardware allocations.
+Pour simplifier la gestion des données à travers des architectures hétérogènes,
+Kokkos fournit une abstraction de données fondamentale : la structure
+`Kokkos::View`. Cette structure de données C++ template agit comme un tableau
+multidimensionnel léger à comptage de références. Une `Kokkos::View` encapsule
+le pointeur de données, ses dimensions, l'espace mémoire cible et sa disposition
+en mémoire, abstrayant efficacement les allocations matérielles.
 
-A crucial feature for performance portability is the Memory Layout. Because CPUs and GPUs handle memory accesses differently, Kokkos defines specific layout traits:
-- `Kokkos::LayoutRight` (row-major): Optimizes spatial locality and cache-line usage for CPUs.
-- `Kokkos::LayoutLeft` (column-major): Ensures memory access coalescing, which is critical for GPU performance.
+Une caractéristique cruciale pour la portabilité des performances est la
+disposition en mémoire. Étant donné que les CPU et les GPU gèrent les accès
+mémoire différemment, Kokkos définit des traits de disposition spécifiques :
+- `Kokkos::LayoutRight` (row-major) : Optimise la localité spatiale et
+  l'utilisation des lignes de cache pour les CPU.
+- `Kokkos::LayoutLeft` (column-major) : Assure la coalescence des accès mémoire,
+  ce qui est critique pour les performances des GPU.
 
-By default, Kokkos automatically selects the optimal layout at compile time based on the execution space, though it can be explicitly specified by the programmer.
+Par défaut, Kokkos sélectionne automatiquement la disposition optimale à la
+compilation en fonction de l'espace d'exécution, bien qu'elle puisse être
+spécifiée explicitement par le programmeur.
 
-@code:viewexample illustrates a basic heterogeneous memory management workflow. In line 2, a 2D View of floats is allocated directly in the device's memory (`Kokkos::CudaSpace`), explicitly using a left layout. Kokkos handles the low-level CUDA allocation. Line 4 demonstrates the creation of a host-accessible mirror view (`Kokkos::create_mirror_view`). This function allocates an equivalent array in the host memory space, allowing the CPU to safely manipulate the data.
+@code:scientificbackground:viewexample illustre un flux de travail de gestion de
+mémoire hétérogène basique. À la ligne 2, une vue 2D de flottants est allouée
+directement dans la mémoire du GPU (`Kokkos::CudaSpace`), en utilisant
+explicitement une disposition `Kokkos::LayoutLeft`. La ligne 4 démontre la
+création d'une vue miroir accessible par l'hôte (`Kokkos::create_mirror_view`).
+Cette fonction alloue un tableau équivalent dans l'espace mémoire de l'hôte,
+permettant au CPU de manipuler les données en toute sécurité.
 
-The overloaded parenthesis `operator()` provides an intuitive multi-dimensional access syntax, automatically handling the complex index linearization (line 7). Finally, explicit data synchronization between the host and device memory spaces is performed using `Kokkos::deep_copy` (line 9).
+L'opérateur parenthèse surchargé `operator()` fournit une syntaxe d'accès
+multidimensionnelle intuitive, gérant automatiquement la linéarisation complexe
+des indices (ligne 7). Enfin, la synchronisation explicite des données entre les
+espaces mémoire de l'hôte et du périphérique est effectuée à l'aide de
+`Kokkos::deep_copy` (ligne 9).
 
 #figure(
   ```cpp
@@ -96,34 +182,77 @@ The overloaded parenthesis `operator()` provides an intuitive multi-dimensional 
   Kokkos::deep_copy(tab_device, tab_host);
   // ...
   ```,
-  caption: [Example of standard `Kokkos::View` allocation and heterogeneous memory transfers.],
-) <code:viewexample>
+  caption: [Exemple d'allocation standard de `Kokkos::View` et de transferts de
+    mémoire hétérogènes.],
+) <code:scientificbackground:viewexample>
 
-Kokkos provides several specialized view types for advanced use cases (e.g., `DualView`, `DynRankView`, `OffsetView`). However, this thesis will focus exclusively on standard views.
+Kokkos fournit plusieurs types de vues spécialisées pour des cas d'utilisation
+avancés (exemple : `DualView`, `DynRankView`, `OffsetView`). Cependant, cette
+thèse se concentrera exclusivement sur les vues standards.
 
-=== Parallel Execution
+=== Exécution Parallèle
 
-In the Kokkos programming model, launching a computational kernel requires combining an execution pattern, an execution policy, and the kernel body (typically defined via a C++ lambda function or a functor). This separation of concepts allows developers to express the semantics of their algorithm independently of the underlying hardware mapping.
+Dans le modèle de programmation Kokkos, le lancement d'un noyau de calcul
+nécessite de combiner un motif d'exécution, une politique d'exécution et le
+corps du noyau (généralement défini via une fonction lambda C++ ou un foncteur).
+Cette séparation des concepts permet aux développeurs d'exprimer la sémantique
+de leur algorithme indépendamment du mapping matériel.
 
-==== Execution Patterns
+==== Motifs d'Exécution
 
-To abstract hardware specific parallel programming models (e.g., OpenMP, CUDA), Kokkos provides three fundamental parallel execution patterns. An execution pattern dictates the semantics of the operation:
+Pour abstraire les modèles de programmation parallèle spécifiques au matériel
+(ex: OpenMP, CUDA), Kokkos fournit trois motifs d'exécution parallèle
+fondamentaux. Un motif d'exécution dicte la sémantique de l'opération :
 
-- `Kokkos::parallel_for`: Maps an independent operation over an iteration space. It represents standard data-parallel loops where no dependencies exist between iterations.
-- `Kokkos::parallel_reduce`: Computes a reduction (e.g., sum, min, max, or custom reductions) across an iteration space. Kokkos automatically manages architecture specific data races and concurrency.
-- `Kokkos::parallel_scan`: Performs a prefix sum across an iteration space providing a parallel building block.
+- `Kokkos::parallel_for` : Mappe une opération indépendante sur un espace
+  d'itération. Il représente les boucles standards de parallélisme de données où
+  aucune dépendance n'existe entre les itérations.
+- `Kokkos::parallel_reduce` : Calcule une réduction (ex: somme, min, max, ou
+  réductions personnalisées) sur un espace d'itération. Kokkos gère
+  automatiquement les accès concurrents spécifiques à l'architecture.
+- `Kokkos::parallel_scan` : Effectue un préfixe somme sur un espace d'itération,
+  fournissant une brique de base parallèle.
 
-==== Execution Policies
+==== Politiques d'Exécution
 
-While the pattern defines *what* operation is performed, the execution policy defines *how* and *where* it is executed. It defines the iteration domain, hints the scheduling strategy depending on the structure type and specifies the target execution space.
+Alors que le motif définit quelle opération est effectuée, la politique
+d'exécution définit comment et où elle est exécutée. Elle définit le domaine
+d'itération, donne des paramètres d'ordonnancement et spécifie l'espace
+d'exécution cible.
 
-===== RangePolicy and MDRangePolicy
-`Kokkos::RangePolicy` and `Kokkos::MDRangePolicy` describe basic iteration spaces for one-dimensional and $n$ dimensional perfectly nested loops, respectively. Under the hood, MDRangePolicy automatically applies architecture specific tiling and index linearization to maximize cache locality and memory coalescing.
+===== RangePolicy et MDRangePolicy
+`Kokkos::RangePolicy` et `Kokkos::MDRangePolicy` décrivent les espaces
+d'itération pour les boucles unidimensionnelles et les boucles parfaitement
+imbriquées à $n$ dimensions. Sous le capot, `MDRangePolicy` applique
+automatiquement un pavage spécifique à l'architecture pour maximiser la localité
+du cache ou la coalescence des accès mémoire.
 
 ===== TeamPolicy
-For more complex algorithms, flat iteration spaces and basic scheduling are often insufficient. `Kokkos::TeamPolicy` addresses this issue by exposing hierarchical parallelism, which is crucial for fully exploiting specific hardware topologies, particularly on GPUs. It logically divides the iteration space into a one dimensional array of _Leagues_ where each league consists of multiple _Teams_ of threads. When mapped to a GPU, a league typically corresponds to a grid of thread blocks, while a team corresponds to an individual block of threads. On a CPU, a league might map to the available physical cores, with teams utilizing hardware threads or vector lanes. With this more advanced approach, developers gain fine grained control over hardware resources such as exploiting user-managed shared memory on GPUs or explicitly managing cache memory on CPUs to the detriment of development simplicity.
+Pour des algorithmes plus complexes, les espaces d'itération unidimensionnels ou
+multidimensionnels et l'ordonnancement de base sont souvent insuffisants.
+`Kokkos::TeamPolicy` résout ce problème en exposant le parallélisme
+hiérarchique, ce qui est utile pour exploiter des topologies matérielles
+spécifiques, en particulier sur les GPU. Il divise logiquement l'espace
+d'itération en un tableau unidimensionnel de _Ligues_, où chaque ligue est
+constituée de plusieurs _Équipes_ de threads. Lors d'un mapping sur un GPU, une
+ligue correspond typiquement à une grille de blocs de threads, tandis qu'une
+équipe correspond à un bloc individuel de threads. Sur un CPU, une ligue peut
+correspondre aux coeurs physiques disponibles, avec des équipes utilisant des
+threads matériels ou des voies vectorielles. Avec cette approche plus avancée,
+les développeurs obtiennent un contrôle fin sur les ressources matérielles, tel
+que l'exploitation de la mémoire partagée gérée par l'utilisateur sur les GPU ou
+la gestion explicite de la mémoire cache sur les CPU, au détriment de la
+simplicité de développement.
 
-To illustrate how Kokkos exposes multi-dimensional iteration spaces, @code:mdrangeexample demonstrates a simple 2D matrix addition implemented with an `Kokkos::MDRangePolicy`. In this example, the policy explicitly defines a two-dimensional iteration domain (indicated by `Kokkos::Rank<2>`) ranging from $(0, 0)$ to $(N, M)$. The third argument of `Kokkos::parallel_for` is the lambda function, which describes the computational kernel itself. As arguments, this lambda function takes the iteration indices $i$ and $j$ to perform the element-wise operations on the multi-dimensional views.
+Pour illustrer comment Kokkos expose des espaces d'itération multidimensionnels,
+@code:scientificbackground:mdrangeexample montre une addition de matrices 2D
+implémentée avec une `Kokkos::MDRangePolicy`. Dans cet exemple, la politique
+définit explicitement un domaine d'itération bidimensionnel (indiqué par
+`Kokkos::Rank<2>`) allant de $(0, 0)$ à $(N, M)$. Le troisième argument de
+`Kokkos::parallel_for` est la fonction lambda, qui décrit le noyau de calcul
+lui-même. En tant qu'arguments, cette fonction lambda prend les indices
+d'itération $i$ et $j$ pour effectuer les opérations élément par élément sur les
+vues multidimensionnelles.
 
 #figure(
   ```cpp
@@ -137,286 +266,439 @@ To illustrate how Kokkos exposes multi-dimensional iteration spaces, @code:mdran
           C(i, j) = A(i, j) + B(i, j);
       }
   );```,
-  caption: [Example of a parallel matrix addition using a `MDRangePolicy`],
-) <code:mdrangeexample>
+  caption: [Exemple d'une addition de matrices parallèle utilisant une
+    `MDRangePolicy`],
+) <code:scientificbackground:mdrangeexample>
 
 
 
 
-== Polyhedral Model <sec:polyhedral>
+== Modèle Polyédrique <sec:scientificbackground:polyhedral>
 
-The polyhedral model is a powerful mathematical framework enabling the precise analysis and transformation of loop nests. Unlike traditional compilers that apply local, syntactic transformations directly on an #gls("ir") or an #gls("ast"), the polyhedral model relies entirely on algebraic abstractions. This mathematical foundation guarantees the semantic correctness of the applied transformations. To represent loop nests, the model utilizes a geometric representation of iteration domains, memory accesses, data dependencies, and instruction schedules, all expressed through mathematical sets and relations.
+Le modèle polyédrique est un framework mathématique permettant l'analyse et la
+transformation précises des nids de boucles. Contrairement aux compilateurs
+traditionnels qui appliquent des transformations syntaxiques locales directement
+sur une #gls("ir") ou un #gls("ast"), le modèle polyédrique s'appuie entièrement
+sur des abstractions algébriques. Cette fondation mathématique garantit la
+correction sémantique des transformations appliquées. Pour représenter les nids
+de boucles, le modèle utilise une représentation géométrique des domaines
+d'itération, des accès mémoire, des dépendances de données et des
+ordonnancements d'instructions, tous exprimés par des ensembles et des relations
+mathématiques.
 
 #definition(
-  title: "Set",
+  title: "Ensemble",
 )[
-  A _set_ is a collection of coordinates in a single space $E$ of dimension $k$. In the context of the polyhedral model, a set can be formally viewed as a special case of a relation where the input space is zero-dimensional.
+  Un _ensemble_ (set) est une collection de coordonnées dans un espace unique
+  $E$ de dimension $k$. Dans le contexte du modèle polyédrique, un ensemble peut
+  être formellement considéré comme un cas particulier de relation où l'espace
+  d'entrée est de dimension zéro.
 
-  A set can be represented as a parametric polyhedron restricting the valid coordinates:
+  Un ensemble peut être représenté comme un polyèdre paramétrique restreignant
+  les coordonnées valides :
   $
     S(arrow(p)) = { arrow(x) in E mid(|) A dot.op vec(arrow(x), arrow(p), 1) polyrelcst arrow(0)}
   $
-  where:
-  - $arrow(p)$ is a vector of $N$ parameters,
-  - $arrow(x) in E$ is a coordinate vector,
-  - $A$ is an $m times (k + N + 1)$ integer matrix that encodes the $m$ affine constraints defining the boundaries of the set.
+  où :
+  - $arrow(p)$ est un vecteur de $N$ paramètres,
+  - $arrow(x) in E$ est un vecteur de coordonnées,
+  - $A$ est une matrice d'entiers de taille $m times (k + N + 1)$ qui encode les
+    $m$ contraintes affines définissant les frontières de l'ensemble.
 ]
 
 #definition(
   title: "Relation",
 )[
-  A _relation_ #box($R : E -> F$) is a mapping from a set of input coordinates in an input space $E$ of dimension $k$ to a set of output coordinates in an output space $F$ of dimension $l$.
+  Une _relation_ #box($R : E -> F$) est une correspondance depuis un ensemble de
+  coordonnées d'entrée dans un espace d'entrée $E$ de dimension $k$ vers un
+  ensemble de coordonnées de sortie dans un espace de sortie $F$ de dimension
+  $l$.
 
-  #box($x in E$) is said to be related with #box($y in F$) #box([if $(x, y) in E times F$]). It is commonly noted $x space R space y$ or $R space x space y$. A relation can also be represented as a parametric polyhedron:
+  #box($x in E$) est dit en relation avec #box($y in F$) #box([si
+    $(x, y) in E times F$]). On le note couramment $x space R space y$ ou
+  $R space x space y$. Une relation peut également être représentée comme un
+  polyèdre paramétrique :
   $
     R(arrow(p)) = { arrow(x)_"in" -> arrow(x)_"out" in E times F mid(|) A dot.op vec(arrow(x)_"out", arrow(x)_"in", arrow(p), 1) polyrelcst arrow(0)}
   $
-  where:
-  - $arrow(p)$ is a vector of $N$ parameters,
-  - $arrow(x)_"in" in E$ is an input coordinate,
-  - $arrow(x)_"out" in F$ is an output coordinate,
-  - $A$ is an $m times (k + l + N + 1)$ integer matrix that encodes the $m$ affine constraints of the relation.
-
-  *Note:* In the context of the polyhedral model (and underlying libraries such as ISL), an _integer set_ is fundamentally treated as a special case of a relation where the input space $E$ has a dimension of zero ($k = 0$). It effectively maps from a zero-dimensional space to an output space $F$, reducing to a pure parametric polyhedron that defines a domain of coordinates.
+  où :
+  - $arrow(p)$ est un vecteur de $N$ paramètres,
+  - $arrow(x)_"in" in E$ est une coordonnée d'entrée,
+  - $arrow(x)_"out" in F$ est une coordonnée de sortie,
+  - $A$ est une matrice d'entiers de taille $m times (k + l + N + 1)$ qui encode
+    les $m$ contraintes affines de la relation.
 ]
 
-By representing loop nests in this manner, the polyhedral model reasons exclusively over mathematical objects, providing significantly greater freedom to safely apply complex transformations. While traditional #gls("ast") or #gls("ir") representations allow for a wide range of standard compiler passes, complex loop optimizations remain highly constrained. However, this mathematical rigor restricts the application domain: the polyhedral model can only optimize loop nests with affine memory accesses and affine loop bounds, formally known as #glspl("scop").
+En modélisant les nids de boucles sous cette forme, le modèle polyédrique
+raisonne exclusivement sur des objets mathématiques, offrant une plus grande
+liberté pour appliquer des transformations complexes en toute sécurité. À
+l'inverse, les représentations traditionnelles en #gls("ast") ou en #gls(
+  "ir",
+) se prêtent bien aux passes de compilation standards, mais leur manque
+d'abstraction mathématique limite drastiquement l'application d'optimisations
+structurelles avancées sur les boucles. Cette rigueur formelle restreint
+néanmoins le domaine d'application de l'approche polyédrique : elle ne peut
+cibler que les nids de boucles dont les bornes et les accès mémoires sont
+affines, formellement regroupés sous l'appellation de #glspl("scop").
 
 #definition(
-  title: "Static Control Part",
+  title: "Partie à Contrôle Statique (SCoP)",
 )[
-  A #gls("scop") is a region of code without function calls or pointer arithmetic, where loop bounds, conditionals, and array subscripts are either constant or affine functions of surrounding loop iterators and global parameters.
+  Un #gls("scop") est une région de code sans appels de fonctions ou
+  arithmétique de pointeurs, où les bornes des boucles, les conditions et les
+  indices des tableaux sont soit constants, soit des fonctions affines des
+  itérateurs des boucles englobantes et des paramètres globaux.
 ]
 
-Within a #gls("scop"), each loop iteration can be represented as an integer point inside a convex polyhedron of dimension $d$, where $d$ corresponds to the maximum loop depth. Data dependencies are modeled as affine relations between the iteration vectors of source and target statements. Consequently, optimizing a code segment equates to applying affine transformations to these iteration spaces to expose parallelism, improve data locality, or reduce synchronization overhead. Such transformations include loop tiling, skewing, and loop fusion or fission.
+Au sein d'un #gls("scop"), chaque itération de boucle peut être représentée
+comme un point entier à l'intérieur d'un polyèdre convexe de dimension $d$, où
+$d$ correspond à la profondeur maximale de la boucle. Les dépendances de données
+sont modélisées comme des relations affines entre les vecteurs d'itération des
+instructions source et cible. Par conséquent, optimiser un segment de code
+équivaut à appliquer des transformations affines à ces espaces d'itération pour
+exposer le parallélisme ou améliorer la localité des données. De telles
+transformations incluent la réorganisation d'instructions, le pavage de boucles,
+le skewing, et la fusion ou fission de boucles.
 
-To illustrate these concepts throughout this section, @fig:scientificbackground:scopexample presents a simple example of a #gls("scop") featuring two statements, $S_1$ and $S_2$, nested within two loops.
+Pour illustrer ces concepts tout au long de cette section, la
+@fig:scientificbackground:scopexample présente un exemple simple d'un #gls(
+  "scop",
+) comprenant deux instructions, $S_1$ et $S_2$, imbriquées dans deux boucles
+différentes sera utilisé comme exemple.
 
 #figure(
   ```cpp
   for (int i = 0; i < N; i++)
     for (int j = 0; j < M; j++)
-      C[i][j] = A[i][j] + B[i][j];      // Statement S1
+      C[i][j] = A[i][j] + B[i][j];      // Instruction S1
 
   for (int i = 1; i < N; i++)
     for (int j = 0; j < M; j++)
-      C[i][j] = C[i][j] + C[i - 1][j];  // Statement S2
+      C[i][j] = C[i][j] + C[i - 1][j];  // Instruction S2
   ```,
-  caption: [Example of a simple loop nest with two statements.],
+  caption: [Exemple d'un nid de boucles simple avec deux instructions.],
 ) <fig:scientificbackground:scopexample>
 
-
-=== Polyhedron
+=== Polyèdre
 
 #definition(
-  title: "Rational Polyhedron/Polytope",
+  title: "Polyèdre/Polytope Rationnel",
 )[
-  A rational _$d$-dimensional polyhedron_ $cal(P)$ is a subspace of $bb(Q)^d$ that can be defined by a system of $n in bb(N)^+$ affine inequalities:
+  Un _polyèdre de dimension $d$_ rationnel $cal(P)$ est un sous-espace de
+  $bb(Q)^d$ qui peut être défini par un système de $n in bb(N)^+$ inégalités
+  affines :
   #math.equation(
     block: true,
-    alt: "P is a set of x in rationals constrained by n inequalities",
+    alt: "P est un ensemble de x dans les rationnels contraints par n inégalités",
     $
       cal(P) = { arrow(x) in bb(Q)^d | A dot.op arrow(x) + a >= arrow(0) }
     $,
   )
-  where $A$ is an $n times d$ integer matrix and $a in bb(Z)^n$. This formulation is known as the _implicit representation_ of a polyhedron.
+  où $A$ est une matrice d'entiers de taille $n times d$ et $a in bb(Z)^n$.
+  Cette formulation est connue sous le nom de _représentation implicite_ d'un
+  polyèdre.
 
-  Since a polyhedron may extend infinitely in certain directions, a strictly bounded convex polyhedron is specifically called a _polytope_.
+  Étant donné qu'un polyèdre peut s'étendre indéfiniment dans certaines
+  directions, un polyèdre convexe strictement borné est spécifiquement appelé un
+  _polytope_.
 ]
 
-In the vast majority of real world applications, loop bounds are not explicitly defined by static constants. To address this, symbolic parameters are introduced to represent dynamic bounds and data sizes. Consequently, the polyhedral model extends standard polytopes into parametric ones.
+Dans la grande majorité des applications du monde réel, les bornes des boucles
+ne sont pas explicitement définies par des constantes statiques. Pour résoudre
+ce problème, des paramètres symboliques sont introduits pour représenter les
+bornes dynamiques et les tailles des données. Par conséquent, le modèle
+polyédrique étend les polytopes standards en polytopes paramétriques.
 
 #definition(
-  title: "Parametric Polytope",
+  title: "Polytope Paramétrique",
 )[
-  A parametric _d-polytope_ $cal(P)(arrow(p))$ is a bounded parametric polyhedron defined by:
+  Un _polytope de dimension $d$_ paramétrique $cal(P)(arrow(p))$ est un polyèdre
+  paramétrique borné défini par :
   $
     cal(P)(arrow(p)) = { arrow(x) in bb(Q)^d | A dot.op vec(arrow(x), arrow(p), 1) polyrelcst arrow(0) }
   $
-  where $arrow(p)$ is the symbolic _p-vector_ of the parameters, and $A$ is an $m times (d + p + 1)$ integer matrix encoding the $m$ constraints. \
-  Note that these constraints can express both inequalities and equalities. For instance, the pair of inequalities $x_i >= 0$ and $-x_i >= 0$ is naturally used to represent the strict equality $x_i = 0$.
+  où $arrow(p)$ est le _vecteur $p$_ symbolique des paramètres, et $A$ est une
+  matrice d'entiers de taille $m times (d + p + 1)$ encodant les $m$
+  contraintes. \
+  Notez que ces contraintes peuvent exprimer à la fois des inégalités et des
+  égalités. Par exemple, la paire d'inégalités $x_i >= 0$ et $-x_i >= 0$ est
+  naturellement utilisée pour représenter l'égalité stricte $x_i = 0$.
 ]
 
-Throughout this thesis, we will exclusively use parametric polytopes to geometrically represent loop nests.
-
-
-=== Statement
+=== Instruction
 
 #definition(
-  title: "Statement Instance",
+  title: "Instance d'Instruction ou Statement",
 )[
-  A _statement instance_ is a specific execution of a given statement $S$ during a particular iteration of its $k$ surrounding loops. Each statement instance is uniquely identified by the values of its surrounding loop iterators at the time of execution.
+  Une _instance d'instruction_ est une exécution spécifique d'une instruction
+  donnée $S$ lors d'une itération particulière de ses $k$ boucles englobantes.
+  Chaque instance d'instruction est identifiée de manière unique par les valeurs
+  des itérateurs de ses boucles englobantes au moment de l'exécution.
 ]
 
-Returning to @fig:scientificbackground:scopexample, the provided #gls("scop") features two distinct statements nested within two loops. In this context, an instance of statement $S_1$ occurs for every valid combination of the iterators $i$ and $j$.
+En reprenant la @fig:scientificbackground:scopexample, le #gls("scop") fourni
+présente deux instructions distinctes imbriquées dans deux boucles. Dans ce
+contexte, une instance de l'instruction $S_1$ se produit pour chaque combinaison
+valide des itérateurs $i$ et $j$.
 
 
-=== Iteration Domain
+=== Domaine d'Itération
 
-A statement is associated with a set of statement instances bounded within a polytope. Each individual instance is uniquely characterized by a vector composed of the iterators from its surrounding loops.
+Une instruction est associée à un ensemble d'instances d'instruction bornées à
+l'intérieur d'un polytope. Chaque instance individuelle est caractérisée de
+manière unique par un vecteur composé des itérateurs de ses boucles englobantes.
 
 #definition(
-  title: "Iteration Vector",
+  title: "Vecteur d'Itération",
 )[
-  An _iteration vector_ $arrow(x)$ is a $k$-dimensional column vector that represents the values of the $k$ loop iterators characterizing a specific execution of a statement $S$. It is defined as:
+  Un _vecteur d'itération_ $arrow(x)$ est un vecteur colonne de dimension $k$
+  qui représente les valeurs des $k$ itérateurs de boucle caractérisant une
+  exécution spécifique d'une instruction $S$. Il est défini comme :
   $
     arrow(x) = vec(x_1, x_2, ..., x_k)
   $
-  where $x_i$ is the index of the loop at depth $i$, and $k$ is the total loop depth surrounding the statement.
+  où $x_i$ est l'indice de la boucle à la profondeur $i$, et $k$ est la
+  profondeur totale des boucles englobant l'instruction.
 ]
 
-The exhaustive set of all iteration vectors for which a given statement is executed is formally referred to as the iteration domain of that statement.
+L'ensemble exhaustif de tous les vecteurs d'itération pour lesquels une
+instruction donnée est exécutée est appelé le domaine d'itération de cette
+instruction.
 
 #definition(
-  title: "Iteration Domain",
+  title: "Domaine d'Itération",
 )[
-  The iteration domain of a statement $S$ is the set of all possible iteration vectors $arrow(x)$ for which the statement $S$ is
-  executed. It can be represented as a convex polyhedron defined by a system of affine inequalities. This set can be
-  represented as the integer points of a parametric polytope:
+  Le domaine d'itération d'une instruction $S$ est l'ensemble de tous les
+  vecteurs d'itération $arrow(x)$ possibles pour lesquels l'instruction $S$ est
+  exécutée. Il peut être représenté comme un polyèdre convexe défini par un
+  système d'inégalités affines. Cet ensemble peut être représenté par les points
+  entiers d'un polytope paramétrique :
   $
     cal(D)_(S)(arrow(p)) = { arrow(x) in bb(Z)^k | A dot.op vec(arrow(x), arrow(p), 1) polyrelcst arrow(0) }
   $
-  where $arrow(p)$ is a vector of $N$ parameters, $arrow(x)$ is a $k$-iteration vector, and $A$ is a $m times (k times N + 1)$ integer
-  matrix that encodes the $m$ constraints of the polytope.
+  où $arrow(p)$ est un vecteur de $N$ paramètres, $arrow(x)$ est un vecteur
+  d'itération de dimension $k$, et $A$ est une matrice d'entiers de taille
+  $m times (k times N + 1)$ qui encode les $m$ contraintes du polytope.
 ]
 
-@fig:scientificbackground-iterationdomain illustrates the iteration domain of statement $S_1$ derived from the #gls("scop") in @fig:scientificbackground:scopexample. The iteration domain of $S_1$ is geometrically represented as a convex polyhedron in the two-dimensional space defined by the loop indices $i$ and $j$. Each integer point within this polyhedron corresponds to a unique instance of the statement, while the boundaries of the polyhedron are strictly determined by the loop bounds and any conditional statements present in the code.
+La @fig:scientificbackground:iterationdomain illustre le domaine d'itération de
+l'instruction $S_1$ dérivé du #gls("scop") de la
+@fig:scientificbackground:scopexample. Le domaine d'itération de $S_1$ est
+représenté géométriquement comme un polyèdre convexe dans l'espace
+bidimensionnel défini par les indices de boucle $i$ et $j$. Chaque point entier
+à l'intérieur de ce polyèdre correspond à une instance unique de l'instruction,
+tandis que les limites du polyèdre sont strictement déterminées par les bornes
+des boucles et par toute instruction conditionnelle présente dans le code.
 
 
 #figure(
   block(height: 5.5cm, align(bottom, fig.scientificbackground-scopexample)),
-  caption: [Geometric representation of the iteration domain for statement $S_1$.],
-) <fig:scientificbackground-iterationdomain>
+  caption: [Représentation géométrique du domaine d'itération pour l'instruction
+    $S_1$.],
+) <fig:scientificbackground:iterationdomain>
 
 
-=== Data Dependencies
+=== Dépendances de Données
 
-For the polyhedral model to generate valid transformations that yield the exact same results as the original code, it must strictly respect the program's original data dependencies. Data dependencies act as constraints that restrict the legal execution order of statement instances. They are introduced when multiple statement instances access the same memory location.
+Pour que le modèle polyédrique génère des transformations valides produisant
+exactement les mêmes résultats que le code original, il doit respecter
+strictement les dépendances de données initiales du programme. Les dépendances
+de données agissent comme des contraintes qui restreignent l'ordre d'exécution
+légal des instances d'instruction. Elles sont introduites lorsque plusieurs
+instances d'instruction accèdent au même emplacement mémoire.
 
 #definition(
-  title: "Data Dependency",
+  title: "Dépendance de Données",
 )[
-  Two statement instances $S_1(arrow(x)_1)$ and $S_2(arrow(x)_2)$ are said to be dependent if both instances access the exact same memory location, at least one of the accesses is a write operation, and one instance executes before the other in the original program order.
+  Deux instances d'instruction $S_1(arrow(x)_1)$ et $S_2(arrow(x)_2)$ sont dites
+  dépendantes si les deux instances accèdent exactement au même emplacement
+  mémoire, qu'au moins l'un des accès est une opération d'écriture, et qu'une
+  instance s'exécute avant l'autre dans l'ordre original du programme.
 ]
 
-There are three primary types of data dependencies that restrict statement reordering:
-- *Read-After-Write (RAW):* A source statement writes to a memory location that is subsequently read by a target statement.
-- *Write-After-Read (WAR):* A source statement reads from a memory location before it is overwritten by a target statement.
-- *Write-After-Write (WAW):* A source statement writes to a memory location that is later overwritten by a target statement.
+Il existe trois principaux types de dépendances de données qui restreignent le
+réordonnancement des instructions :
+- *Lecture-Après-Écriture :* Une instruction source écrit dans un emplacement
+  mémoire qui est ensuite lu par une instruction cible.
+- *Écriture-Après-Lecture :* Une instruction source lit un emplacement mémoire
+  avant qu'il ne soit écrasé par une instruction cible.
+- *Écriture-Après-Écriture :* Une instruction source écrit dans un emplacement
+  mémoire qui est ensuite écrasé par une instruction cible.
 
-The polyhedral model geometrically represents these data dependencies as affine relations between the iteration vectors of the source and target statements.
+Le modèle polyédrique représente géométriquement ces dépendances de données
+comme des relations affines entre les vecteurs d'itération des instructions
+source et cible.
 
 #definition(
-  title: "Dependency relation",
+  title: "Relation de dépendance",
 )[
-  Dependencies between statement instances of a source statement $S$ and a target statement $T$ can be represented as
-  relations between iteration vectors. A couple of integer points in the polyhedron associated with the relation
-  represents a dependency between the corresponding source and target iteration vectors. This relation can be represented
-  by the following parametric polyhedron:
+  Les dépendances entre les instances d'une instruction source $S$ et d'une
+  instruction cible $T$ peuvent être représentées comme des relations entre des
+  vecteurs d'itération. Un couple de points entiers dans le polyèdre associé à
+  la relation représente une dépendance entre les vecteurs d'itération source et
+  cible correspondants. Cette relation peut être représentée par le polytope
+  paramétrique suivant :
   $
     delta_(S,T)(arrow(p)) = {arrow(x)_S -> arrow(x)_T | R_(S,T) op(dot) vec(arrow(x)_S, arrow(x)_T, arrow(p), 1) >= arrow(0)}
   $
-  where $R_(S,T)$ is a $m times (k + l + N + 1)$ integer matrix, with $m$ the number of constraints, $k = "dim"(arrow(x)_S)$ the
-  depth of the source statement, $l = "dim"(arrow(x)_T)$ the depth of the target statement and $N = "dim"(arrow(p))$ the
-  number of parameters.
+  où $R_(S,T)$ est une matrice d'entiers de taille $m times (k + l + N + 1)$,
+  avec $m$ le nombre de contraintes, $k = "dim"(arrow(x)_S)$ la profondeur de
+  l'instruction source, $l = "dim"(arrow(x)_T)$ la profondeur de l'instruction
+  cible et $N = "dim"(arrow(p))$ le nombre de paramètres.
 ]
 
-Returning to the running example in @fig:scientificbackground:scopexample, we can observe a RAW dependency on statement $S_2$ across the outer loop iterations. Specifically, $S_2$ at iteration $(i', j')$ reads the value `C[i' - 1][j']`, which was previously written by $S_2$ at iteration $(i, j)$ where $i = i' - 1$ and $j = j'$. This loop-carried flow dependency can be formally expressed using our matrix representation:
+En reprenant l'exemple du @fig:scientificbackground:scopexample, nous pouvons
+observer une dépendance RAW sur l'instruction $S_2$ à travers les itérations de
+la boucle externe. Spécifiquement, l'instruction $S_2$ à l'itération $(i', j')$
+lit la valeur `C[i' - 1][j']`, qui a été précédemment écrite par $S_2$ à
+l'itération $(i, j)$ où $i = i' - 1$ et $j = j'$. Cette dépendance de flot
+portée par la boucle peut être formellement exprimée en utilisant notre
+représentation matricielle :
 
 $
-  delta_(S_2,S_2)(arrow(p)) & = { vec(i, j) -> vec(i', j') mid(|) i = i' - 1 "and" j = j' } \
-                            & = { vec(i, j) -> vec(i', j') mid(|)
-                                mat(
-                                  1, 0, -1, 0, 0, 0, 1;
-                                  0, 1, 0, -1, 0, 0, 0
-                                )
-                                dot.op vec(i, j, i', j', N, M, 1) = arrow(0) }
+  delta_(S_2,S_2)(arrow(p)) & = { vec(i, j) -> vec(i', j') mid(|) i = i' - 1 "et" j = j' } \
+  & = { vec(i, j) -> vec(i', j') mid(|)
+    mat(
+      1, 0, -1, 0, 0, 0, 1;
+      0, 1, 0, -1, 0, 0, 0
+    )
+    dot.op vec(i, j, i', j', N, M, 1) = arrow(0) }
 $
 
 
-=== Scheduling
+=== Ordonnancement
 
-A schedule dictates the chronological execution order of statement instances within the iteration space. In the polyhedral model, this schedule is represented as an affine relation mapping the iteration vector of a statement to a multidimensional logical date vector.
+Un ordonnancement dicte l'ordre d'exécution chronologique des instances
+d'instruction au sein de l'espace d'itération. Dans le modèle polyédrique, cet
+ordonnancement est représenté comme une relation affine mappant le vecteur
+d'itération d'une instruction vers un vecteur de date logique
+multidimensionnelle.
 
 #definition(
-  title: "Schedule Relation",
+  title: "Relation d'Ordonnancement",
 )[
-  Given a statement $S$, a _scheduling relation_ $theta_S$ determines the execution order of its instances. To do so, it maps each instance $arrow(x)$ of a statement $S$ to a _logical execution time_ (or _logical date_) $arrow(t)$:
+  Étant donné une instruction $S$, une _relation d'ordonnancement_ $theta_S$
+  détermine l'ordre d'exécution de ses instances. Pour ce faire, elle mappe
+  chaque instance $arrow(x)$ d'une instruction $S$ vers un _temps d'exécution
+  logique_ (ou _date logique_) $arrow(t)$ :
   $
     theta_S (arrow(p)) = { arrow(x) -> arrow(t) mid(|) T dot.op vec(arrow(x), arrow(t), arrow(p), 1) polyrelcst arrow(0)}
   $
-  where $arrow(p)$ is a vector of $N$ parameters, $arrow(x)$ is a $k$-dimensional iteration vector of $S$, $arrow(t)$ is a $d$-dimensional logical scheduling vector, and $T$ is an $m times (k + d + N + 1)$ integer matrix that encodes the $m$ affine constraints of the polyhedron.
+  où $arrow(p)$ est un vecteur de $N$ paramètres, $arrow(x)$ est un vecteur
+  d'itération de dimension $k$ de l'instruction $S$, $arrow(t)$ est un vecteur
+  d'ordonnancement logique de dimension $d$, et $T$ est une matrice d'entiers de
+  taille $m times (k + d + N + 1)$ qui encode les $m$ contraintes affines du
+  polyèdre.
 ]
 
-The schedule abstraction allows compilers to reason about time using multidimensional logical dates rather than explicit, linear execution orders. To compare the execution order of two statement instances based on their logical dates, the model relies on the lexicographic order.
+L'abstraction d'ordonnancement permet aux compilateurs de raisonner sur le temps
+en utilisant des dates logiques multidimensionnelles plutôt que des ordres
+d'exécution linéaires explicites. Pour comparer l'ordre d'exécution de deux
+instances d'instruction sur la base de leurs dates logiques, le modèle s'appuie
+sur l'ordre lexicographique.
 
 #definition(
-  title: "Lexicographic order",
+  title: "Ordre lexicographique",
 )[
-  Given two iteration vectors $arrow(x)$ and $arrow(x)'$ of the same dimension, the lexicographic order $lexordersym$ is
-  defined as
+  Étant donné deux vecteurs d'itération $arrow(x)$ et $arrow(x)'$ de même
+  dimension, l'ordre lexicographique $lexordersym$ est défini par :
   $
     vec(x_1, x_2, ..., x_n) lexordersym vec(x'_1, x'_2, ..., x'_n)
     & <==> exists k, 1 <= k <= n : (forall j : 1 <= j < k | x_j = x'_j) and x_k <= x'_k \
     & <==> cases(
       x_1 <= x'_1,
-      "or", x_1 = x'_1 and x_2 <= x'_2,
-      "or", ...,
-      "or", (forall i in bracket.l.stroked 1"," n bracket.l.stroked "," space x_i = x'_i) and x_n <= x'_n,
+      "ou", x_1 = x'_1 and x_2 <= x'_2,
+      "ou", ...,
+      "ou", (forall i in bracket.l.stroked 1"," n bracket.l.stroked "," space x_i = x'_i) and x_n <= x'_n,
     )\
   $
 ]
 
-Returning to our running example from @fig:scientificbackground:scopexample, the original, unmodified execution schedule maps the 2D iteration domain to a 3D logical time space. The first dimension ($t_0$) encodes the lexical order of the statements, while the remaining dimensions encode the iterators. The corresponding schedule relations are:
+En revenant à notre exemple @fig:scientificbackground:scopexample,
+l'ordonnancement d'exécution original mappe le domaine d'itération 2D vers un
+espace de temps logique 3D. La première dimension ($t_0$) encode l'ordre lexical
+des instructions, tandis que les dimensions restantes encodent les itérateurs.
+Les relations d'ordonnancement correspondantes sont :
 
 $
-  theta_(S_1)(arrow(p)) & = { vec(i, j) -> vec(t_0, t_1, t_2) mid(|) t_0 = 0 "and" t_1 = i "and" t_2 = j } \
-                        & = { vec(i, j) -> vec(t_0, t_1, t_2) mid(|)
-                            mat(
-                              0, 0, -1, 0, 0, 0, 0, 0;
-                              1, 0, 0, -1, 0, 0, 0, 0;
-                              0, 1, 0, 0, -1, 0, 0, 0
-                            )
-                            dot.op vec(i, j, t_0, t_1, t_2, N, M, 1) = arrow(0) }
+  theta_(S_1)(arrow(p)) & = { vec(i, j) -> vec(t_0, t_1, t_2) mid(|) t_0 = 0 "et" t_1 = i "et" t_2 = j } \
+  & = { vec(i, j) -> vec(t_0, t_1, t_2) mid(|)
+    mat(
+      0, 0, -1, 0, 0, 0, 0, 0;
+      1, 0, 0, -1, 0, 0, 0, 0;
+      0, 1, 0, 0, -1, 0, 0, 0
+    )
+    dot.op vec(i, j, t_0, t_1, t_2, N, M, 1) = arrow(0) }
 $
 
 $
-  theta_(S_2)(arrow(p)) & = { vec(i, j) -> vec(t_0, t_1, t_2) mid(|) t_0 = 1 "and" t_1 = i "and" t_2 = j } \
-                        & = { vec(i, j) -> vec(t_0, t_1, t_2) mid(|)
-                            mat(
-                              0, 0, -1, 0, 0, 0, 0, 1;
-                              1, 0, 0, -1, 0, 0, 0, 0;
-                              0, 1, 0, 0, -1, 0, 0, 0
-                            )
-                            dot.op vec(i, j, t_0, t_1, t_2, N, M, 1) = arrow(0) }
+  theta_(S_2)(arrow(p)) & = { vec(i, j) -> vec(t_0, t_1, t_2) mid(|) t_0 = 1 "et" t_1 = i "et" t_2 = j } \
+  & = { vec(i, j) -> vec(t_0, t_1, t_2) mid(|)
+    mat(
+      0, 0, -1, 0, 0, 0, 0, 1;
+      1, 0, 0, -1, 0, 0, 0, 0;
+      0, 1, 0, 0, -1, 0, 0, 0
+    )
+    dot.op vec(i, j, t_0, t_1, t_2, N, M, 1) = arrow(0) }
 $
 
-By transforming the 2D spatial domain into a 3D temporal domain, the schedule isolates the execution order. Here, $S_1$ is always executed before $S_2$ at any given iteration because its outer time dimension is statically lower ($t_0 = 0$ for $S_1$, whereas $t_0 = 1$ for $S_2$). Within their respective blocks, both statements are sequentially executed following the original iteration vector $(i, j)$ since $t_1$ and $t_2$ exactly mirror the loop iterators.
+En transformant le domaine spatial 2D en un domaine temporel 3D,
+l'ordonnancement isole l'ordre d'exécution. Ici, $S_1$ est toujours exécutée
+avant $S_2$ à toute itération donnée car sa dimension temporelle externe est
+statiquement plus petite ($t_0 = 0$ pour $S_1$, tandis que $t_0 = 1$ pour
+$S_2$). Au sein de leurs blocs respectifs, les deux instructions sont exécutées
+séquentiellement en suivant le vecteur d'itération original $(i, j)$ puisque
+$t_1$ et $t_2$ reflètent exactement les itérateurs de la boucle.
 
 
 
-== The Polyhedral Ecosystem <sec:polyhedralecosystem>
+== L'Écosystème Polyédrique <sec:scientificbackground:polyhedralecosystem>
 
-While the mathematical abstractions of the polyhedral model provide a powerful framework for loop optimization, applying these transformations automatically to real-world programs requires robust software infrastructures. Over the past decades, the compilation community has developed a rich ecosystem to manipulate polyhedral representations, perform dependence analysis, and generate optimized code.
+Bien que les abstractions mathématiques du modèle polyédrique offrent un cadre
+de travail puissant pour l'optimisation des boucles, l'application automatique
+de ces transformations à des programmes du monde réel nécessite des
+infrastructures logicielles robustes. Au cours des dernières décennies, la
+communauté de la compilation a développé un écosystème riche pour manipuler les
+représentations polyédriques, analyser les dépendances et générer du code
+optimisé.
 
-This section explores the core components of this ecosystem, categorizing it into polyhedral tools and compilers.
+Cette section explore les composants principaux de cet écosystème, en les
+catégorisant en outils polyédriques et en compilateurs.
 
-=== Polyhedral Tools
+=== Outils Polyédriques
 
-The application of the polyhedral model relies heavily on underlying mathematical libraries capable of solving complex systems of affine inequalities.
+L'application du modèle polyédrique repose fortement sur des bibliothèques
+mathématiques capables de résoudre des systèmes complexes d'inégalités affines.
 
-==== Integer Set Library (isl) <sec:isl>
+==== Integer Set Library (isl) <sec:scientificbackground:isl>
 
-To manipulate polyhedra, the #gls("isl"), developed by Sven Verdoolaege~@ISL, is widely used in the polyhedral community. isl is a C library designed for manipulating sets and relations of integer points bounded by affine constraints.
+Pour manipuler les polyèdres, la #gls("isl"), développée par Sven
+Verdoolaege~@ISL, est largement utilisée dans la communauté polyédrique. isl est
+une bibliothèque C conçue pour manipuler des ensembles et des relations de
+points entiers bornés par des contraintes affines.
 
-- *Sets:* Used to represent iteration domains.
-- *Maps:* Used to represent access functions, dependencies, and schedules by mapping elements from one set to another.
+- *Sets :* Utilisés pour représenter les domaines d'itération.
+- *Maps :* Utilisées pour représenter les fonctions d'accès, les dépendances et
+  les ordonnancements en mappant les éléments d'un ensemble vers un autre.
 
-isl provides highly optimized implementations for essential polyhedral operations, including intersection, union, set difference, emptiness checks, and calculating lexicographic minimums or maximums.
+#gls("isl") fournit des implémentations hautement optimisées pour les opérations
+polyédriques essentielles, y compris l'intersection, l'union, la différence
+d'ensembles et le calcul de minimums ou maximums lexicographiques.
 
-Beyond basic set operations, one of the most critical features of modern isl is its built-in *scheduling engine*. Based on a variant of the Pluto algorithm~@pluto1, isl can automatically compute affine schedules that respect all data dependencies while concurrently maximizing data locality and exposing parallelism.
+Au-delà des opérations d'ensembles basiques, l'une des fonctionnalités d'isl est
+son *moteur d'ordonnancement* intégré. Basé sur une variante de l'algorithme
+Pluto~@pluto1, isl peut calculer automatiquement des ordonnancements affines qui
+respectent toutes les dépendances de données tout en maximisant conjointement la
+localité des données et en exposant le parallélisme.
 
-Finally, once the optimal schedule has been computed, isl features an advanced AST (Abstract Syntax Tree) generator. This component translates the transformed polyhedral representation back into a standard loop nest structure. Because it encapsulates the entire mathematical pipeline, isl serves as the fundamental engine behind almost all modern polyhedral compilers. @fig:isl_syntax_example illustrates how a standard C loop nest is mathematically modeled using isl's sets and maps syntax.
+Enfin, une fois que l'ordonnancement optimal a été calculé, isl dispose d'un
+générateur d'AST (Abstract Syntax Tree). Ce composant traduit la représentation
+polyédrique transformée en une structure classique de nid de boucles. Parce
+qu'elle encapsule la totalité de la chaîne de compilation mathématique, isl sert
+de moteur fondamental derrière la quasi-totalité des compilateurs polyédriques
+modernes. La @fig:scientificbackground:isl_syntax_example illustre comment un
+nid de boucles C standard est modélisé mathématiquement à l'aide de la syntaxe
+des ensembles et des maps d'#gls("isl").
 
 
 #subpar.super(
@@ -431,35 +713,45 @@ Finally, once the optimal schedule has been computed, isl features an advanced A
           for (int j = 0; j < M; j++)
             A[i][j] = B[i] + C[j]; // S1
         ```,
-        caption: [Source input code],
+        caption: [Code source en entrée],
       )
     ],
     [
       #figure(
         ```text
-        // Iteration Set Domain
+        // Domaine de l'ensemble d'itération
         [N, M] -> { S1[i, j] : 0 <= i < N and 0 <= j < M }
 
-        // Execution Map Schedule
+        // Ordonnancement d'exécution (Map)
         [N, M] -> { S1[i, j] -> [i, j] }
 
-        // Memory Maps Accesses
-        [N, M] -> { S1[i, j] -> A[i, j] } // Write
-        [N, M] -> { S1[i, j] -> B[i] }    // Read
-        [N, M] -> { S1[i, j] -> C[j] }    // Read
+        // Accès mémoire (Maps)
+        [N, M] -> { S1[i, j] -> A[i, j] } // Écriture
+        [N, M] -> { S1[i, j] -> B[i] }    // Lecture
+        [N, M] -> { S1[i, j] -> C[j] }    // Lecture
         ```,
-        caption: [isl representation of the iteration domain, schedule, and access functions for the example code.],
+        caption: [Représentation isl du domaine d'itération, de l'ordonnancement
+          et des fonctions d'accès pour le code donné en exemple.],
       )
     ],
   ),
-  caption: [Example of a simple loop nest and its corresponding isl representation.],
-  label: <fig:isl_syntax_example>,
+  caption: [Exemple d'un nid de boucles simple et de sa représentation isl
+    correspondante.],
+  label: <fig:scientificbackground:isl_syntax_example>,
 )
 
+==== Représentation Standardisée OpenScop
 
-==== Standardized OpenScop Representation
-
-OpenScop~@openscop is an open specification designed to ensure interoperability by allowing different polyhedral tools to seamlessly exchange data. It models the mathematical systems of affine inequalities (domains, access functions, and schedules) using a structured matrix format, where columns correspond to loop iterators, global parameters, and constant terms, and rows represent affine constraints. @code:openscopexample:source shows a simple loop nest, while its corresponding OpenScop representation is detailed in @code:openscopexample:representation.
+OpenScop~@openscop est une spécification ouverte conçue pour garantir
+l'interopérabilité en permettant à différents outils polyédriques d'échanger une
+représentation standardisée d'un #gls("scop"). Elle modélise les systèmes
+mathématiques d'inégalités affines (domaines, fonctions d'accès et
+ordonnancements) à l'aide d'un format matriciel structuré, où les colonnes
+correspondent aux itérateurs de boucles, aux paramètres globaux et aux termes
+constants, et où les lignes représentent les contraintes affines. Le
+@code:scientificbackground:openscopexample_source montre un nid de boucles
+simple, tandis que sa représentation OpenScop correspondante est détaillée dans
+le @code:scientificbackground:openscopexample_representation.
 
 
 #subpar.super(
@@ -472,10 +764,10 @@ OpenScop~@openscop is an open specification designed to ensure interoperability 
         ```C
         for (int i = 0; i < N; i++)
           for (int j = 0; j < M; j++)
-            A[i][j] = 0;               // Statement S1
+            A[i][j] = 0;               // Instruction S1
         ```,
-        caption: [Source input code],
-      ) <code:openscopexample:source>
+        caption: [Code source en entrée],
+      ) <code:scientificbackground:openscopexample_source>
     ],
     [
       #figure(
@@ -510,104 +802,398 @@ OpenScop~@openscop is an open specification designed to ensure interoperability 
         ...
         </OpenScop>
         ```,
-        caption: [OpenScop representation of the iteration domain, scattering, and access functions for the example code.],
-      ) <code:openscopexample:representation>
+        caption: [Représentation OpenScop du domaine d'itération, de
+          l'ordonnancement (scattering) et des fonctions d'accès pour le code
+          donné en exemple.],
+      ) <code:scientificbackground:openscopexample_representation>
     ],
   ),
-  caption: [Example of a simple loop nest and its corresponding OpenScop representation.],
-  label: <fig:openscop>,
+  caption: [Exemple d'un nid de boucles simple et de sa représentation OpenScop
+    correspondante.],
+  label: <fig:scientificbackground:openscop>,
 )
 
-To ease integration, it is accompanied by the #gls("osl"), a lightweight C API used to easily generate, read, and manipulate these representations. Furthermore, OpenScop's extensible architecture supports various tool-specific extensions, allowing compilers to embed custom metadata without breaking compatibility.
+Pour faciliter l'intégration, elle est accompagnée de l'#gls("osl"), une API C
+utilisée pour générer, lire et manipuler facilement cette représentation. De
+plus, l'architecture extensible d'OpenScop prend en charge diverses extensions
+spécifiques aux outils, permettant aux compilateurs d'intégrer des métadonnées
+personnalisées sans rompre la compatibilité.
 
 
-=== Polyhedral Compilers
+=== Compilateurs Polyédriques
 
-The research community has developed various compilers to automate loop optimizations. While they all share the same theoretical foundation, they target different levels of the compilation stack and diverse hardware architectures. Some of the most notable polyhedral frameworks include:
+La communauté de recherche a développé divers compilateurs pour automatiser les
+optimisations de boucles. Bien qu'ils partagent tous la même base théorique, ils
+ciblent différents niveaux de la pile de compilation et diverses architectures
+matérielles. Parmi les frameworks polyédriques les plus notables, on trouve :
 
-- *Pluto~@pluto1*: A source-to-source C compiler renowned for its scheduling algorithm, which automatically computes affine transformations to simultaneously maximize data locality and expose parallelism on multicore CPUs.
-- *PPCG (Polyhedral Parallel Code Generator)~@ppcg:* A source-to-source compiler designed specifically for heterogeneous architectures, transforming sequential C loop nests into highly optimized CUDA or OpenCL code for GPU execution.
-- *Apollo (Automatic speculative POLyhedral Loop Optimizer)~@apollo:* A framework that extends the traditional static model by applying transformations dynamically at runtime, enabling the optimization of loop nests with unresolved memory accesses or data-dependent control flow.
-- *Polygeist~@Polygeist:* A modern C/C++ frontend and optimization framework built on top of MLIR (Multi-Level Intermediate Representation), which leverages the Affine dialect to perform polyhedral transformations within a progressive lowering pipeline.
-- *LLVM Polly~@polly1:* An integrated loop optimizer within the LLVM compiler infrastructure that operates directly on the #gls("ir"), abstracting away the source language to perform advanced memory access optimizations and auto-parallelization.
+- *Pluto~@pluto1* : Un compilateur C source-à-source renommé pour son algorithme
+  d'ordonnancement, qui calcule automatiquement les transformations affines pour
+  maximiser simultanément la localité des données et exposer le parallélisme sur
+  les CPU multicoeurs.
+- *PPCG (Polyhedral Parallel Code Generator)~@ppcg :* Un compilateur
+  source-à-source conçu spécifiquement pour les architectures hétérogènes,
+  transformant les nids de boucles C séquentiels en code CUDA ou OpenCL optimisé
+  pour l'exécution sur GPU.
+- *Apollo (Automatic speculative POLyhedral Loop Optimizer)~@apollo :* Un
+  framework qui étend le modèle statique traditionnel en appliquant des
+  transformations dynamiquement à l'exécution (runtime), permettant
+  l'optimisation des nids de boucles avec des accès mémoire non résolus
+  statiquement ou un flux de contrôle dépendant des données.
+- *Polygeist~@Polygeist :* Un frontend C/C++ moderne et un framework
+  d'optimisation construit au-dessus de MLIR (Multi-Level Intermediate
+  Representation), qui exploite le dialecte affine pour effectuer des
+  transformations polyédriques au sein d'une chaîne de compilation LLVM.
+- *LLVM Polly~@polly1 :* Un optimiseur de boucles intégré dans l'infrastructure
+  du compilateur LLVM qui opère directement sur l'#gls("ir"), s'abstrayant du
+  langage source pour effectuer des optimisations avancées.
 
-While each of these tools successfully optimizes the performance of the transformed codes, the work presented in this thesis relies primarily on the LLVM infrastructure, utilizing Polly to intercept and optimize Kokkos codes. Consequently, the following section provides a comprehensive deep dive into the architecture and the compilation pipeline of LLVM Polly.
+Bien que chacun de ces outils optimise avec succès les performances des codes
+transformés, les travaux présentés dans cette thèse s'appuient principalement
+sur l'infrastructure LLVM, en utilisant Polly pour intercepter et optimiser les
+codes Kokkos. Par conséquent, la section suivante propose une plongée
+approfondie dans l'architecture et la chaîne de compilation de LLVM Polly.
 
 
 
-== Deep Dive into LLVM Polly <sec:polly>
+== Plongée au Coeur de LLVM Polly <sec:scientificbackground:polly>
 
-Polly~@polly2 is a low level polyhedral loop analysis and optimization framework seamlessly integrated into the LLVM middle-end optimizer. It can be natively invoked through the Clang compiler frontend (e.g., using command-line flags like `-O3 -mllvm -polly`). A key strategic advantage of Polly is its reliance on the LLVM #gls("ir"). By operating strictly at the #gls("ir") level, Polly is completely decoupled from the frontend source language, allowing it to optimize loops regardless of whether the original source code was written in C, C++, Fortran, or any other language supported by the LLVM ecosystem.
+Polly~@polly2 est un framework d'analyse et d'optimisation polyédrique de
+boucles de bas niveau, intégré dans l'optimiseur middle-end de LLVM. Il peut
+être invoqué nativement via le frontend du compilateur Clang (en utilisant des
+arguments de ligne de commande comme `-O3 -mllvm -polly`). Un avantage
+stratégique clé de Polly est sa dépendance à l'#gls("ir") de LLVM. En opérant
+strictement au niveau de l'#gls("ir"), Polly est complètement découplé du
+langage source du frontend, lui permettant d'optimiser les boucles
+indépendamment du code source original.
 
-This #gls("ir") driven architecture is particularly advantageous when targeting modern high-level parallel frameworks such as Kokkos. Kokkos relies heavily on advanced C++ features, including template metaprogramming, lambda functions, and complex object abstractions, which are notoriously difficult for traditional source-to-source polyhedral compilers to parse and analyze accurately. By positioning Polly in the middle-end, it intercepts the code only after the Clang frontend has fully instantiated the templates, resolved the high-level abstractions, and performed aggressive function inlining. Consequently, Polly operates on a "cleaned up" and canonicalized representation where the underlying multi-dimensional loop nests and memory accesses are explicitly exposed, entirely bypassing the syntactic complexity of the original C++ source code.
+Cette architecture basée sur l'#gls("ir") est particulièrement avantageuse lors
+du ciblage de frameworks parallèles modernes de haut niveau tels que Kokkos.
+Kokkos s'appuie fortement sur des fonctionnalités C++ avancées, incluant la
+métaprogrammation par templates, les fonctions lambda et les abstractions
+d'objets complexes, qui sont impossible à analyser et à parser pour les
+compilateurs polyédriques source-à-source traditionnels. En se positionnant dans
+le middle-end, Polly n'intercepte le code qu'une fois que le frontend Clang a
+complètement instancié les templates, résolu les abstractions de haut niveau et
+effectué un inlining agressif des fonctions. Par conséquent, Polly opère sur une
+représentation "nettoyée" et canonicalisée où les nids de boucles
+multidimensionnels et les accès mémoire sont explicitement exposés, contournant
+entièrement la complexité syntaxique du code source C++ original.
 
-=== Architecture and Pipeline Integration
+=== Architecture et Intégration dans la Chaîne de Compilation
 
-Within the LLVM compiler infrastructure, optimizations are applied as a sequence of passes orchestrated by the Pass Manager. Polly integrates natively into this middle-end pipeline, and its exact point of execution can be controlled via the `-polly-position` command-line flag.
+Au sein de l'infrastructure du compilateur LLVM, les optimisations sont
+appliquées comme une séquence de passes orchestrées par le gestionnaire de
+passes. Polly s'intègre nativement dans cette chaîne de compilation middle-end,
+et son point exact d'exécution peut être contrôlé via l'argument de ligne de
+commande `-polly-position`.
 
-By default—and used during all the experimental work presented in this thesis—Polly is scheduled at the `before-vectorizer` position. This specific placement is highly strategic. Before Polly even inspects the code, the #gls("ir") has already been heavily optimized and canonicalized by standard LLVM passes. Passes such as `mem2reg` (which promotes memory allocations to SSA registers), `simplifycfg` (which cleans up the control-flow graph), and aggressive function inlining have already stripped away the high-level C++ abstraction overhead. Consequently, Polly operates on clean, normalized loop structures and feeds its highly optimized, parallelizable output directly into LLVM's native auto-vectorizer.
+Par défaut et utilisé lors de tous les travaux expérimentaux présentés dans
+cette thèse, Polly est planifié à la position `before-vectorizer`. Ce placement
+spécifique est hautement stratégique. Avant même que Polly n'inspecte le code,
+l'#gls("ir") a déjà été fortement optimisée et canonicalisée par les passes
+standards de LLVM. Des passes telles que `mem2reg` (qui promeut les allocations
+mémoire en registres SSA), `simplifycfg` (qui nettoie le graphe de flot de
+contrôle) et un inlining agressif des fonctions ont déjà supprimé le surcoût lié
+à l'abstraction C++ de haut niveau. Par conséquent, Polly opère sur des
+structures de boucles propres et normalisées et fournit sa sortie hautement
+optimisée et parallélisable directement au vectoriseur natif de LLVM.
 
 #figure(
   image(fig.scientificbackground-pollypipeline),
-  caption: [Integration of Polly passes within the LLVM middle-end optimization pipeline at the `before-vectorizer` position. (Source: #link("https://polly.llvm.org/docs/Architecture.html")[LLVM Polly Documentation])],
-) <fig:pollypipeline>
+  caption: [Intégration des passes de Polly au sein de la chaîne d'optimisation
+    middle-end de LLVM à la position `before-vectorizer`. (Source : #link(
+      "https://polly.llvm.org/docs/Architecture.html",
+    )[Documentation de LLVM Polly])],
+) <fig:scientificbackground:pollypipeline>
 
-Once invoked, Polly executes its own specialized internal pipeline. This subsystem closely mirrors the theoretical polyhedral workflow and consists of a strict sequence of sequential LLVM passes, as illustrated in @fig:pollypipeline:
+Une fois invoqué, Polly exécute sa propre chaîne de compilation interne
+spécialisée. Ce système présente le flux de travail polyédrique en une séquence
+stricte de passes LLVM séquentielles, comme illustré dans la
+@fig:scientificbackground:pollypipeline :
 
-- *`CodePreparation`:* Performs final transformations to canonicalize the #gls("ir"), ensuring that loop structures and memory accesses are in a form suitable for polyhedral analysis.
-- *`ScopDetect`:* Analyzes the control-flow graph to identify valid Single-Entry Single-Exit (SESE) regions that are valid for polyhedral representation.
-- *`ScopInfo`:* Extracts the #gls("ir") instructions from valid regions and translates them into exact mathematical isl representations (domains, accesses, exact data dependencies, and original scheduling).
-- *`ScheduleOptimizer`:* Invokes the built-in isl scheduling engine to compute optimal affine transformations that maximize data locality and expose parallelism.
-- *`IslAst`:* Generates a new #gls("ast") representing the structure of the optimally scheduled loop nest.
-- *`CodeGeneration`:* Traverses the #gls("isl") #gls("ast") to emit the final, optimized LLVM #gls("ir"), integrating runtime aliasing and bounds checks when necessary.
+- *`CodePreparation` :* Prépare l'#gls("ir") en scindant le bloc d'entrée afin
+  d'isoler les allocations mémoires locales (`alloca`) des opérations
+  arithmétiques et des accès aux données, préparant ainsi le code à l'analyse et
+  à la future génération de code.
+- *`ScopDetect` :* Analyse le graphe de flot de contrôle pour identifier les
+  régions valides à Entrée Unique et Sortie Unique (Single-Entry Single-Exit,
+  SESE) qui sont appropriées pour la représentation polyédrique dans Polly.
+- *`ScopInfo` :* Extrait les instructions de l'#gls("ir") des régions valides et
+  les traduit en représentations mathématiques #gls("isl") (domaines, accès,
+  dépendances de données, et ordonnancement original).
+- *`ScheduleOptimizer` :* Invoque le moteur d'ordonnancement intégré d'isl pour
+  calculer des transformations affines optimales qui maximisent la localité des
+  données et exposent le parallélisme.
+- *`IslAst` :* Génère un nouvel #gls("ast") #gls("isl") représentant la
+  structure du nid de boucles ordonnancé de manière optimale.
+- *`CodeGeneration` :* Parcourt l'#gls("ast") #gls("isl") pour construire
+  l'#gls("ir") LLVM finale et optimisée, en y intégrant des vérifications à
+  l'exécution (runtime checks) pour l'aliasing et les limites de tableaux
+  lorsque cela est nécessaire.
 
-The detailed mechanisms of each of these internal passes are explored in the following subsections.
+Les mécanismes détaillés de chacune de ces passes internes sont explorés dans
+les sous-sections suivantes.
 
-==== Code Preparation
+==== Préparation du Code (`Code Preparation`)
 
-Before identifying polyhedral regions, Polly must ensure the LLVM #gls("ir") is in a highly canonical and simplified state. The `CodePreparation` pass acts as a specialized bridge between the standard LLVM middle-end optimizations and Polly's strict mathematical requirements. It performs transformations, such as simplifying loop exit blocks, normalizing induction variables, rotating loops to obtain the correct structural form, and ensuring that basic blocks are structured in a way that facilitates polyhedral extraction. This preparatory step maximizes the number of loop nests that can be subsequently recognized as valid SCoPs.
+Avant d'identifier les régions polyédriques, Polly exécute une étape
+préparatoire via la passe `CodePreparation`. Dans son fonctionnement natif, son
+rôle est de scinder le bloc d'entrée de la fonction afin d'isoler les
+allocations mémoires locales (`alloca`) des opérations arithmétiques et d'accès
+aux données. Cette séparation structurelle évite que les instructions
+d'allocation de pile ne polluent les blocs de calcul et réserve l'espace
+nécessaire à l'insertion de nouvelles allocations lors de la phase de
+regénération du code.
 
-==== SCoP Detection
+==== Détection des SCoPs (`SCoP Detection`)
 
-Following the preparatory transformations, the `ScopDetect` pass is responsible for identifying segments of the LLVM #gls("ir") that can be legally optimized using the polyhedral model. Polly operates on the Control-Flow Graph (CFG) to isolate maximal Single-Entry Single-Exit (SESE) regions.
+À la suite des transformations préparatoires, la passe `ScopDetect` est chargée
+d'identifier les segments de l'#gls("ir") de LLVM qui peuvent être légalement
+optimisés en utilisant le modèle polyédrique. Polly opère sur le graphe de flot
+de contrôle (CFG) pour isoler les régions SESE maximales.
 
-For a SESE region to be validated as a Static Control Part (SCoP), Polly enforces strict acceptance criteria. It relies heavily on LLVM's Scalar Evolution (SCEV) analysis to inspect loop induction variables, bounds, and conditional branches. The region is accepted only if `ScopDetect` can definitively prove that all loop bounds and control-flow conditions are purely affine expressions.
+Pour qu'une région SESE soit validée comme un SCoP, Polly applique des critères
+d'acceptation stricts. Il s'appuie fortement sur l'analyse d'évolution scalaire
+(Scalar Evolution, SCEV) de LLVM pour inspecter les variables d'induction des
+boucles, les bornes et les branchements conditionnels. La région n'est acceptée
+que si `ScopDetect` peut prouver de manière formelle que toutes les bornes des
+boucles et les conditions de flot de contrôle sont purement des expressions
+affines.
 
-Furthermore, this pass performs a rigorous legality and safety check. The SESE region is immediately rejected if it contains instructions with unknown side effects (such as external or uninlined function calls), non-affine array subscripts, or complex pointer aliasing that cannot be resolved statically.
+Cette passe effectue une vérification rigoureuse de la légalité et de la
+sécurité. La région SESE est immédiatement rejetée si elle contient des
+instructions avec des effets de bord inconnus (comme des appels de fonctions
+externes ou non inlinés), des indices de tableaux non affines, ou un aliasing de
+pointeurs complexe qui ne peut pas être résolu statiquement.
 
-==== SCoP Building
+==== Construction des SCoPs (`SCoP Building`)
 
-Once a valid SESE region is successfully detected, the `ScopInfo` pass is executed to translate the underlying LLVM #gls("ir") into the mathematical abstractions of the polyhedral model. This process involves mapping the code structures into #gls("isl") objects.
+Une fois qu'une région SESE valide est détectée avec succès, la passe `ScopInfo`
+est exécutée pour traduire l'#gls("ir") de LLVM vers les abstractions
+mathématiques du modèle polyédrique. Ce processus implique de mapper les
+structures de code en objets #gls("isl").
 
-For each basic block within the region, `ScopInfo` defines a mathematical statement. It then constructs the exact *iteration domain* by translating the affine constraints of the surrounding loops (captured via SCEV) into isl sets. Similarly, memory instructions (such as `load` and `store`) are converted into isl access relations, mapping the logical execution of a statement to specific memory addresses.
+Pour chaque bloc de base au sein de la région, `ScopInfo` définit une
+instruction mathématique. Ensuite, il construit le *domaine d'itération* exact
+en traduisant les contraintes affines des boucles englobantes obtenu la passe
+SCEV en structure isl. De même, les instructions mémoire (telles que `load` et
+`store`) sont converties en relations d'accès isl, mappant l'exécution logique
+d'une instruction à des adresses mémoire spécifiques.
 
-Crucially, this phase also extracts the original schedule of the unmodified program and performs a data dependence analysis (identifying Read-After-Write, Write-After-Write, and Write-After-Read dependencies). By the end of this pass, Polly has built a complete and mathematically robust representation of the loop nest, entirely detached from the LLVM #gls("ir"), ready to be optimized by the polyhedral engine.
+Cette phase extrait également l'ordonnancement original du programme non modifié
+et effectue une analyse des dépendances de données. À la fin de cette passe,
+Polly a construit une représentation mathématique complète du nid de boucles,
+entièrement détachée de l'#gls("ir") de LLVM, prête à être optimisée par le
+moteur polyédrique.
 
-==== SCoP Optimization
+Toutefois, pour garantir la validité de cette représentation et capturer des
+dépendances de données exactes, Polly doit préalablement reconstruire la
+structure originelle des accès mémoire : c'est l'étape de délinéarisation.
 
-With the mathematical representation fully constructed, the `ScheduleOptimizer` pass delegates the core optimization workload to ISL's built-in scheduling engine. The primary objective of the solver is to compute a new affine schedule that reshapes the execution order of the statement instances. The scheduler searches for transformations that minimize the reuse distance of memory accesses and expose parallelism. Crucially, the engine mathematically guarantees the semantic equivalence of the program: any computed schedule must strictly respect the exact instance-wise data dependencies (RAW, WAR, WAW) extracted during the previous phase.
+===== Délinéarisation des accès mémoire <sec:scientificbackground:delinearization>
 
-The output of this pass is an optimized mathematical schedule tree. By isolating loop dimensions that are completely free of cyclic loop-carried dependencies, the solver mathematically proves the absence of data races. This exposed parallelism directly guides the subsequent #gls("ast") generation and code emission phases to safely apply vectorization or multithreading.
+L'un des défis majeurs lors de l'extraction des SCoPs réside dans la traduction
+des instructions mémoire de bas niveau de l'#gls("ir") de LLVM vers des
+structures de tableaux multidimensionnels. Ce processus, appelé délinéarisation,
+est absolument nécessaire pour pouvoir exprimer des fonctions d'accès affines et
+effectuer les transformations polyédriques associées.
 
-=== AST Generation
+En effet, lors de la génération de l'#gls("ir"), les accès aux tableaux
+multidimensionnels sont linéarisés en une arithmétique de pointeurs
+unidimensionnelle. Le @code:scientificbackground:delinearization montre un
+exemple où l'accès au tableau tridimensionnel `A[i][j][k]` est compilé avec un
+décalage mémoire calculé par l'expression mathématique
+$i times M times P + j times P + k$.
 
-Taking the newly optimized schedule tree as input, the `IslAst` pass generates an #gls("ast") that logically represents the structure of the transformed loop nest. At this stage, the pass deeply analyzes the mathematical properties of the new schedule to embed crucial execution hints directly into the #gls("ast") nodes.
+#figure(
+  ```cpp
+  void init(int N, int M, int P, double A[N][M][P]) {
+      for (int i = 0; i < N; i++)
+          for (int j = 0; j < M; j++)
+              for (int k = 0; k < P; k++)
+                  A[i][j][k] = 0.0;
+  }
+  ```,
+  caption: [Exemple de code source en C avec un accès multidimensionnel 3D.],
+) <code:scientificbackground:delinearization>
 
-Specifically, if the #gls("isl") solver has mathematically proven that certain loop dimensions are completely free of loop-carried dependencies, the corresponding #gls("ast") nodes are explicitly annotated as parallel. Similarly, inner loops are annotated as vectorizable. These semantic annotations are fundamental, as they serve as direct directives to guide the code generation phase, safely enabling multithreading and SIMD instructions.
+Si les tailles des dimensions $M$ et $P$ sont dynamiques, cette expression
+$i times M times P + j times P + k$ devient non-affine car elle implique la
+multiplication de variables d'induction par des paramètres, ce qui briserait les
+conditions de validité du modèle polyédrique.
 
-==== Code Generation
+Pour pallier ce problème, Polly s'appuie sur un algorithme, détaillé dans
+@Delinearization, qui se base sur l'analyse d'évolution scalaire (SCEV).
+L'algorithme analyse l'expression de l'adresse mémoire calculée et factorise les
+pas d'accès. Dans notre exemple, il observe que l'adresse avance d'un pas de
+$M times P times 8$ à chaque itération de la boucle externe $i$, d'un pas de
+$P times 8$ pour la boucle intermédiaire $j$, et d'un pas de $8$ pour la boucle
+interne $k$ ($8$ correspondant à la taille en octets d'un type `double`).
 
-The `CodeGeneration` pass is responsible for reconstructing the final, optimized LLVM #gls("ir") from the newly generated #gls("isl") #gls("ast"). By traversing the #gls("ast") nodes, this pass utilizes the LLVM `IRBuilder` to emit the corresponding loop structures and #gls("cfg"). If the traversed #gls("ast") nodes carry the parallel or vector annotations embedded during the previous phase, the code generator translates them into appropriate OpenMP runtime library calls or SIMD directives.
+#figure(
+  ```llvm
+  {{{ %A, +, (8*%m*%p)}<%for.i>, +, (8*%p)}<%for.j>, +, 8}<%for.k>
+  ```,
+  caption: [Représentation de l'évolution scalaire de l'adresse mémoire de
+    `A[i][j][k]` issue de la @code:scientificbackground:delinearization],
+)<code:scientificbackground:delinearization_scev>
 
-Rather than generating computational instructions from scratch, the generator intelligently reuses the original code. It copies the old LLVM #gls("ir") instructions, as the mathematical operations and data processing logic saved during the `ScopInfo` phase, and injects them into the newly constructed loop bodies. During this copying process, memory instructions (`load` and `store`) are dynamically updated. Their array subscripts and pointer arithmetic are rewritten with the new affine access functions and the newly created loop induction variables.
+Comme l'illustre la @code:scientificbackground:delinearization_scev, cette
+représentation compacte met en évidence les pas d'accès associés à chaque
+boucle. Pour reconstruire les accès multidimensionnels, l'algorithme de
+délinéarisation procède à des opérations successives de division euclidienne sur
+le polynôme de l'adresse mémoire. Ces divisions utilisent les tailles
+identifiées pour chaque dimension (appelées _terms_), en remontant de la
+dimension la plus interne vers la plus externe. Dans notre exemple, les _terms_
+successifs extraits sont $8$, $P$, et $M$.
 
-Finally, to guarantee absolute semantic correctness, Polly employs a loop versioning mechanism. Because static analysis cannot always definitively prove the absence of pointer aliasing or out-of-bounds accesses at compile time, the code generator often emits a block of runtime safety checks. The original, unmodified loop nest is preserved in the #gls("ir") as a fallback path. At runtime, if these safety checks fail, the execution dynamically branches to the original code, ensuring that the polyhedral transformations never compromise the program's validity.
+Soit $S$ l'expression de l'adresse mémoire linéarisée, qui correspond au
+polynôme capturé par la SCEV :
 
-=== Polly's Limitations
+$
+  S(i,j,k) & = i times M times P times 8 + j times P times 8 + k times 8
+$
 
-While LLVM Polly provides a mechanism for loop optimization, its architectural choice to operate exclusively at the #gls("ir") level introduces several inherent limitations. These challenges are particularly pronounced when analyzing heavily abstracted C++ code like Kokkos.
+La séparation des dimensions s'effectue alors étape par étape :
 
-- *The Semantic Gap and Information Reconstruction:* Operating on LLVM #gls("ir") means that all high-level language constructs have been lowered and flattened. To apply the polyhedral model, Polly must artificially reverse-engineer the original program structure from low-level instructions. This involves recovering multi-dimensional array structures (delinearization), reconstructing loop hierarchies, and logically grouping instructions into mathematical statements. If the original C++ code relies on complex template abstractions, this reconstruction process becomes highly fragile, frequently causing Polly to fail in recognizing valid SCoPs.
-- *Lack of GPU Support:* Polly is primarily engineered to optimize data locality and parallelism for multi-core CPUs (via OpenMP and SIMD vectorization). While experimental extensions like Polly-ACC~@pollyacc were historically developed to generate GPU code, they are not actively maintained in the upstream LLVM compiler. Consequently, Polly natively lacks the robust capability to generate optimized CUDA or HIP code for modern heterogeneous architectures.
+*Itération 1 (Extraction de la taille de l'élément, Term $8$) :* \
+La première étape consiste à extraire la taille du type de donnée en divisant le
+polynôme global par $8$ :
+- Quotient :
+  $Q_1 = floor(S / 8) = floor((i times M times P times 8 + j times P times 8 + k times 8) / 8) = i times M times P + j times P + k$
 
-These inherent structural and hardware-targeting limitations underscore the difficulty of applying standard polyhedral compilers directly to performance-portable frameworks. Overcoming these barriers to unlock polyhedral optimizations for tools like Kokkos, which provide high-level abstractions for both CPU and GPU architectures, forms the core motivation for the methodologies developed in the subsequent chapters of this thesis.
+*Itération 2 (Dimension interne $k$, Term $P$) :* \
+Le nouveau polynôme $Q_1$ est ensuite divisé par la dimension suivante ($P$)
+pour en déduire l'indice le plus interne ($k$) :
+- Indice :
+  $"Index"_0 = Q_1 mod P = (i times M times P + j times P + k) mod P = k$
+- Quotient :
+  $Q_2 = floor(Q_1 / P) = floor((i times M times P + j times P + k) / P) = i times M + j$
+
+*Itération 3 (Dimension intermédiaire $j$, Term $M$) :* \
+Enfin, on divise le quotient restant $Q_2$ par la dernière dimension ($M$) pour
+isoler les indices restants :
+- Indice : $"Index"_1 = Q_2 mod M = (i times M + j) mod M = j$
+- Quotient (Dimension externe $i$) :
+  $"Index"_2 = floor(Q_2 / M) = floor((i times M + j) / M) = i$
+
+Grâce à cette méthode itérative détaillée, Polly réussit à séparer les tailles
+des différentes dimensions et à extraire les indices d'accès multidimensionnels
+affines ($i$, $j$, $k$). Cette étape de reconstruction est primordiale car elle
+restaure les accès multidimensionnels affines des tableaux indispensable pour le
+modèle polyédrique.
+
+
+==== Optimisation des SCoPs (`SCoP Optimization`)
+
+Avec la représentation mathématique entièrement construite, la passe
+`ScheduleOptimizer` délègue la charge principale de l'optimisation au moteur
+d'ordonnancement intégré d'ISL. L'objectif premier du solveur est de calculer un
+nouvel ordonnancement qui redéfinit l'ordre d'exécution des instances
+d'instructions. Le planificateur recherche des transformations qui minimisent la
+distance de réutilisation des accès mémoire et exposent le parallélisme.Le
+moteur garantit mathématiquement l'équivalence sémantique du programme : tout
+ordonnancement calculé doit strictement respecter les dépendances de données
+exactes au niveau de l'instance extraites lors de la phase précédente.
+
+La sortie de cette passe est un arbre d'ordonnancement optimisé. En isolant les
+dimensions de boucles qui sont complètement dépourvues de dépendances cycliques
+portées par la boucle, le solveur prouve mathématiquement l'absence de
+concurence de données. Ce parallélisme exposé guide directement les phases
+ultérieures de génération de l'#gls("ast") et d'émission du code pour appliquer
+en toute sécurité la vectorisation ou le multithreading.
+
+=== Génération de l'AST (`IslAst`)
+
+En prenant l'arbre d'ordonnancement nouvellement optimisé comme entrée, la passe
+`IslAst` génère un #gls("ast") qui représente logiquement la structure du nid de
+boucles transformé. À ce stade, la passe analyse en profondeur les propriétés
+mathématiques du nouvel ordonnancement pour intégrer des directives d'exécution
+dans les noeuds de l'#gls("ast").
+
+Spécifiquement, si le solveur #gls("isl") a prouvé mathématiquement que
+certaines dimensions de boucles sont complètement dépourvues de dépendances
+portées par la boucle, les noeuds correspondants de l'#gls("ast") sont
+explicitement annotés comme étant parallèles. De même, les boucles internes sont
+annotées comme vectorisables. Ces annotations sémantiques sont fondamentales,
+car elles servent de directives pour guider la phase de génération de code,
+permettant d'activer le multithreading et les instructions SIMD.
+
+==== Génération de Code (`Code Generation`)
+
+La passe `CodeGeneration` est chargée de reconstruire l'#gls("ir") LLVM finale
+et optimisée à partir du nouvel #gls("ast") #gls("isl") généré. En parcourant
+les noeuds de l'#gls("ast"), cette passe utilise l'`IRBuilder` de LLVM pour
+construire les structures de boucles correspondantes et le #gls("cfg"). Si les
+noeuds de l'#gls("ast") parcourus portent les annotations parallèles ou
+vectorielles intégrées lors de la phase précédente, le générateur de code les
+traduit en appels appropriés de la bibliothèque d'exécution OpenMP ou en
+directives SIMD.
+
+Plutôt que de générer les instructions de calcul à partir de zéro, le générateur
+réutilise intelligemment le code d'origine. Il copie les anciennes instructions
+de l'#gls("ir") de LLVM, en tant qu'opérations mathématiques et logique de
+traitement de données sauvegardées lors de la passe `ScopInfo`, et les injecte
+dans les corps des nouvelles boucles construites. Pendant ce processus de copie,
+les instructions mémoire (`load` et `store`) sont mises à jour. Les indices de
+leurs tableaux et l'arithmétique des pointeurs sont réécrits avec les nouvelles
+fonctions d'accès affines et les nouvelles variables d'induction de boucle.
+
+Enfin, pour garantir une correction sémantique absolue, Polly emploie un
+mécanisme de versioning de boucle. Étant donné que l'analyse statique ne peut
+pas toujours prouver définitivement l'absence d'aliasing de pointeurs ou d'accès
+hors limites à la compilation, le générateur de code constuit si nécessaire un
+bloc de vérifications de sécurité à l'exécution. Le nid de boucles original et
+non modifié est préservé dans l'#gls("ir") en tant que chemin de secours. À
+l'exécution, si ces vérifications de sécurité échouent, l'exécution bifurque
+dynamiquement vers le code original, s'assurant que les transformations
+polyédriques ne compromettent jamais la validité du programme.
+
+=== Limites de Polly
+
+Bien que LLVM Polly fournisse un mécanisme pour l'optimisation des boucles, son
+choix architectural d'opérer exclusivement au niveau de l'#gls("ir") introduit
+plusieurs limites inhérentes. Ces défis sont particulièrement marqués lors de
+l'analyse de code C++ fortement abstrait comme Kokkos.
+
+- *Le Fossé Sémantique et la Reconstruction de l'Information :* Opérer sur
+  l'#gls("ir") de LLVM signifie que toutes les constructions du langage de haut
+  niveau ont été abaissées et aplanies. Pour appliquer le modèle polyédrique,
+  Polly doit reconstituer artificiellement la structure originale du programme à
+  partir d'instructions de bas niveau. Cela implique la récupération des
+  structures de tableaux multidimensionnels, la reconstruction des hiérarchies
+  de boucles, et le regroupement logique des instructions en déclarations
+  mathématiques. Si le code C++ original s'appuie sur des abstractions
+  complexes, ce processus de reconstruction devient hautement fragile,
+  provoquant l'échec de Polly à reconnaître des SCoPs valides.
+- *Manque de Prise en Charge des GPU :* Polly est conçu pour optimiser la
+  localité des données et le parallélisme pour les CPU multicoeurs (via OpenMP
+  et la vectorisation SIMD). Bien que des extensions expérimentales comme
+  Polly-ACC~@pollyacc aient été historiquement développées pour générer du code
+  GPU, elles ne sont plus activement maintenues dans les versions récentes du
+  framework LLVM. Par conséquent, Polly manque nativement de la capacité robuste
+  à générer du code GPU optimisé pour les architectures hétérogènes modernes.
+
+Ces deux limites, structurelle et matérielle, mettent en évidence
+l'incompatibilité entre l'approche descendante classique de Polly et les
+exigences des frameworks de portabilité de performance :
+
+D'une part, le choix d'opérer exclusivement au niveau d'une représentation
+intermédiaire de bas niveau crée un fossé sémantique majeur face aux
+abstractions C++ modernes.
+
+D'autre part, le fait que la génération de code de Polly soit nativement
+restreinte aux seuls processeurs multicoeurs (via OpenMP) entre en contradiction
+directe avec le modèle d'exécution de Kokkos, conçu pour cibler des
+architectures hétérogènes et exploiter les accélérateurs matériels (GPU).
+
+Ainsi, bien que le modèle polyédrique offre des garanties formelles puissantes
+pour optimiser la localité et paralléliser les boucles, son utilisation directe
+se heurte à une double impasse : une incapacité à percevoir la structure des
+calculs issus de Kokkos au niveau de l'IR, et une incapacité à générer du code
+pour les accélérateurs hétérogènes ciblés. Surmonter ce double verrou en
+conciliant l'expressivité de Kokkos avec les capacités d'optimisation de Polly
+constitue le coeur de cette thèse. Le @sec:stateoftheart dresse un panorama des
+solutions proposées dans la littérature pour rapprocher ces deux mondes, avant
+de détailler notre approche de co-design dans les chapitres suivants.

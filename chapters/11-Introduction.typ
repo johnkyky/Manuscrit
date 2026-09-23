@@ -1,102 +1,157 @@
 #import "../src/common.typ": *
 
-= Introduction <chapter:introduction>
+= Introduction <sec:introduction>
 
-The computational power of supercomputers has continuously grown over the years, driven by the rapid evolution of hardware architectures. Historically, this progress was fueled by Moore's law through an increase in the number of transistors, their miniaturization, and higher processor clock frequencies. However, as physical constraints brought frequency scaling to a halt, the industry massively shifted toward hardware parallelism, leading to the widespread adoption of pipelined and vector architectures, shared and distributed memory systems, and the integration of hardware accelerators.
+La puissance de calcul des supercalculateurs n'a cessé d'augmenter au fil des
+années, stimulée par l'évolution rapide des architectures matérielles.
+Historiquement, cette progression a été alimentée par la loi de Moore à travers
+l'augmentation du nombre de transistors, leur miniaturisation et l'élévation de
+la fréquence d'horloge des processeurs. Toutefois, alors que les contraintes
+physiques ont mis un frein à la montée en fréquence, l'industrie s'est
+massivement tournée vers le parallélisme matériel, conduisant à l'adoption
+généralisée d'architectures pipelinées et vectorielles, de systèmes à mémoire
+partagée et distribuée, ainsi qu'à l'intégration d'accélérateurs matériels.
 
-Exploiting these heterogeneous architectures has led to the emergence of multiple programming paradigms, making the development of high-performance scientific codes increasingly complex. While substantial efforts have been made to delegate this complexity to compilers and other automated tools, achieving purely automatic optimization and parallelization on modern multi-core and accelerator based systems remains difficult.
+L'exploitation de ces architectures hétérogènes a entraîné l'émergence de
+multiples paradigmes de programmation, rendant le développement de codes
+scientifiques de haute performance de plus en plus complexe. Bien que des
+efforts aient été déployés pour déléguer cette complexité aux compilateurs et
+autres outils automatisés, l'obtention d'une optimisation et d'une
+parallélisation purement automatiques sur les systèmes modernes multi-coeurs et
+basés sur des accélérateurs reste un défi majeur.
 
-Although modern compilers integrate numerous optimization passes, they frequently struggle to apply advanced parallelization and loop transformations efficiently. This limitation primarily comes from the semantic gap between the programmer's high-level intent and the machine-level intermediate representation. To reduce programming cost, the HPC community has designed performance portability frameworks. These libraries provide high-level abstractions that allow developers to explicitly express optimized computational motifs, parallelization strategies, and memory management, with the promise of high performance across diverse architectures (CPUs, GPUs) from a single, unified source code.
+Bien que les compilateurs modernes intègrent de nombreuses passes
+d'optimisation, ils peinent fréquemment à appliquer efficacement des
+parallélisations avancées et des transformations de boucles. Cette limitation
+provient principalement du fossé sémantique entre l'intention de haut niveau du
+programmeur et la représentation intermédiaire de bas niveau comprise par la
+machine. Pour réduire les coûts de développement, la communauté HPC a conçu des
+frameworks de portabilité des performances. Ces bibliothèques fournissent des
+abstractions de haut niveau permettant aux développeurs d'exprimer explicitement
+des motifs de calcul optimisés, des stratégies de parallélisation et la gestion
+de la mémoire, avec la promesse de hautes performances sur diverses
+architectures (CPUs, GPUs) à partir d'un code source unique et unifié.
 
-While these frameworks greatly facilitate the expression of parallelism, the fine-grained optimization of loop nests remains a significant challenge. The polyhedral model offers a proven mathematical solution for loop optimization. This algebraic approach enables the precise analysis of data dependencies and the application of complex transformations that traditional compilers cannot perform. A highly promising solution to the loop optimization challenge lies in the synergy between the analytical power of the polyhedral model and the high-level abstractions of performance portability frameworks. By converging these two approaches, it becomes possible to effectively optimize and parallelize scientific codes across complex and heterogeneous architectures.
-
-
-== Compilers
-
-The compiler serves as the critical bridge between the high-level abstractions written by the developer and the low-level instructions executed by the machine. In addition to the conversion to an executable binary file, the compiler is responsible for applying specific optimizations. Ideally, a developer could rely entirely on the compiler's internal heuristics and optimization passes to achieve maximum performance. However, to maximize the utilization of hardware resources for compute-intensive HPC codes, this is rarely sufficient.
-
-An alternative approach is to perform manual code transformations and optimizations directly at the source level to assist the compiler. While a well-executed manual optimization often yields superior performance, it demands significant expertise, increases development time, and severely degrades code maintainability. It effectively requires the developer to be both a domain scientist and a low-level code optimization expert. To overcome this bottleneck, performance portability frameworks offer an alternative to obtain performance without requiring deep development expertise. They allow developers to simply express their computational kernels, while the framework handles the complex mapping and deployment of these kernels to maximize performance across the chosen hardware targets.
-
-
-== Performance Portability Frameworks
-
-Performance portability frameworks are provided as software libraries that developers can leverage to express parallelism and manage memory across diverse hardware architectures. In the HPC domain, the most prominent examples include Kokkos, RAJA, and the C++ Standard Parallelism (`std::par`). These frameworks enable the development of a single source code that can be compiled for various targets, with the promise of performance portability.
-
-However, these frameworks do not inherently perform automatic source code optimization. They rely on static structural optimizations and explicit parallelism without performing deep static analysis of the computational kernels themselves. The performance they deliver stems primarily from robust parallel dispatching and low-level mapping techniques implemented by the framework developers, rather than from aggressive loop restructuring. By employing the polyhedral model, complex loop transformations can be automatically applied to these critical, computationally expensive code regions to maximize hardware utilization.
-
-
-== Polyhedral Model
-
-The polyhedral model is a mathematical framework dedicated to the optimization of loop nests. It has proven its effectiveness in program optimization through robust implementations such as Pluto, Polly, and PPCG. By expressing a program's loops in a mathematical form using sets and relations, the model enables complex, linear transformations that are typically out of reach for traditional AST-based optimizers. Among its capabilities, it can automatically reorder, fuse, fission, tile, vectorize, and parallelize loops.
-
-The application of the polyhedral model is limited to computational kernels containing nested loops with affine data accesses. In the HPC universe, these specific kernels often correspond to the most time consuming and critical portions of an application. Crucially, these are the exact same code regions where performance portability frameworks provide their greatest advantage, offering simplified syntax for parallel execution. Targeting these regions with polyhedral techniques enables HPC codes to be significantly optimized.
-
-
-== Outline and Contributions
-
-This thesis introduces and implements a hybrid approach combining the polyhedral model with the performance portability framework Kokkos. The primary objective is to enable in Kokkos the advanced loop optimization capabilities provided by the polyhedral framework.
-
-#chref(<chapter:scientificbackground>) details the scientific and technical background necessary to understand the foundations of this thesis. It introduces the core concepts of loop nests, the fundamental principles of Kokkos, and the mathematical basis of the polyhedral model.
-
-#chref(<chapter:stateoftheart>) presents the state of the art, reviewing existing research on Kokkos optimizations, specific polyhedral tools, ecosystem developments around Kokkos, and research to optimize software python libraries using the polyhedral model.
-
-In #chref(<chapter:kokkosvisibility>), the first part of the implementation of the proposed hybrid approach is detailed. This chapter introduces the modifications made to Kokkos to expose its computational kernels to polyhedral optimization via LLVM Polly, which was itself extended to process Kokkos constructs.
-
-#chref(<chapter:complexexecutionpatterns>) delves into complex execution patterns, detailing how we extend the polyhedral vision beyond a single kernel, and handle challenges like static naming and triangular loops.
-
-#chref(<chapter:schedulingheterogeneous>) covers the scheduling and heterogeneous code generation phases, including the integration of external schedulers like Pluto and the generation of GPU code via PPCG.
-
-#chref(<chapter:evaluations>) presents the experimental evaluation of this hybrid toolchain. The framework is tested against various scientific codes, and its performance is compared against both standard Kokkos optimized versions and Kokkos with polyhedral optimizion versions. These experimental results validate the efficiency and viability of the proposed hybrid approach.
-
-Finally, #chref(<chapter:conclusion>) concludes this manuscript and discusses potential future research directions.
+Alors que ces frameworks facilitent grandement l'expression du parallélisme,
+l'optimisation fine des nids de boucles reste un défi majeur. Le modèle
+polyédrique offre une solution mathématique éprouvée pour l'optimisation des
+boucles. Cette approche algébrique permet l'analyse précise des dépendances de
+données et l'application de transformations complexes que les compilateurs
+traditionnels peinent à réaliser. Une solution prometteuse au défi de
+l'optimisation des boucles réside dans la synergie entre la puissance analytique
+du modèle polyédrique et les abstractions de haut niveau des frameworks de
+portabilité des performances. En faisant converger ces deux approches, il
+devient possible d'optimiser et de paralléliser efficacement les codes
+scientifiques sur des architectures complexes et hétérogènes.
 
 
+== Compilateurs
+
+Le compilateur sert de pont critique entre les abstractions de haut niveau
+écrites par le développeur et les instructions de bas niveau exécutées par la
+machine. En plus de la conversion en un fichier binaire exécutable, le
+compilateur est responsable de l'application d'optimisations spécifiques.
+Idéalement, un développeur pourrait s'en remettre entièrement aux heuristiques
+internes et aux passes d'optimisation du compilateur pour atteindre des
+performances maximales. Cependant, pour maximiser l'utilisation des ressources
+matérielles pour les codes HPC intensifs en calcul, cela est rarement suffisant.
+
+Une approche alternative consiste à effectuer des transformations et des
+optimisations manuelles du code directement au niveau de la source pour aider le
+compilateur. Bien qu'une optimisation manuelle bien exécutée produise souvent
+des performances supérieures, elle exige une expertise significative, augmente
+le temps de développement et dégrade sévèrement la maintenabilité du code. Elle
+nécessite en effet que le développeur soit à la fois un scientifique du domaine
+et un expert en optimisation de code de bas niveau. Pour surmonter ce goulot
+d'étranglement, les frameworks de portabilité des performances offrent une
+alternative permettant d'obtenir des performances sans requérir d'expertise de
+développement approfondie. Ils permettent aux développeurs d'exprimer simplement
+leurs noyaux de calcul, tandis que le framework gère la parallélisation, le
+mapping complexe et le déploiement de ces noyaux pour maximiser les performances
+sur les cibles matérielles choisies.
 
 
-// = Introduction
-//
-// La puissance de calcul des supercalculateurs n'a cessé d'augmenter au fil des années grâce à l'évolution des architectures matérielles. Historiquement, cette évolution s'est faite par l'augmentation du nombre de transistors, leur miniaturisation, ainsi que l'augmentation de la fréquence des processeurs. Toutefois, en raison de contraintes physiques, l'augmentation de la fréquence a été freinée. Cela a conduit à l'adoption massive d'approches basées sur le parallélisme matériel : architectures pipelinées, vectorielles, à mémoire partagée, à mémoire distribuée et l'intégration d'accélérateurs.
-// L'exploitation de ces architectures hétérogènes a entraîné l'émergence de multiples paradigmes de programmation, rendant le développement de codes performants de plus en plus complexe pour les scientifiques. De nombreux travaux ont été réalisés pour déléguer cette complexité aux compilateurs ou autre outils, dans le but d'optimiser et de paralléliser le code automatiquement. Cependant, la parallélisation multi-coeurs et l'utilisation d'accélérateurs rendent l'optimisation purement automatique par le compilateur extrêmement difficile.
-//
-// Malgré que les compilateurs integrent de nombreuses passes d'optimisation, il est tres difficile pour eux d'appliquer efficacement certaine optimisation ou parallélisation en raison du gap de compréhension entre ce que le programmeur souhaite ecrire et ce que la machine comprend. Pour facilité le developpement la communauté a imaginé des bibliothèques de portabilité des performances. Ces framework offre des abstractions de haut niveau permettant au développeur d'exprimer explicitement les motifs optimisé de noyaux de calcul ainsi que leur parallélisation et la gestion de la mémoire, garantissant ainsi de hautes performances sur diverses architectures (CPU, GPU) à partir d'un code source unique.
-//
-// Bien que ces frameworks facilitent l'expression du parallélisme, l'optimisation fine des nids de boucles largement présent dans les codes scientifiques reste un défi. Le modèle polyédrique est une technique d'optimisation de code qui modélise les boucles mathématiquement. Cette approche algébrique permet d'analyser les dépendances de données avec une précision mathématique et d'appliquer des transformations complexes. Une solution à ce défi réside dans l'alliance entre la puissance d'optimisation du modèle polyédrique et les abstractions de haut niveau des frameworks de portabilité des performances. En faisant converger ces approches, il devient possible d'optimiser et de paralléliser efficacement les codes scientifiques sur des architectures complexe et heterogène.
-//
-//
-// == Compilers
-//
-// Le compilateur represente le pont entre le haut niveau ecrit par le developpeur et le bas niveau execute par la machine. Il permet non seulement la traduction du code en executable mais aussi l'optimisation des codes specifique aux différentes architectures et accelerateurs. Pour obtenir des performances optimales, le developpeur peut laisser le compilateur optimiser grace aux différentes passes d'optimisation et différentes heuristiques internes, ce qui est rarement le cas pour des codes de calcul intensif.
-// Une autre approche consiste a faire des transformations et optimisations de code sur le code source pour faciliter le travail du compilateur. Cette approche, bien executé, est souvent plus performantes mais demande une expertise importante du developpeur ainsi qu'un surcout du temps de developpement et une maintenabilité du code plus difficile. Le developpeur doit à la fois etre un expert du domaine scientifique et un expert en optimisation de code pour obtenir des performances optimales. Pour pallier a ce probleme, une autre approche consiste a utiliser des frameworks de portabilité des performances.
-// Ils permettent au developpeur d'exprimer simplement le noyaux de calcul et le frameworks devoloppper par des expert en optimisation se charge de la repartition des noyaux de calculs pour maximiser les performances sur les différentes architectures choisi (CPU, GPU).
-//
-// == Performance Portability Frameworks
-//
-// Les frameworks de portablilité de performances se presentes sous la forme de bibliotheques que le developpeur peut utiliser pour exprimer le parallelisme et la gestion de la mémoire sur des différentes architectures. Les principaux utilisé dans le monde du HPU sont Kokkos, RAJA et la librairie standard C++ Parallel STL. Ces frameworks permettent de developper un code source unique et de la compiler pour differentes architectures avec une promesse de portabilité des performances.
-// Cependant ces frameworks ne permettent pas d'optimiser le code source de manière automatique. Ce sont des optimisations de structure statiques sans aucune annalyse du noyaux de calcul dans la librairie qui permettent d'obtenir des corrects independament de l'architecture et accelerateurs avec des performances du au parallelisme et au faible levier d'optimisation possible par les developper du frameworks.
-// Pourtant statiquement il est possible, grace au modele polyedrique, d'optimiser les noyaux de calculs pour appliquer des transformations de boucles complexes permettant de maximiser les performances sur les portions couteuse du code.
-//
-//
-// == Polyhedral model
-//
-// Le modele polyedrique est un modele mathématique d'optimisation de loopnest. Il a largement fait ses preuves dans l'optimisation de programmes, grace a ses multiples implémentations Pluto, Polly, PPCG, etc. Il permet d'exprimer les boucles d'un programme sous une forme mathématique grace a des set et relation permettant d'appliquer des transformations linéaires complexe pour les optimiseurs classiques. Il permet entre autre de réordonner les boucles, de fusionner ou de diviser les boucles, de tiller les boucles, de vectoriser et paralléliser les boucles de maniere automatique.
-// Le modele polyedrique se limite au noyaux de calculs contenant des boucles impriquées avec des acces linéaires aux données. Dans l'univers du HPC, ces noyaux de calculs sont souvent des portions de code critiques et couteuses en temps de calcul, c'est d'ailleurs sur ces portions de code que les frameworks de portabilité de performances donnent un avantage grace a leur simplicité d'écriture et leur optimisations et parallélisations.
-//
-//
-// == Outline and contributions
-//
-// Cette these introduit et implémente une approche hybride combinant le modele polyédrique au framework de portabilité de performance Kokkos. L'objectif est de pouvoir ajouter un nouveau champs d'optimisation que propose le modele polyédrique à Kokkos.
-//
-// #chref(<chapter:scientificbackground>) detail le background scientifique et technique nessaire a la bonne compréhension de cette these. Il introduit les concets de loopnest, ainsi que les concpets de base de Kokkos et du modele polyedrique.
-//
-// #chref(<chapter:stateoftheart>) introduit l'état de l'art des différents travaux réalisés sur l'optimisation de kokkos, des différents outils polyedrique spécifiques, des outils autour de kokkos ou des optimsation de librairies avec le modele polyedrique.
-//
-// In #chref(<chapter:kokkosvisibility>), la première partie de l'implémentation de l'approche hybride est detaillée. Elle introduit les modifications apportées à Kokkos pour permettre l'optimisation des noyaux de calculs par le modèle polyédrique grâce a Polly, lui meme transformé pour accueillir les code Kokkos.
-//
-// #chref(<chapter:complexexecutionpatterns>) se concentre sur les motifs d'exécution complexes, expliquant comment étendre la vision polyédrique au-delà d'un seul noyau et gérer les défis comme le nommage statique et les boucles triangulaires.
-//
-// #chref(<chapter:schedulingheterogeneous>) aborde l'ordonnancement et la génération de code hétérogène, incluant l'intégration de Pluto et la génération de code GPU via PPCG.
-//
-// #chref(<chapter:evaluations>) présente les résultats expérimentaux de cette aproche hybride. L'outils sera confronté à différents codes scientifiques et les performances seront comparées avec les versions optimisées par Kokkos et les versions optimisées par le modèle polyédrique. Les résultats expérimentaux permettront de valider l'efficacité de l'approche hybride proposée.
-//
-//
-// Finally, #chref(<chapter:conclusion>) concludes this manuscript and discusses potential future research directions.
+== Frameworks de Portabilité des Performances
+
+Les frameworks de portabilité des performances sont fournis sous forme de
+bibliothèques logicielles que les développeurs peuvent exploiter pour exprimer
+le parallélisme et gérer la mémoire sur diverses architectures matérielles. Dans
+le domaine du HPC, les frameworks les plus utilisés sont Kokkos, RAJA, SYCL et
+le standard de parallélisme C++ (`std::par`). Ces frameworks permettent le
+développement d'un code source unique pouvant être compilé pour différentes
+cibles, avec la promesse de la portabilité des performances.
+
+Cependant, ces frameworks n'effectuent pas intrinsèquement d'optimisation
+automatique du code source. Ils s'appuient sur des optimisations structurelles
+statiques et un parallélisme explicite sans réaliser d'analyse statique profonde
+des noyaux de calcul eux-mêmes. Les performances qu'ils délivrent proviennent
+principalement d'un dispatching parallèle robuste et de techniques de mapping de
+bas niveau implémentées par les développeurs du framework, plutôt que d'une
+restructuration agressive des boucles. En employant le modèle polyédrique, des
+transformations de boucles complexes peuvent être automatiquement appliquées à
+ces régions de code critiques et coûteuses en calcul pour maximiser
+l'utilisation du matériel.
+
+
+== Modèle Polyédrique
+
+Le modèle polyédrique est un framework mathématique dédié à l'optimisation des
+nids de boucles. Il a prouvé son efficacité dans l'optimisation de programmes
+grâce à des implémentations robustes telles que Pluto, Polly et PPCG. En
+exprimant les boucles d'un programme sous une forme mathématique à l'aide
+d'ensembles et de relations, le modèle permet des transformations linéaires
+complexes qui sont typiquement hors de portée des optimiseurs traditionnels
+basés sur les arbres syntaxiques abstraits (AST). Parmi ses capacités, il peut
+automatiquement réordonner, fusionner, diviser, tuiler, vectoriser et
+paralléliser les boucles.
+
+L'application du modèle polyédrique est limitée aux noyaux de calcul contenant
+des boucles imbriquées avec des accès aux données affines. Dans l'univers du
+HPC, ces noyaux spécifiques correspondent souvent aux portions les plus
+chronophages et critiques d'une application. De manière cruciale, ce sont
+exactement les mêmes régions de code où les frameworks de portabilité des
+performances offrent leur plus grand avantage, en fournissant une syntaxe
+simplifiée pour l'exécution parallèle. Cibler ces régions avec des techniques
+polyédriques permet aux codes HPC d'être significativement améliorés.
+
+
+== Plan et Contributions
+
+Cette thèse introduit et implémente une approche hybride combinant le modèle
+polyédrique avec le framework de portabilité des performances Kokkos. L'objectif
+principal est de permettre dans Kokkos, d'appliquer les capacités avancées
+d'optimisation de boucles fournies par le framework polyédrique.
+
+#chref(<sec:scientificbackground>) détaille le contexte scientifique et
+technique nécessaire pour comprendre les fondations de cette thèse. Il introduit
+les concepts fondamentaux des nids de boucles, les principes de base de Kokkos,
+et les fondements mathématiques du modèle polyédrique.
+
+#chref(<sec:stateoftheart>) présente l'état de l'art, en passant en revue les
+recherches existantes sur les optimisations de Kokkos, les outils polyédriques
+spécifiques, les développements de l'écosystème autour de Kokkos, et la
+recherche sur l'optimisation des bibliothèques logicielles Python à l'aide du
+modèle polyédrique.
+
+Dans #chref(<sec:kokkosvisibility>), la première partie de l'implémentation de
+l'approche hybride proposée est détaillée. Ce chapitre introduit les
+modifications apportées à Kokkos pour exposer ses noyaux de calcul à
+l'optimisation polyédrique via Polly de LLVM, qui a lui-même été étendu pour
+traiter les constructions Kokkos.
+
+#chref(<sec:complexexecutionpatterns>) se penche sur les schémas d'exécution
+complexes, détaillant comment la vision polyédrique peut aller au-delà d'un
+noyau Kokkos unique et gérer le cas complexe des boucles triangulaires.
+
+#chref(<sec:schedulingheterogeneous>) couvre les phases d'ordonnancement et de
+génération de code hétérogène, incluant l'intégration d'ordonnanceurs externes
+comme Pluto et la génération de code GPU via PPCG.
+
+#chref(<sec:evaluations>) présente l'évaluation expérimentale de cette chaîne
+d'outils. Le framework est testé face à divers codes scientifiques, et ses
+performances sont comparées à la fois aux versions Kokkos standards optimisées
+et aux versions Kokkos optimisées polyédriquement. Ces résultats expérimentaux
+valident l'efficacité et la viabilité de l'approche hybride proposée.
+
+Enfin, #chref(<sec:conclusion>) conclut ce manuscrit et discute des potentielles
+directions de recherche futures.

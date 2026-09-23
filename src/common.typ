@@ -1,4 +1,6 @@
-#import "@preview/glossarium:0.5.9" as glossarium: make-glossary, print-glossary, register-glossary
+#import "@preview/glossarium:0.5.9" as glossarium: (
+  make-glossary, print-glossary, register-glossary,
+)
 #import "@preview/codly:1.3.0": codly, codly-init, local
 #import "@preview/codly-languages:0.1.1"
 #import "@preview/cetz:0.4.2"
@@ -31,7 +33,7 @@
 
 #let mtext = math.italic
 
-#let chref(label) = ref(label, supplement: "Chapter")
+#let chref(label) = ref(label, supplement: "Chapitre")
 
 #let appref(label) = ref(label, supplement: "Appendix")
 

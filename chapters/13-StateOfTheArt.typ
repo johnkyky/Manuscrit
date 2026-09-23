@@ -1,18 +1,61 @@
 #import "../src/common.typ": *
 
-= State of the Art <chapter:stateoftheart>
+= État de l'Art <sec:stateoftheart>
 
-The evolution of hardware complexity in modern supercomputers has led to a massive increase in both the number of available cores and their computational power. These multi-core architectures are frequently coupled with specialized hardware accelerators, making the development of scientific codes a real challenge. To address this issue, developers have invented distinct programming approaches, relying primarily on two of them: high-level performance portability frameworks designed to abstract the hardware and maintain a single source code for multiple architectures, and specialized compilers dedicated to code optimization.
+L'évolution de la complexité matérielle des supercalculateurs modernes a conduit
+à une augmentation massive à la fois du nombre de coeurs disponibles et de leur
+puissance de calcul. Ces architectures multi-coeurs sont fréquemment couplées à
+des accélérateurs matériels spécialisés, faisant du développement de codes
+scientifiques un véritable défi. Pour répondre à cette problématique, les
+développeurs ont inventé différentes approches de programmation. Dans cette
+thèse étudierons deux d'entre eux, les frameworks de portabilité des
+performances de haut niveau, conçus pour abstraire le matériel et maintenir un
+code source unique pour de multiples architectures, et les compilateurs
+spécialisés dédiés à l'optimisation de code.
 
-On one hand, high-level performance portability frameworks aim to provide developers with a unified interface to manage parallelism and memory. On the other hand, specialized compilers, such as polyhedral compilers, focus on the mathematical rigor of loop optimization and the exposition of fine-grained parallelism through advanced transformations based on the source code.
+D'une part, les frameworks de portabilité des performances de haut niveau visent
+à fournir aux développeurs une interface unifiée pour gérer le parallélisme et
+la mémoire. D'autre part, les compilateurs spécialisés, tels que les
+compilateurs polyédriques, se concentrent sur la rigueur mathématique de
+l'optimisation des boucles et l'exposition d'un parallélisme à grain fin à
+travers des transformations avancées basées sur le code source ou sur une IR.
 
-Although these two domains coexist, making them interoperate seamlessly remains a major challenge for the compilation community. Extracting a mathematical model from code heavily abstracted by the high-level C++ structures of these frameworks is exceedingly difficult, as the compiler loses critical semantic information during the lowering process. Conversely, the frameworks themselves lack the internal infrastructure required to perform complex static analyses and automatic structural loop transformations.
+Bien que ces deux domaines coexistent, les faire interopérer de manière
+transparente reste un défi majeur pour la communauté de la compilation. Extraire
+un modèle mathématique à partir d'un code fortement abstrait par les structures
+C++ de haut niveau de ces frameworks est extrêmement difficile, car le
+compilateur perd des informations sémantiques critiques au cours du processus
+d'abaissement. À l'inverse, les frameworks eux-mêmes manquent de
+l'infrastructure interne nécessaire pour effectuer des analyses statiques
+complexes et des transformations structurelles automatiques de boucles.
 
-This chapter reviews the existing literature surrounding these two ecosystems. It first explores how high-level performance portability frameworks achieve performance independently of the target architecture. It then analyzes the evolution of polyhedral compilers, from source-to-source tools to modern IR frameworks, highlighting their inherent limitations when confronted with heavy abstractions. Finally, it explores hybrid approaches and domain-specific languages that attempt to bridge this gap, ultimately demonstrating the need for the novel approach proposed in this thesis.
+Ce chapitre passe en revue la littérature existante autour de ces deux
+écosystèmes. Il explore d'abord dans @sec:stateoftheart:frameworks, comment les
+frameworks de portabilité des performances de haut niveau atteignent des
+performances indépendamment de l'architecture cible. Il analyse ensuite
+l'évolution des compilateurs polyédriques, des outils source-à-source jusqu'aux
+frameworks IR modernes, en mettant en évidence leurs limitations inhérentes
+lorsqu'ils sont confrontés à de fortes abstractions
+(@sec:stateoftheart:polyhedral). Enfin @sec:stateoftheart:hybrid, explore les
+approches hybrides et les langages dédiés qui tentent de combler ce fossé,
+démontrant in fine la nécessité de la nouvelle approche proposée dans cette
+thèse.
 
-== Performance Portability Frameworks
+== Frameworks de Portabilité des Performances <sec:stateoftheart:frameworks>
 
-The high-performance computing landscape in C++ relies on performance portability frameworks like Kokkos (@sec:kokkos), RAJA~@raja, developed by the Lawrence Livermore National Laboratory (LLNL), or on emerging standards like SYCL~@sycl and C++ Standard Parallelism (`std::par`)~@isostdpar. All these tools share a common philosophy: the strict separation between the algorithm's expression and its execution model. To achieve this, they rely heavily on modern C++ features, particularly lambda expressions and functors, to encapsulate compute kernels. They also use Execution Spaces and Memory Spaces to manage the distribution of computations and data locality across heterogeneous architectures. To illustrate this, @fig:frameworks_syntax compares the different ways to write the same underlying code (a matrix-vector addition) using these various frameworks.
+Les développeurs de calcul haute performance en C++ s'appuient sur des
+frameworks de portabilité des performances comme Kokkos
+(@sec:scientificbackground:kokkos), RAJA~@raja, ou sur des standards émergents
+comme SYCL~@sycl et le standard de parallélisme C++ (`std::par`)~@isostdpar.
+Tous ces outils partagent une philosophie commune : la séparation stricte entre
+l'expression de l'algorithme et son modèle d'exécution. Pour y parvenir, ils
+s'appuient fortement sur les fonctionnalités modernes du C++, en particulier les
+expressions lambda et les foncteurs, pour encapsuler les noyaux de calcul. Ils
+utilisent également des espaces d'exécution et des espaces mémoire pour gérer la
+distribution des calculs et la localité des données à travers des architectures
+hétérogènes. Pour illustrer cela, @fig:stateoftheart:frameworks_syntax compare
+les différentes façons d'écrire le même code (une multiplication
+matrice-vecteur) en utilisant ces différents frameworks.
 
 #[
   #show figure: set block(breakable: true)
@@ -22,7 +65,7 @@ The high-performance computing landscape in C++ relies on performance portabilit
       columns: (auto, 1fr),
       align: (center + horizon, left + horizon),
       stroke: 0.5pt + luma(200),
-      [*Framework*], [*Syntax Example (Matrix-Vector Multiplication)*],
+      [*Framework*], [*Exemple de Syntaxe (Multiplication Matrice-Vecteur)*],
       [*`Kokkos`*],
       ```cpp
       void matVecMult_kokkos(int N, int M, View<float**> A,
@@ -86,20 +129,54 @@ The high-performance computing landscape in C++ relies on performance portabilit
       }
       ```,
     ),
-    caption: [Syntax comparison of parallel loops across different C++ performance portability frameworks.],
-  ) <fig:frameworks_syntax>
+    caption: [Comparaison syntaxique des boucles parallèles entre différents
+      frameworks C++ de portabilité des performances.],
+  ) <fig:stateoftheart:frameworks_syntax>
 ]
 
-Although the primary goal of these frameworks is portability, they still offer some structural optimization capabilities. For example, loop tiling is provided in Kokkos, RAJA, and SYCL. This allows developers to apply static tiling on loop nests, which improves data locality in the caches of the target architecture. Kokkos has an algorithm for automatically choosing efficient tile sizes based on the architecture, but it is very limited due to the lack of static information gathered within Kokkos.
-Work in Kokkos has been done to add `kokkos-tools`~@kokkostools, an extension that allows monitoring/tracing the code, but also autotuning kernels using external tools like Apex~@apex or Apollo~@apollotuning to specialize the code in search of even higher performance.
+Bien que l'objectif principal de ces frameworks soit la portabilité, ils offrent
+tout de même certaines capacités d'optimisation structurelle. Par exemple, le
+pavage de boucles est disponible dans Kokkos, RAJA et SYCL. Cela permet aux
+développeurs d'appliquer un pavage statique sur les nids de boucles, ce qui
+améliore la localité des données dans les caches de l'architecture cible. Kokkos
+dispose d'un algorithme pour choisir automatiquement des tailles de tuiles
+efficaces en fonction de l'architecture, mais celui-ci est très limité en raison
+du manque d'informations statiques récoltées au sein de Kokkos. Des travaux ont
+été réalisés dans Kokkos pour ajouter `kokkos-tools`~@kokkostools, une extension
+qui permet de surveiller et de tracer le code, mais aussi d'autotuner les noyaux
+à l'aide d'outils externes comme Apex~@apex ou Apollo~@apollotuning afin de
+spécialiser le code en quête de performances encore plus élevées.
 
-However, the fundamental limitation of these frameworks lies in their declarative nature. They act primarily as mapping engines: they blindly map loop iterations to CPU threads or GPU blocks, trusting the code written by the developer. These libraries do not possess an internal static analysis engine capable of analyzing the data dependencies of the compute kernel.
+Cependant, la limitation fondamentale de ces frameworks réside dans leur nature
+déclarative. Ils agissent principalement comme des moteurs de mapping : ils
+mappent aveuglément les itérations de boucles sur les threads CPU ou les blocs
+GPU, en faisant confiance au code écrit par le développeur. Ces bibliothèques ne
+possèdent pas de moteur d'analyse statique interne capable d'analyser les
+dépendances de données du noyau de calcul.
 
-Consequently, it is technically and mathematically impossible for them to restructure the code automatically. Complex transformations that modify the execution order of loop iterations (e.g., fission, skewing) are beyond the reach of these tools. In other words, if the developer writes a structurally sub-optimal loop nest, the framework will faithfully parallelize it, but in a sub-optimal way. Deep code optimization thus remains the sole responsibility of the developer, which limits the maximum potential performance that can be achieved automatically.
+Par conséquent, il leur est techniquement et mathématiquement impossible de
+restructurer le code automatiquement. Les transformations complexes qui
+modifient l'ordre d'exécution des itérations de boucles (ex: fission, fusion)
+sont hors de portée de ces outils. En d'autres termes, si le développeur écrit
+un nid de boucles structurellement sous-optimal, le framework le parallélisera
+fidèlement, mais de manière sous-optimale. L'optimisation du code reste donc la
+seule responsabilité du développeur, ce qui limite les performances maximales
+potentielles pouvant être atteintes de manière automatique.
 
-== Polyhedral Model and Implementations
+== Modèle Polyédrique et Implémentations <sec:stateoftheart:polyhedral>
 
-Today, there are numerous implementations of compilers and tools based on the polyhedral model. Historically, these tools relied on source-to-source approaches and were limited to analyzing a subset of the C language. One of the most renowned compilers for the quality of its scheduler is Pluto~@plutoscheduler. It enables source-to-source compilation of C code by exploring a vast space of transformations (such as diamond tiling). Another reference tool is PPCG (Polyhedral Parallel Code Generator)~@ppcg, a source-to-source compiler designed to generate optimized GPU code from sequential C code. These purely textual approaches facilitate the extraction of the model: memory accesses, such as multidimensional arrays (for example, A[i][j]), are directly visible as indices, which greatly simplifies the mathematical analysis (@fig:polyhedral_s2s).
+Il existe différentes implémentations de compilateurs et d'outils basés sur le
+modèle polyédrique. Historiquement, ces outils s'appuyaient sur des approches
+source-à-source et étaient limités à l'analyse d'un sous-ensemble du langage C.
+L'un des compilateurs les plus renommés pour la qualité de son ordonnanceur est
+Pluto~@plutoscheduler. Il permet la compilation source-à-source de code C en
+explorant un vaste espace de transformations (comme le pavage en diamant). Un
+autre outil de référence est PPCG (Polyhedral Parallel Code Generator)~@ppcg, un
+compilateur source-à-source conçu pour générer du code GPU optimisé à partir de
+code C séquentiel. Ces approches purement textuelles facilitent l'extraction du
+modèle : les accès mémoire, tels que les tableaux multidimensionnels (par
+exemple, A[i][j]), sont directement visibles sous forme d'indices, ce qui
+simplifie grandement l'analyse mathématique (@fig:stateoftheart:polyhedral_s2s).
 
 #[
   #figure(
@@ -107,24 +184,47 @@ Today, there are numerous implementations of compilers and tools based on the po
       node-stroke: 1pt,
       edge-stroke: 1pt,
       node-inset: 8pt,
-      fletcher.node((0, 0), [Source Code \ (C/C++)], corner-radius: 3pt),
+      fletcher.node((0, 0), [Code Source \ (C/C++)], corner-radius: 3pt),
       fletcher.edge((0, 0), (1, 0), "-|>"),
-      fletcher.node((1, 0), [Source-to-Source \ (Pluto, PPCG)], fill: rgb("eef5ff"), corner-radius: 3pt),
+      fletcher.node(
+        (1, 0),
+        [Source-à-Source \ (Pluto, PPCG)],
+        fill: rgb("eef5ff"),
+        corner-radius: 3pt,
+      ),
       fletcher.edge((1, 0), (2, 0), "-|>"),
-      fletcher.node((2, 0), [Optimized \ C/C++], corner-radius: 3pt),
+      fletcher.node((2, 0), [C/C++ \ Optimisé], corner-radius: 3pt),
       fletcher.edge((2, 0), (3, 0), "-|>"),
-      fletcher.node((3, 0), [Compiler], corner-radius: 3pt),
+      fletcher.node((3, 0), [Compilateur], corner-radius: 3pt),
     ),
-    caption: [Source-to-Source polyhedral compilation pipeline.],
-  ) <fig:polyhedral_s2s>
+    caption: [Chaîne de compilation polyédrique source-à-source.],
+  ) <fig:stateoftheart:polyhedral_s2s>
 ]
 
 
-Although these tools achieve excellent performance, their scope of application remains very limited. Relying on rudimentary parsers, they were absolutely not designed to analyze complex codes originating from performance portability frameworks, which make intensive use of metaprogramming and modern C++ structures.
+Bien que ces outils atteignent d'excellentes performances, leur champ
+d'application reste très limité. S'appuyant sur des parseurs rudimentaires, ils
+n'ont absolument pas été conçus pour analyser des codes complexes provenant de
+frameworks de portabilité des performances, qui font un usage intensif de la
+métaprogrammation et des structures C++ modernes.
 
-To overcome the complexity associated with parsing high-level languages, the polyhedral compilation community adopted a new approach: lowering the level of analysis. By relying on Intermediate Representations (IR) such as LLVM's, polyhedral tools manage to abstract away the source language (C, C++, Fortran) and the complexities of the compiler front-end.
+Pour surmonter la complexité liée à l'analyse syntaxique des langages de haut
+niveau, la communauté de la compilation polyédrique a adopté une nouvelle
+approche : abaisser le niveau d'analyse. En s'appuyant sur des Représentations
+Intermédiaires (IR) telles que celle de LLVM, les outils polyédriques
+parviennent à s'abstraire du langage source (C, C++, Fortran) et des complexités
+du parser du compilateur.
 
-Graphite~@graphite was one of the first widely adopted polyhedral compilers to use this method, integrating directly into the GCC IR @gccir. Within the LLVM ecosystem, the Polly~@polly1 tool uses the LLVM IR to reconstruct and apply the polyhedral model. More recently, tools like Polygeist~@Polygeist rely on MLIR @mlir, a higher-level LLVM IR representation that allows retaining certain structural information (such as the semantics of `for` loops) without having to reconstruct them from a control flow graph that is closer to the machine. This modern IR-level pipeline is illustrated in @fig:polyhedral_ir.
+Graphite~@graphite a été l'un des premiers compilateurs polyédriques largement
+adoptés à utiliser cette méthode, s'intégrant directement dans l'IR de GCC
+@gccir. Au sein de l'écosystème LLVM, l'outil Polly~@polly1 utilise l'IR LLVM
+pour reconstruire et appliquer le modèle polyédrique. Plus récemment, des outils
+comme Polygeist~@Polygeist s'appuient sur MLIR @mlir, une représentation IR LLVM
+de plus haut niveau qui permet de conserver certaines informations structurelles
+(telles que la sémantique des boucles `for`) sans avoir à les reconstruire à
+partir d'un graphe de flot de contrôle plus proche de la machine. Cette chaîne
+de compilation moderne au niveau de l'IR est illustrée en
+@fig:stateoftheart:polyhedral_ir.
 
 #[
   #figure(
@@ -132,25 +232,128 @@ Graphite~@graphite was one of the first widely adopted polyhedral compilers to u
       node-stroke: 1pt,
       edge-stroke: 1pt,
       node-inset: 8pt,
-      fletcher.node((0, 1), [Source Code \ (C/C++)], corner-radius: 3pt),
+      fletcher.node((0, 1), [Code Source \ (C/C++)], corner-radius: 3pt),
       fletcher.edge((0, 1), (1, 1), "-|>"),
       fletcher.node((1, 1), [Front-End \ (Clang/GCC)], corner-radius: 3pt),
       fletcher.edge((1, 1), (2, 1), "-|>"),
-      fletcher.node((2, 1), [IR-Level \ (Polly, Polygeist)], fill: rgb("eef5ff"), corner-radius: 3pt),
+      fletcher.node(
+        (2, 1),
+        [Niveau IR \ (Polly, Polygeist)],
+        fill: rgb("eef5ff"),
+        corner-radius: 3pt,
+      ),
       fletcher.edge((2, 1), (3, 1), "-|>"),
       fletcher.node((3, 1), [Back-End], corner-radius: 3pt),
     ),
-    caption: [IR-level polyhedral compilation pipeline.],
-  ) <fig:polyhedral_ir>
+    caption: [Chaîne de compilation polyédrique au niveau de l'IR.],
+  ) <fig:stateoftheart:polyhedral_ir>
 ]
 
-Yet, despite the use of IR, modern tools like Polly or Polygeist fail to optimize codes generated by libraries such as Kokkos. This limitation stems from the semantic gap. The architecture of these frameworks, designed to offer the best possible portability and generalization to the user, internally relies on a complex network of lambda expressions, functors, and pointer arithmetic. During compilation, these abstractions hide the linearity of memory accesses, generate aliasing uncertainties, and flatly break the heuristics necessary for constructing the polyhedral model.
+Pourtant, malgré l'utilisation de l'IR, les outils modernes comme Polly ou
+Polygeist échouent à optimiser les codes générés par des bibliothèques telles
+que Kokkos. Cette limitation découle du fossé sémantique. L'architecture de ces
+frameworks, conçue pour offrir la meilleure portabilité et généralisation
+possible à l'utilisateur, s'appuie en interne sur un réseau complexe
+d'expressions lambda, de foncteurs et d'arithmétique de pointeurs. Lors de la
+compilation, ces abstractions masquent la linéarité des accès mémoire, génèrent
+des incertitudes liées à l'aliasing, et brisent catégoriquement les heuristiques
+nécessaires à la construction du modèle polyédrique.
 
-== Combining High-Level Abstractions and Polyhedral Optimization
+Une autre approche novatrice pour l'optimisation de code est celle utilisée par
+Apollo @apollo. Elle consiste à s'appuyer sur l'IR de LLVM pour appliquer des
+transformations polyédriques, mais se base sur le comportement à l'exécution du
+programme pour déterminer si une région est polyédrique ou non. Cette méthode
+s'affranchit de la complexité de l'analyse statique de l'IR, qui peut s'avérer
+ardue pour déduire la structure et les accès mémoire du programme.
+@fig:stateoftheart:apollo_architecture illustre le fonctionnement du logiciel
+Apollo. Toutefois, cette approche engendre un surcoût non négligeable : elle
+requiert un système d'instrumentation et d'analyse des données à l'exécution,
+ainsi qu'une compilation juste-à-temps (JIT) pour appliquer les transformations.
 
-Another approach to mitigate the previously exposed problems consists of raising the level of semantic abstraction by using higher-level languages such as Python or Domain-Specific Languages (DSL), or libraries offering greater expressiveness. Thus, the mathematical semantics of the operations become much more obvious for compilation tools to interpret, drastically reducing the semantic gap between the source code and the application of the polyhedral model.
+#[
+  #figure(
+    fletcher.diagram(
+      node-stroke: 1pt,
+      edge-stroke: 2pt,
+      node-inset: 8pt,
+      spacing: (4em, 2em),
 
-Tiramisu~@tiramisu perfectly illustrates this dynamic. It is a C++ framework functioning, in its design, as a Domain-Specific Language for high-performance computing. The user formally declares the computations, data sizes, iteration domain, as well as the mathematical transformations to apply (tiling, unrolling, parallelization). By imposing this explicit declaration, the tool can apply polyhedral transformations and generate highly optimized C++ code without the compiler having to guess the underlying structure of the program, as shown in @fig:tiramisu_syntax.
+      // Nodes
+      fletcher.node(
+        (0, 0),
+        align(center)[#text(size: 3em)[🧑‍💻] \ Programmer],
+        stroke: none,
+      ),
+      fletcher.node(
+        (1, 0),
+        align(center)[Annotated \ source code],
+        fill: rgb("#ffffb3"),
+        corner-radius: 2pt,
+      ),
+      fletcher.node(
+        (2, 0),
+        align(center)[Apollo \ Static \ Component],
+        fill: rgb("#99c2ff"),
+        corner-radius: 4pt,
+      ),
+      fletcher.node(
+        (3, 0),
+        align(center)[Binary \ Executable],
+        fill: rgb("#b3ffb3"),
+        corner-radius: 2pt,
+      ),
+      fletcher.node(
+        (4, 0),
+        align(center)[Apollo \ Runtime \ System],
+        fill: rgb("#d9b3ff"),
+        corner-radius: 50pt,
+      ),
+
+      // Edges
+      fletcher.edge((0, 0), (1, 0), "-|>"),
+      fletcher.edge((1, 0), (2, 0), "-|>"),
+      fletcher.edge((2, 0), (3, 0), "-|>"),
+      fletcher.edge((3, 0), (4, 0), "-|>", bend: -20deg),
+      fletcher.edge((4, 0), (3, 0), "-|>", bend: -20deg),
+
+      // Compile-time brackets
+      fletcher.edge((0, 0.8), (0, 1.2), (3, 1.2), (3, 0.8), stroke: (
+        dash: "dotted",
+        thickness: 1pt,
+      )),
+      fletcher.node((1.5, 1.2), [Compile-Time], stroke: none, fill: white),
+
+      // Runtime brackets
+      fletcher.edge((3.1, 0.8), (3.1, 1.2), (4, 1.2), (4, 0.8), stroke: (
+        dash: "dotted",
+        thickness: 1pt,
+      )),
+      fletcher.node((3.55, 1.2), [Runtime], stroke: none, fill: white),
+    ),
+    caption: [Architecture de l'outil Apollo, séparant la compilation statique
+      et l'optimisation dynamique à l'exécution.],
+  ) <fig:stateoftheart:apollo_architecture>
+]
+
+== Combiner Abstractions de Haut Niveau et Optimisation Polyédrique <sec:stateoftheart:hybrid>
+
+Une autre approche pour atténuer les problèmes précédemment exposés consiste à
+élever le niveau d'abstraction sémantique en utilisant des langages de plus haut
+niveau tels que Python ou des langages dédiés (DSL), ou encore des bibliothèques
+offrant une plus grande expressivité. Ainsi, la sémantique mathématique des
+opérations devient beaucoup plus évidente à interpréter pour les outils de
+compilation, ce qui réduit considérablement le fossé sémantique entre le code
+source et l'application du modèle polyédrique.
+
+Tiramisu~@tiramisu illustre parfaitement cette dynamique. Il s'agit d'un
+framework C++ fonctionnant, dans sa conception, comme un langage dédié pour le
+calcul haute performance, comme illustré en @fig:stateoftheart:tiramisu_syntax.
+L'utilisateur déclare formellement les calculs, les tailles des données, le
+domaine d'itération, ainsi que les transformations mathématiques à appliquer
+(pavage, déroulage, parallélisation). En imposant cette déclaration explicite,
+l'outil peut appliquer des transformations polyédriques et générer un code C++
+hautement optimisé sans que le compilateur n'ait à deviner la structure du
+programme.
 
 #[
   #show figure: set block(breakable: true)
@@ -187,12 +390,22 @@ Tiramisu~@tiramisu perfectly illustrates this dynamic. It is a C++ framework fun
         tiramisu::codegen({&b_A, &b_x, &b_y}, "matvec_mult.o");
     }
     ```,
-    caption: [Example of declarative syntax in Tiramisu, cleanly separating the algorithm and the execution schedule.],
-  ) <fig:tiramisu_syntax>
+    caption: [Exemple de syntaxe déclarative dans Tiramisu, séparant proprement
+      l'algorithme de son ordonnancement d'exécution.],
+  ) <fig:stateoftheart:tiramisu_syntax>
 ]
 
-Following this same logic of abstraction, other works have turned to the Python ecosystem to overcome the complex memory management of C++. For example, @ramon2018autoparallel demonstrated the effectiveness of applying the polyhedral model directly to NumPy~@numpy operations.
-Similarly, initiatives such as PyKokkos~@pykokkos offer high-level Python interfaces. These abstraction layers make it possible to capture mathematical operations in a highly abstract manner. Having access to this preserved semantic information would be highly beneficial for extracting the polyhedral model, all while continuing to hide hardware complexity. An example of this high-level syntax is provided in @fig:pykokkos_syntax.
+Suivant cette même logique d'abstraction, d'autres travaux se sont tournés vers
+l'écosystème Python pour s'affranchir de la gestion complexe de la mémoire en
+C++. Par exemple, @ramon2018autoparallel a démontré l'efficacité de
+l'application du modèle polyédrique directement sur les opérations NumPy~@numpy.
+De même, des initiatives telles que PyKokkos~@pykokkos offrent des interfaces
+Python de haut niveau. Ces couches d'abstraction permettent de capturer les
+opérations mathématiques de manière hautement abstraite. Avoir accès à cette
+information sémantique préservée serait extrêmement bénéfique pour extraire le
+modèle polyédrique, tout en continuant à masquer la complexité matérielle. Un
+exemple de cette syntaxe de haut niveau est fourni dans
+@fig:stateoftheart:pykokkos_syntax.
 
 #[
   #show figure: set block(breakable: false)
@@ -213,12 +426,30 @@ Similarly, initiatives such as PyKokkos~@pykokkos offer high-level Python interf
     def matvec_mult_pykokkos(N: int, M: int, A: pk.View2D, x: pk.View1D, y: pk.View1D):
         pk.parallel_for(N, matvec_kernel, M=M, A=A, x=x, y=y)
     ```,
-    caption: [Example of matrix-vector multiplication using the PyKokkos high-level Python interface.],
-  ) <fig:pykokkos_syntax>
+    caption: [Exemple de multiplication matrice-vecteur utilisant l'interface
+      Python de haut niveau PyKokkos.],
+  ) <fig:stateoftheart:pykokkos_syntax>
 ]
 
-Although these approaches provide highly effective solutions to performance problems, they impose a prohibitive entry cost for the HPC industry. Indeed, they require scientists to completely rewrite their historical and massive simulation codes into new languages or highly specific APIs.
+Bien que ces approches apportent des solutions très efficaces aux problèmes de
+performances, elles imposent un coût d'entrée prohibitif pour le monde du HPC.
+En effet, elles exigent des scientifiques qu'ils réécrivent intégralement leurs
+codes de simulation historiques et massifs dans de nouveaux langages ou via des
+API hautement spécifiques.
 
-To bypass this rewriting barrier, some works have explored the reverse approach: using portability frameworks as compilation targets. For example, the authors of @polykokkosbackend used polyhedral tools to analyze classic sequential C code in order to automatically generate Kokkos code. This strategy combines the mathematical optimization performed upstream with the hardware portability guaranteed by Kokkos downstream.
+Pour contourner cette barrière de réécriture, certains travaux ont exploré
+l'approche inverse : utiliser les frameworks de portabilité comme cibles de
+compilation. Par exemple, les auteurs de @polykokkosbackend ont utilisé des
+outils polyédriques pour analyser du code C séquentiel afin de générer
+automatiquement du code Kokkos. Cette stratégie combine l'optimisation
+mathématique effectuée en amont avec la portabilité matérielle garantie par
+Kokkos en aval.
 
-However, while this method is relevant for modernizing legacy codes, it absolutely does not solve the central problem of the current ecosystem: optimizing codes already written natively in Kokkos. To date, there is no tool capable of ingesting Kokkos source code, analyzing it mathematically, and restructuring its loops from the inside transparently. It is to fill this scientific void that this thesis proposes an integration of the polyhedral model, capable of operating directly beneath Kokkos' abstractions.
+Cependant, bien que cette méthode soit pertinente pour la modernisation des
+anciens codes, elle ne résout absolument pas le problème central de l'écosystème
+actuel : optimiser des codes déjà écrits nativement en Kokkos. À ce jour, il
+n'existe aucun outil capable d'ingérer le code source Kokkos, de l'analyser
+mathématiquement, et de restructurer ses boucles de l'intérieur de manière
+transparente. C'est pour combler ce vide scientifique que cette thèse propose
+une intégration du modèle polyédrique, capable d'opérer directement sous les
+abstractions de Kokkos.

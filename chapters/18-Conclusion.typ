@@ -1,6 +1,6 @@
 #import "../src/common.typ": *
 
-= Conclusion and Perspectives <chapter:conclusion>
+= Conclusion and Perspectives <sec:conclusion>
 
 
 

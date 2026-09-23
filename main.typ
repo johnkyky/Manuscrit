@@ -54,8 +54,8 @@
 /**
  * Document settings
  */
-#let title-en = "Disambiguation of C++ Complexity for Advanced Program Optimization and Parallelization"
-#let title-fr = "Désambiguïsation de la complexité du C++ pour l'optimisation et la parallélisation avancées de programmes"
+#let title-en = "Automatic Polyhedral Optimization of Kokkos Kernels: A Library-Compiler Co-Design"
+#let title-fr = "Optimisation polyédrique automatique des noyaux Kokkos : un co-design bibliothèque–compilateur"
 
 #set document(title: title-en, author: "Ugo Battiston", date: datetime(
   day: 18,
@@ -64,7 +64,7 @@
 ))
 
 #set page(paper: "a4", number-align: center, numbering: none, footer: none)
-#set text(font: "Brill", size: 12pt, hyphenate: false, lang: "en", features: (
+#set text(font: "Brill", size: 12pt, hyphenate: false, lang: "fr", features: (
   lnum: 1,
   onum: 0,
 ))
@@ -97,7 +97,7 @@
 }
 
 #front-cover(
-  title: title-en,
+  title: title-fr,
   author: "Ugo BATTISTON",
   defense-date: datetime(day: 18, month: 12, year: 2025),
   supervisors: (
@@ -112,33 +112,33 @@
       civility: "M.",
       firstname: "Marc",
       lastname: "Pérache",
-      position: "JSP",
-      affiliation: "CEA DAM Île-de-France, Université de Paris-Saclay",
+      position: "Directeur de recherche",
+      affiliation: "CEA DAM Île-de-France",
     ),
   ),
   thesis-referees: (
     (
       civility: "Mme",
-      firstname: "Isabelle",
-      lastname: "PUAUT",
-      position: "Professeur",
-      affiliation: "Université de Rennes",
+      firstname: "Corinne",
+      lastname: "ANCOURT",
+      position: "Directrice de recherche",
+      affiliation: "Ecole des Mines de Paris",
     ),
     (
       civility: "M.",
-      firstname: "Sid",
-      lastname: "Touati",
+      firstname: "Samuel",
+      lastname: "Thibault",
       position: "Professeur",
-      affiliation: "Université Côte d'Azur",
+      affiliation: "Université de Bordeaux",
     ),
   ),
   jury-members: (
     (
-      civility: "M.",
-      firstname: "Fabrice",
-      lastname: "Rastello",
-      position: "Directeur de Recherche",
-      affiliation: "Centre Inria de l'Université de Grenoble",
+      civility: "Mme.",
+      firstname: "Elisabeth",
+      lastname: "BRUNET",
+      position: "Maîtresse de conférences",
+      affiliation: "Institut Mines-Télécom",
     ),
     (
       civility: "M.",
@@ -170,13 +170,13 @@
 // TODO : uncomment these lines when the abstracts and acknowledgments are ready
 #show outline: set heading(outlined: true)
 #counter(page).update(1)
-#outline(title: "Table of Contents")
+#outline(title: "Table des matières")
 #pagebreak(to: "odd")
-#outline(title: "List of Figures", target: figure.where(kind: image))
+#outline(title: "Table des figures", target: figure.where(kind: image))
 #pagebreak(to: "odd")
-#outline(title: "List of Listings", target: figure.where(kind: raw))
+#outline(title: "Liste des extraits de code", target: figure.where(kind: raw))
 #pagebreak(to: "odd")
-#outline(title: "List of Tables", target: figure.where(kind: table))
+#outline(title: "Liste des tableaux", target: figure.where(kind: table))
 // = Glossary
 // #print-glossary(entry-list, disable-back-references: true)
 
@@ -231,7 +231,7 @@
   custom-break(to: "odd")
   block({
     v(2cm)
-    text(size: 28pt, [Chapter #counter(heading).display("1")])
+    text(size: 28pt, [Chapitre #counter(heading).display("1")])
     linebreak()
 
     it.body
@@ -307,7 +307,7 @@
   custom-break(to: "odd", weak: true)
   block({
     v(2cm)
-    text(size: 28pt, [Chapter #counter(heading).display("1")])
+    text(size: 28pt, [Chapitre #counter(heading).display("1")])
     linebreak()
 
     it.body
@@ -349,7 +349,7 @@
   ]
 ]
 
-#bibliography("references.bib", title: "References")
+#bibliography("references.bib", title: "Références")
 
 /**
  * Appendices
@@ -362,7 +362,7 @@
   block({
     v(2cm)
 
-    text(size: 30pt, [Appendix #counter(heading).display("A")])
+    text(size: 30pt, [Annexe #counter(heading).display("A")])
 
     v(0.2cm)
     it.body
@@ -371,7 +371,7 @@
 }
 #counter(heading).update(0)
 
-#include "appendices/resume.typ"
+// #include "appendices/resume.typ"
 // #include "appendices/trahrhe.typ"
 // #include "appendices/code_excerpts.typ"
 
