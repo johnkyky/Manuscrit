@@ -222,9 +222,9 @@ poussées pour les supercalculateurs.
 
 = Publication
 
-_Unlocking Polyhedral Optimization for Kokkos Kernels: A Library–Compiler
-Co-Design_. \
-Accepté pour publication à #link(
+Ugo Battiston, Philippe Clauss et Marc Pérache, _Unlocking Polyhedral
+Optimization for Kokkos Kernels: A Library–Compiler Co-Design_, #link(
   "https://hpcn.exeter.ac.uk/ica3pp2026/call4paper.php",
-)[*ICA3PP 2026*] (26th International Conference on Algorithms and Architectures
-for Parallel Processing), Exeter, UK.
+)[ICA3PP 2026], 26th International Conference on Algorithms and Architectures
+for Parallel Processing, Lecture Notes in Computer Science (LNCS), Springer,,
+Exeter, UK, October 2026.
