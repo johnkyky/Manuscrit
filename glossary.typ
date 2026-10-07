@@ -132,4 +132,14 @@
     short: "Apollo",
     long: "Automatic POLyhedral Loop Optimizer",
   ),
+  (
+    key: "scev",
+    short: "SCEV",
+    long: "Scalar Evolution",
+  ),
+  (
+    key: "betc",
+    short: "BETC",
+    long: "Backedge Taken Count",
+  ),
 )

@@ -1085,7 +1085,7 @@ restaure les accès multidimensionnels affines des tableaux indispensable pour l
 modèle polyédrique.
 
 
-==== Optimisation des SCoPs (`SCoP Optimization`)
+==== Optimisation des SCoPs (`SCoP Optimization`) <sec:scientificbackground:scopoptimization>
 
 Avec la représentation mathématique entièrement construite, la passe
 `ScheduleOptimizer` délègue la charge principale de l'optimisation au moteur
@@ -1104,7 +1104,7 @@ concurence de données. Ce parallélisme exposé guide directement les phases
 ultérieures de génération de l'#gls("ast") et d'émission du code pour appliquer
 en toute sécurité la vectorisation ou le multithreading.
 
-=== Génération de l'AST (`IslAst`)
+=== Génération de l'AST (`IslAst`) <sec:scientificbackground:islast>
 
 En prenant l'arbre d'ordonnancement nouvellement optimisé comme entrée, la passe
 `IslAst` génère un #gls("ast") qui représente logiquement la structure du nid de
@@ -1120,7 +1120,7 @@ annotées comme vectorisables. Ces annotations sémantiques sont fondamentales,
 car elles servent de directives pour guider la phase de génération de code,
 permettant d'activer le multithreading et les instructions SIMD.
 
-==== Génération de Code (`Code Generation`)
+==== Génération de Code (`Code Generation`) <sec:scientificbackground:codegen>
 
 La passe `CodeGeneration` est chargée de reconstruire l'#gls("ir") LLVM finale
 et optimisée à partir du nouvel #gls("ast") #gls("isl") généré. En parcourant

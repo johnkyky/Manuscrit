@@ -370,7 +370,7 @@ d'accélérer la compilation et de garantir que le reste de l'application Kokkos
 n'est pas altéré par les transformations polyédriques.
 
 
-=== Annotations
+=== Annotations <sec:kokkosvisibility:kokkosannotations>
 
 Pour préserver la sémantique de haut niveau tout au long du processus
 d'abaissement vers la représentation intermédiaire, il est essentiel d'intégrer
@@ -976,13 +976,13 @@ Cependant, cette heuristique algébrique présente une faille structurelle majeu
 lorsqu'elle est confrontée à des accès dont certains indices sont statiquement
 évalués à zéro (par exemple, `A[0][j][k]`). Dans une telle configuration,
 l'indice de la dimension externe étant nul (`i = 0`), le terme polynomial
-contenant la taille de la dimension sous-jacente (`%n`) s'annule lors des
-simplifications algébriques opérées par LLVM
-(@fig:kokkosvisibility:scev_failure_partial). L'expression SCEV résultante ne
-contenant plus cette taille intermédiaire, le solveur s'avère incapable de la
-déduire par factorisation. Cette perte d'information génère des accès mémoires
-ambigus : un même pointeur peut alors être interprété avec un nombre variable de
-dimensions selon le motif d'accès étudié.
+contenant la taille de la dimension (`%n`) s'annule lors des simplifications
+algébriques opérées par LLVM (@fig:kokkosvisibility:scev_failure_partial).
+L'expression SCEV résultante ne contenant plus cette taille intermédiaire, le
+solveur s'avère incapable de la déduire par factorisation. Cette perte
+d'information génère des accès mémoires ambigus : un même pointeur peut alors
+être interprété avec un nombre variable de dimensions selon le motif d'accès
+étudié.
 
 #subpar.super(
   grid(

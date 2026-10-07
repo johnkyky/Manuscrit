@@ -9,7 +9,7 @@
   edge-stroke: 0.7pt,
   node-corner-radius: 4pt,
 )
-//#figure(
+
 #table(
   columns: (0.8fr, 1fr, 1fr),
   align: (left + top, center + horizon, center + horizon),
