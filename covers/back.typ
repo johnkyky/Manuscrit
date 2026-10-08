@@ -27,21 +27,6 @@
     )
     #block(inset: 2em)[
       #block(breakable: false, [
-        #align(center, text(size: 1.5em, weight: "bold", english-title))
-        #rect(width: 100%, inset: 10pt, fill: none, radius: 5pt, [
-          #block(text(size: 18pt, weight: "bold", "Abstract"))
-
-          #english-abstract
-
-          #if english-keywords != none and english-keywords != () {
-            linebreak()
-            text(weight: "bold", "Keywords: ")
-            english-keywords.join(", ")
-          }
-        ])
-      ])
-      #v(1.5cm, weak: true)
-      #block(breakable: false, [
         #align(center, text(size: 1.5em, weight: "bold", french-title))
         #rect(width: 100%, inset: 10pt, fill: none, radius: 5pt, [
           #block(text(size: 18pt, weight: "bold", "Résumé"))
@@ -49,9 +34,26 @@
           #french-abstract
 
           #if french-keywords != none and french-keywords != () {
-            linebreak()
-            text(weight: "bold", "Mots-clés : ")
-            french-keywords.join(", ")
+            block(above: 3em)[
+              #text(weight: "bold", "Mots-clés : ")
+              #french-keywords.join(", ")
+            ]
+          }
+        ])
+      ])
+      #v(1.5cm, weak: true)
+      #block(breakable: false, [
+        #align(center, text(size: 1.5em, weight: "bold", english-title))
+        #rect(width: 100%, inset: 10pt, fill: none, radius: 5pt, [
+          #block(text(size: 18pt, weight: "bold", "Abstract"))
+
+          #english-abstract
+
+          #if english-keywords != none and english-keywords != () {
+            block(above: 3em)[
+              #text(weight: "bold", "Keywords: ")
+              #english-keywords.join(", ")
+            ]
           }
         ])
       ])
