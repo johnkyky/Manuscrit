@@ -4,19 +4,19 @@
 
 Cette thèse se concentre sur l'application du modèle polyédrique pour optimiser
 statiquement les nids de boucles exprimés en Kokkos @kokkos. Étant donné que ces
-travaux font le pont entre les frameworks de portabilité des performances de
+travaux font le pont entre les bibliothèques de portabilité des performances de
 haut niveau et les transformations mathématiques de boucles de bas niveau, une
 solide compréhension de ces deux domaines est requise.
 
 Ce chapitre fournit les bases théoriques nécessaires pour la suite du manuscrit.
 Tout d'abord, le @sec:scientificbackground:loopnests présente le concept de nid
-de boucles. Ensuite, le @sec:scientificbackground:kokkos introduit le modèle de
+de boucles. Le @sec:scientificbackground:kokkos introduit le modèle de
 programmation Kokkos, en détaillant ses abstractions de mémoire et d'exécution.
 Le @sec:scientificbackground:polyhedral explore la représentation polyédrique et
 le @sec:scientificbackground:polyhedralecosystem décrit les outils et
 compilateurs de l'écosystème polyédrique, avec une attention particulière portée
-dans le @sec:scientificbackground:polly à l'outil Polly qui constitue la base de
-notre implémentation.
+dans le @sec:scientificbackground:polly à l'outil Polly qui constitue le point
+de départ de notre implémentation.
 
 
 == Nids de Boucles <sec:scientificbackground:loopnests>
@@ -24,16 +24,14 @@ notre implémentation.
 En programmation comme en mathématiques, une boucle fondamentale est
 caractérisée par une variable d'itération $i$ (souvent appelée itérateur ou
 indice), une borne inférieure, une borne supérieure et un pas (stride).
-
 Lorsqu'une ou plusieurs boucles sont imbriquées dans une autre boucle, la
 structure résultante est appelée un *nid de boucles*. Le nombre de boucles
 imbriquées définit la *profondeur* du nid. À toute étape d'exécution donnée,
 l'état d'un nid de boucles de profondeur $n$ est identifié de manière unique par
 son *vecteur d'itération* $arrow(i) = (i_1, i_2, dots, i_n)^T$, qui regroupe les
-valeurs actuelles de tous les indices des boucles englobantes.
-
-À l'intérieur de ces boucles, une *instruction* représente l'opération ou
-l'instruction de calcul réelle qui est exécutée à un point d'itération donné.
+valeurs actuelles de tous les indices des boucles englobantes. À l'intérieur de
+ces boucles, une *instruction* représente l'opération ou l'instruction de calcul
+réelle qui est exécutée à un point d'itération donné.
 
 Ces structures sont largement utilisées dans le calcul haute performance (HPC)
 et les codes scientifiques, car elles fournissent le mécanisme principal pour
@@ -47,7 +45,7 @@ instructions de calcul sont situées exclusivement dans la boucle la plus
 interne. Il n'y a pas de code exécuté entre les instructions `for` des boucles
 externes et internes.
 
-Le @code:scientificbackground:perfectnest illustre une boucle parfaitement
+La @code:scientificbackground:perfectnest illustre une boucle parfaitement
 imbriquée de profondeur 2 avec une seule instruction `S1`.
 
 #figure(
@@ -67,9 +65,10 @@ En pratique, de nombreux algorithmes scientifiques ne peuvent pas être écrits
 sous forme de boucles parfaitement imbriquées. Nous généralisons le concept aux
 *boucles imparfaitement imbriquées*, qui se produisent lorsque des instructions
 de calcul existent à différents niveaux d'imbrication. En d'autres termes, les
-instructions sont intercalées entre les boucles.
+instructions sont intercalées entre les boucles. De plus, plusieurs boucles de
+mêmes profondeurs peuvent apparaitre dans le nid.
 
-Le @code:scientificbackground:imperfectnest présente un nid de boucles imparfait
+La @code:scientificbackground:imperfectnest présente un nid de boucles imparfait
 où une instruction d'initialisation `S1` est exécutée à l'intérieur de la boucle
 externe `i`, mais à l'extérieur de la boucle interne `j` qui contient la seconde
 instruction `S2`.
@@ -89,45 +88,46 @@ instruction `S2`.
 
 Bien que les nids de boucles imparfaits soient naturels à écrire pour les
 développeurs, ils posent un défi important pour les frameworks de
-parallélisation comme Kokkos, détaillés dans le
+parallélisation comme Kokkos, présentés dans le
 @sec:scientificbackground:kokkos. L'extraction du parallélisme et l'optimisation
 de la localité des données dans ces nids imparfaits nécessitent des
 transformations de code complexes. Cette complexité mathématique est précisément
-ce que le modèle polyédrique, introduit dans le
-@sec:scientificbackground:polyhedral suivant, vise à résoudre.
+ce que le modèle polyédrique, présenté à la @sec:scientificbackground:polyhedral
+suivant, vise à résoudre.
 
 
 
 == Le Modèle de Programmation Kokkos <sec:scientificbackground:kokkos>
 
 Initialement développé pour abstraire le parallélisme matériel, le modèle de
-programmation Kokkos s'est imposé comme un framework de référence dans le calcul
-haute performance (HPC) et la simulation scientifique. Il fournit une interface
-C++ unifiée pour la programmation parallèle hétérogène, avec un accent principal
-sur la portabilité des performances. En offrant des abstractions de haut niveau
-pour la gestion de la mémoire et le contrôle de l'exécution, Kokkos simplifie le
-processus de développement tout en garantissant l'obtention de performances,
-quelle que soit l'architecture cible.
+programmation Kokkos s'est imposé comme une bibliothèque de référence dans le
+calcul haute performance (HPC) et la simulation scientifique. Il fournit une
+interface C++ unifiée pour la programmation parallèle hétérogène, avec un accent
+principal sur la portabilité des performances. En offrant des abstractions de
+haut niveau pour la gestion de la mémoire et le contrôle de l'exécution, Kokkos
+simplifie le processus de développement tout en voulant garantir l'obtention de
+performances, quelle que soit l'architecture cible.
 
 === Espaces : Exécution et Mémoire
 
-Pour cibler avec succès diverses architectures matérielles, Kokkos introduit le
-concept d'espaces pour abstraire les unités d'exécution complexes et les
-hiérarchies de mémoire des supercalculateurs modernes. Un noeud HPC typique est
-hétérogène, couplant souvent un processeur hôte (CPU) avec un ou plusieurs
-accélérateurs (GPU), chacun possédant sa propre mémoire physique distincte.
-Kokkos gère cette hétérogénéité en découplant clairement l'endroit où le code
-s'exécute de l'endroit où résident les données :
+Pour cibler diverses architectures matérielles, Kokkos introduit le concept
+d'espaces pour abstraire les unités d'exécution complexes et les hiérarchies de
+mémoire des supercalculateurs modernes. Un noeud HPC typique est hétérogène,
+couplant souvent un processeur hôte (CPU) avec un ou plusieurs accélérateurs
+(GPU), chacun possédant sa propre mémoire physique distincte. Kokkos gère cette
+hétérogénéité en découplant clairement l'endroit où le code s'exécute de
+l'endroit où résident les données :
 
-- *Espaces d'Exécution* définissent où les noyaux de calcul sont exécutés. Ils
-  mappent les opérations parallèles vers un backend matériel spécifique et de
-  l'implémentation du modèle de programmation. Par exemple, `Kokkos::Serial` ou
-  `Kokkos::OpenMP` dictent que le code s'exécutera sur le CPU hôte, tandis que
-  `Kokkos::Cuda` ou `Kokkos::HIP` ciblent les accélérateurs GPU.
-- *Espaces Mémoire* définissent où les données sont physiquement allouées. Ils
-  abstraient la hiérarchie de la mémoire de la machine cible. Des exemples
-  courants incluent `Kokkos::HostSpace` pour la RAM CPU standard,
-  `Kokkos::CudaSpace` pour la mémoire du périphérique GPU Cuda, ou
+- *Les Espaces d'Exécution* définissent où les noyaux de calcul sont exécutés.
+  Ils mappent les opérations parallèles vers un backend matériel spécifique via
+  une implémentation dédiée du modèle de programmation. Par exemple,
+  `Kokkos::Serial` ou `Kokkos::OpenMP` dictent que le code s'exécutera sur le
+  CPU hôte, tandis que `Kokkos::Cuda` ou `Kokkos::HIP` ciblent les accélérateurs
+  GPU.
+- *Les Espaces Mémoire* définissent où les données sont physiquement allouées.
+  Ils abstraient la hiérarchie de la mémoire de la machine cible. Des exemples
+  courants incluent `Kokkos::HostSpace` pour la mémoire principale de la machine
+  hôte, `Kokkos::CudaSpace` pour la mémoire du périphérique GPU Cuda, ou
   `Kokkos::CudaUVMSpace` pour la mémoire virtuelle unifiée (UVM).
 
 Ce concept d'espaces est étroitement lié aux abstractions de données et aux
@@ -138,7 +138,7 @@ suivantes.
 
 Pour simplifier la gestion des données à travers des architectures hétérogènes,
 Kokkos fournit une abstraction de données fondamentale : la structure
-`Kokkos::View`. Cette structure de données C++ template agit comme un tableau
+`Kokkos::View`. Cette structure de données C++ patron agit comme un tableau
 multidimensionnel léger à comptage de références. Une `Kokkos::View` encapsule
 le pointeur de données, ses dimensions, l'espace mémoire cible et sa disposition
 en mémoire, abstrayant efficacement les allocations matérielles.
@@ -155,8 +155,8 @@ Par défaut, Kokkos sélectionne automatiquement la disposition optimale à la
 compilation en fonction de l'espace d'exécution, bien qu'elle puisse être
 spécifiée explicitement par le programmeur.
 
-@code:scientificbackground:viewexample illustre un flux de travail de gestion de
-mémoire hétérogène basique. À la ligne 2, une vue 2D de flottants est allouée
+La @code:scientificbackground:viewexample montre un flux de travail de gestion
+de mémoire hétérogène basique. À la ligne 2, une vue 2D de flottants est allouée
 directement dans la mémoire du GPU (`Kokkos::CudaSpace`), en utilisant
 explicitement une disposition `Kokkos::LayoutLeft`. La ligne 4 démontre la
 création d'une vue miroir accessible par l'hôte (`Kokkos::create_mirror_view`).
@@ -187,8 +187,11 @@ espaces mémoire de l'hôte et du périphérique est effectuée à l'aide de
 ) <code:scientificbackground:viewexample>
 
 Kokkos fournit plusieurs types de vues spécialisées pour des cas d'utilisation
-avancés (exemple : `DualView`, `DynRankView`, `OffsetView`). Cependant, cette
-thèse se concentrera exclusivement sur les vues standards.
+avancés (par exemple : `DualView`, `DynRankView`, `OffsetView`). Cependant, dans
+le cadre de cette première implémentation, cette thèse se concentre
+exclusivement sur les vues standards (`Kokkos::View`). Ce choix permet de cibler
+la structure de données fondamentale et la plus répandue de l'écosystème Kokkos,
+tout en garantissant la compatibilité avec le modèle polyédrique.
 
 === Exécution Parallèle
 
@@ -210,45 +213,47 @@ fondamentaux. Un motif d'exécution dicte la sémantique de l'opération :
 - `Kokkos::parallel_reduce` : Calcule une réduction (ex: somme, min, max, ou
   réductions personnalisées) sur un espace d'itération. Kokkos gère
   automatiquement les accès concurrents spécifiques à l'architecture.
-- `Kokkos::parallel_scan` : Effectue un préfixe somme sur un espace d'itération,
-  fournissant une brique de base parallèle.
+- `Kokkos::parallel_scan` : Effectue une préfixe-somme sur un espace
+  d'itérations, fournissant une brique de base parallèle.
 
 ==== Politiques d'Exécution
 
 Alors que le motif définit quelle opération est effectuée, la politique
 d'exécution définit comment et où elle est exécutée. Elle définit le domaine
-d'itération, donne des paramètres d'ordonnancement et spécifie l'espace
+d'itérations, donne des paramètres d'ordonnancement et spécifie l'espace
 d'exécution cible.
 
 ===== RangePolicy et MDRangePolicy
 `Kokkos::RangePolicy` et `Kokkos::MDRangePolicy` décrivent les espaces
-d'itération pour les boucles unidimensionnelles et les boucles parfaitement
+d'itérations pour les boucles unidimensionnelles et les boucles parfaitement
 imbriquées à $n$ dimensions. Sous le capot, `MDRangePolicy` applique
 automatiquement un pavage spécifique à l'architecture pour maximiser la localité
-du cache ou la coalescence des accès mémoire.
+du cache ou la coalescence des accès mémoire. Nous verrons au
+@sec:kokkosvisibility que ce pavage doit être anhihiler pour laisser libre court
+au pavage automatique du modèle polyédrique
 
 ===== TeamPolicy
-Pour des algorithmes plus complexes, les espaces d'itération unidimensionnels ou
-multidimensionnels et l'ordonnancement de base sont souvent insuffisants.
+Pour des algorithmes plus complexes, les espaces d'itérations unidimensionnels
+ou multidimensionnels et l'ordonnancement de base sont souvent insuffisants.
 `Kokkos::TeamPolicy` résout ce problème en exposant le parallélisme
 hiérarchique, ce qui est utile pour exploiter des topologies matérielles
 spécifiques, en particulier sur les GPU. Il divise logiquement l'espace
-d'itération en un tableau unidimensionnel de _Ligues_, où chaque ligue est
+d'itérations en un tableau unidimensionnel de _Ligues_, où chaque ligue est
 constituée de plusieurs _Équipes_ de threads. Lors d'un mapping sur un GPU, une
 ligue correspond typiquement à une grille de blocs de threads, tandis qu'une
 équipe correspond à un bloc individuel de threads. Sur un CPU, une ligue peut
 correspondre aux coeurs physiques disponibles, avec des équipes utilisant des
-threads matériels ou des voies vectorielles. Avec cette approche plus avancée,
+threads matériels ou des unités vectorielles. Avec cette approche plus avancée,
 les développeurs obtiennent un contrôle fin sur les ressources matérielles, tel
 que l'exploitation de la mémoire partagée gérée par l'utilisateur sur les GPU ou
 la gestion explicite de la mémoire cache sur les CPU, au détriment de la
 simplicité de développement.
 
 Pour illustrer comment Kokkos expose des espaces d'itération multidimensionnels,
-@code:scientificbackground:mdrangeexample montre une addition de matrices 2D
-implémentée avec une `Kokkos::MDRangePolicy`. Dans cet exemple, la politique
-définit explicitement un domaine d'itération bidimensionnel (indiqué par
-`Kokkos::Rank<2>`) allant de $(0, 0)$ à $(N, M)$. Le troisième argument de
+la @code:scientificbackground:mdrangeexample montre une addition de matrices 2D
+implémentée avec une politique `Kokkos::MDRangePolicy`. Dans cet exemple, la
+politique définit explicitement un domaine d'itérations bidimensionnel (indiqué
+par `Kokkos::Rank<2>`) allant de $(0, 0)$ à $(N, M)$. Le troisième argument de
 `Kokkos::parallel_for` est la fonction lambda, qui décrit le noyau de calcul
 lui-même. En tant qu'arguments, cette fonction lambda prend les indices
 d'itération $i$ et $j$ pour effectuer les opérations élément par élément sur les
@@ -266,8 +271,8 @@ vues multidimensionnelles.
           C(i, j) = A(i, j) + B(i, j);
       }
   );```,
-  caption: [Exemple d'une addition de matrices parallèle utilisant une
-    `MDRangePolicy`],
+  caption: [Exemple d'une addition de matrices parallèle utilisant une politique
+    d'exécution `MDRangePolicy`],
 ) <code:scientificbackground:mdrangeexample>
 
 
@@ -275,16 +280,16 @@ vues multidimensionnelles.
 
 == Modèle Polyédrique <sec:scientificbackground:polyhedral>
 
-Le modèle polyédrique est un framework mathématique permettant l'analyse et la
+Le modèle polyédrique est un outil mathématique permettant l'analyse et la
 transformation précises des nids de boucles. Contrairement aux compilateurs
-traditionnels qui appliquent des transformations syntaxiques locales directement
-sur une #gls("ir") ou un #gls("ast"), le modèle polyédrique s'appuie entièrement
-sur des abstractions algébriques. Cette fondation mathématique garantit la
-correction sémantique des transformations appliquées. Pour représenter les nids
-de boucles, le modèle utilise une représentation géométrique des domaines
-d'itération, des accès mémoire, des dépendances de données et des
-ordonnancements d'instructions, tous exprimés par des ensembles et des relations
-mathématiques.
+traditionnels qui appliquent des transformations locales directement sur une
+représentation intermédiaire (IR) ou un arbre de syntaxe abstrait, le modèle
+polyédrique s'appuie entièrement sur des abstractions algébriques et
+géométriques. Il garantit la correction sémantique des transformations
+appliquées. Pour représenter les nids de boucles, le modèle utilise une
+représentation géométrique en polyèdres des domaines d'itération, des accès
+mémoire, des dépendances de données et des ordonnancements d'instructions, tous
+exprimés par des ensembles et des relations mathématiques.
 
 #definition(
   title: "Ensemble",
@@ -314,7 +319,7 @@ mathématiques.
   ensemble de coordonnées de sortie dans un espace de sortie $F$ de dimension
   $l$.
 
-  #box($x in E$) est dit en relation avec #box($y in F$) #box([si
+  L'élément #box($x in E$) est dit en relation avec #box($y in F$) #box([si
     $(x, y) in E times F$]). On le note couramment $x space R space y$ ou
   $R space x space y$. Une relation peut également être représentée comme un
   polyèdre paramétrique :
@@ -339,7 +344,8 @@ d'abstraction mathématique limite drastiquement l'application d'optimisations
 structurelles avancées sur les boucles. Cette rigueur formelle restreint
 néanmoins le domaine d'application de l'approche polyédrique : elle ne peut
 cibler que les nids de boucles dont les bornes et les accès mémoires sont
-affines, formellement regroupés sous l'appellation de #glspl("scop").
+affines, formellement regroupés sous l'appellation de _Static Control Parts_
+(SCoPs).
 
 #definition(
   title: "Partie à Contrôle Statique (SCoP)",
@@ -355,16 +361,16 @@ comme un point entier à l'intérieur d'un polyèdre convexe de dimension $d$, o
 $d$ correspond à la profondeur maximale de la boucle. Les dépendances de données
 sont modélisées comme des relations affines entre les vecteurs d'itération des
 instructions source et cible. Par conséquent, optimiser un segment de code
-équivaut à appliquer des transformations affines à ces espaces d'itération pour
+équivaut à appliquer des transformations affines à ces espaces d'itérations pour
 exposer le parallélisme ou améliorer la localité des données. De telles
 transformations incluent la réorganisation d'instructions, le pavage de boucles,
-le skewing, et la fusion ou fission de boucles.
+la torsion, et la fusion ou fission de boucles.
 
 Pour illustrer ces concepts tout au long de cette section, la
 @fig:scientificbackground:scopexample présente un exemple simple d'un #gls(
   "scop",
-) comprenant deux instructions, $S_1$ et $S_2$, imbriquées dans deux boucles
-différentes sera utilisé comme exemple.
+) comprenant deux instructions, $S_1$ et $S_2$, imbriquées dans deux nids de
+boucles différents.
 
 #figure(
   ```cpp
@@ -376,7 +382,7 @@ différentes sera utilisé comme exemple.
     for (int j = 0; j < M; j++)
       C[i][j] = C[i][j] + C[i - 1][j];  // Instruction S2
   ```,
-  caption: [Exemple d'un nid de boucles simple avec deux instructions.],
+  caption: [Exemple de deux nids de boucles simples avec deux instructions.],
 ) <fig:scientificbackground:scopexample>
 
 === Polyèdre
@@ -428,7 +434,7 @@ polyédrique étend les polytopes standards en polytopes paramétriques.
 === Instruction
 
 #definition(
-  title: "Instance d'Instruction ou Statement",
+  title: "Instance d'Instruction",
 )[
   Une _instance d'instruction_ est une exécution spécifique d'une instruction
   donnée $S$ lors d'une itération particulière de ses $k$ boucles englobantes.
@@ -437,16 +443,17 @@ polyédrique étend les polytopes standards en polytopes paramétriques.
 ]
 
 En reprenant la @fig:scientificbackground:scopexample, le #gls("scop") fourni
-présente deux instructions distinctes imbriquées dans deux boucles. Dans ce
-contexte, une instance de l'instruction $S_1$ se produit pour chaque combinaison
-valide des itérateurs $i$ et $j$.
+présente deux instructions distinctes imbriquées dans deux nids de boucles. Dans
+ce contexte, une instance de l'instruction $S_1$ ou $S_2$ se produit pour chaque
+combinaison valide des itérateurs $i$ et $j$.
 
 
 === Domaine d'Itération
 
 Une instruction est associée à un ensemble d'instances d'instruction bornées à
 l'intérieur d'un polytope. Chaque instance individuelle est caractérisée de
-manière unique par un vecteur composé des itérateurs de ses boucles englobantes.
+manière unique par un vecteur composé des valeurs des itérateurs de ses boucles
+englobantes.
 
 #definition(
   title: "Vecteur d'Itération",
@@ -458,17 +465,17 @@ manière unique par un vecteur composé des itérateurs de ses boucles englobant
     arrow(x) = vec(x_1, x_2, ..., x_k)
   $
   où $x_i$ est l'indice de la boucle à la profondeur $i$, et $k$ est la
-  profondeur totale des boucles englobant l'instruction.
+  profondeur totale du nid de boucles englobant l'instruction.
 ]
 
 L'ensemble exhaustif de tous les vecteurs d'itération pour lesquels une
-instruction donnée est exécutée est appelé le domaine d'itération de cette
+instruction donnée est exécutée est appelé le domaine d'itérations de cette
 instruction.
 
 #definition(
-  title: "Domaine d'Itération",
+  title: "Domaine d'Itérations",
 )[
-  Le domaine d'itération d'une instruction $S$ est l'ensemble de tous les
+  Le domaine d'itérations d'une instruction $S$ est l'ensemble de tous les
   vecteurs d'itération $arrow(x)$ possibles pour lesquels l'instruction $S$ est
   exécutée. Il peut être représenté comme un polyèdre convexe défini par un
   système d'inégalités affines. Cet ensemble peut être représenté par les points
@@ -498,17 +505,17 @@ des boucles et par toute instruction conditionnelle présente dans le code.
 ) <fig:scientificbackground:iterationdomain>
 
 
-=== Dépendances de Données
+=== Dépendances de données
 
 Pour que le modèle polyédrique génère des transformations valides produisant
 exactement les mêmes résultats que le code original, il doit respecter
 strictement les dépendances de données initiales du programme. Les dépendances
 de données agissent comme des contraintes qui restreignent l'ordre d'exécution
 légal des instances d'instruction. Elles sont introduites lorsque plusieurs
-instances d'instruction accèdent au même emplacement mémoire.
+instances d'instruction accèdent aux mêmes emplacements mémoire.
 
 #definition(
-  title: "Dépendance de Données",
+  title: "Dépendance de données",
 )[
   Deux instances d'instruction $S_1(arrow(x)_1)$ et $S_2(arrow(x)_2)$ sont dites
   dépendantes si les deux instances accèdent exactement au même emplacement
@@ -518,12 +525,13 @@ instances d'instruction accèdent au même emplacement mémoire.
 
 Il existe trois principaux types de dépendances de données qui restreignent le
 réordonnancement des instructions :
-- *Lecture-Après-Écriture :* Une instruction source écrit dans un emplacement
-  mémoire qui est ensuite lu par une instruction cible.
-- *Écriture-Après-Lecture :* Une instruction source lit un emplacement mémoire
-  avant qu'il ne soit écrasé par une instruction cible.
-- *Écriture-Après-Écriture :* Une instruction source écrit dans un emplacement
-  mémoire qui est ensuite écrasé par une instruction cible.
+- *Lecture-Après-Écriture ou dépendance de flot :* Une instruction source écrit
+  dans un emplacement mémoire qui est ensuite lu par une instruction cible.
+- *Écriture-Après-Lecture ou anti-dépendance :* Une instruction source lit un
+  emplacement mémoire avant qu'il ne soit écrasé par une instruction cible.
+- *Écriture-Après-Écriture ou dépendance de sortie :* Une instruction source
+  écrit dans un emplacement mémoire qui est ensuite écrasé par une instruction
+  cible.
 
 Le modèle polyédrique représente géométriquement ces dépendances de données
 comme des relations affines entre les vecteurs d'itération des instructions
@@ -547,12 +555,12 @@ source et cible.
   cible et $N = "dim"(arrow(p))$ le nombre de paramètres.
 ]
 
-En reprenant l'exemple du @fig:scientificbackground:scopexample, nous pouvons
-observer une dépendance RAW sur l'instruction $S_2$ à travers les itérations de
-la boucle externe. Spécifiquement, l'instruction $S_2$ à l'itération $(i', j')$
-lit la valeur `C[i' - 1][j']`, qui a été précédemment écrite par $S_2$ à
-l'itération $(i, j)$ où $i = i' - 1$ et $j = j'$. Cette dépendance de flot
-portée par la boucle peut être formellement exprimée en utilisant notre
+En reprenant l'exemple de la @fig:scientificbackground:scopexample, nous pouvons
+observer une dépendance de flot sur l'instruction $S_2$ à travers les itérations
+de la boucle externe. Spécifiquement, l'instruction $S_2$ à l'itération
+$(i', j')$ lit la valeur `C[i' - 1][j']`, qui a été précédemment écrite par
+$S_2$ à l'itération $(i, j)$ où $i = i' - 1$ et $j = j'$. Cette dépendance de
+flot portée par la boucle peut être formellement exprimée en utilisant notre
 représentation matricielle :
 
 $
@@ -568,14 +576,13 @@ $
 
 === Ordonnancement
 
-Un ordonnancement dicte l'ordre d'exécution chronologique des instances
-d'instruction au sein de l'espace d'itération. Dans le modèle polyédrique, cet
-ordonnancement est représenté comme une relation affine mappant le vecteur
-d'itération d'une instruction vers un vecteur de date logique
-multidimensionnelle.
+Un ordonnancement dicte l'ordre d'exécution des instances d'instruction au sein
+de l'espace d'itération. Dans le modèle polyédrique, cet ordonnancement est
+représenté comme une relation affine mappant le vecteur d'itération d'une
+instruction vers un vecteur de date logique multidimensionnelle.
 
 #definition(
-  title: "Relation d'Ordonnancement",
+  title: "Relation d'ordonnancement",
 )[
   Étant donné une instruction $S$, une _relation d'ordonnancement_ $theta_S$
   détermine l'ordre d'exécution de ses instances. Pour ce faire, elle mappe
@@ -652,7 +659,7 @@ $t_1$ et $t_2$ reflètent exactement les itérateurs de la boucle.
 
 
 
-== L'Écosystème Polyédrique <sec:scientificbackground:polyhedralecosystem>
+== L'Écosystème polyédrique <sec:scientificbackground:polyhedralecosystem>
 
 Bien que les abstractions mathématiques du modèle polyédrique offrent un cadre
 de travail puissant pour l'optimisation des boucles, l'application automatique
@@ -665,17 +672,19 @@ optimisé.
 Cette section explore les composants principaux de cet écosystème, en les
 catégorisant en outils polyédriques et en compilateurs.
 
-=== Outils Polyédriques
+=== Outils polyédriques
 
 L'application du modèle polyédrique repose fortement sur des bibliothèques
-mathématiques capables de résoudre des systèmes complexes d'inégalités affines.
+mathématiques capables de résoudre des systèmes complexes d'inégalités affines
+en nombres entiers.
 
 ==== Integer Set Library (isl) <sec:scientificbackground:isl>
 
-Pour manipuler les polyèdres, la #gls("isl"), développée par Sven
-Verdoolaege~@ISL, est largement utilisée dans la communauté polyédrique. isl est
-une bibliothèque C conçue pour manipuler des ensembles et des relations de
-points entiers bornés par des contraintes affines.
+Pour manipuler les polyèdres, la bibliothèque _Integer Set Library_ (isl),
+développée par Sven Verdoolaege~@ISL, est largement utilisée dans la communauté
+polyédrique. isl est une bibliothèque en C conçue pour manipuler des ensembles
+et des relations de points entiers bornés par des contraintes affines. Elle
+manipule deux structures principales :
 
 - *Sets :* Utilisés pour représenter les domaines d'itération.
 - *Maps :* Utilisées pour représenter les fonctions d'accès, les dépendances et
@@ -685,20 +694,20 @@ points entiers bornés par des contraintes affines.
 polyédriques essentielles, y compris l'intersection, l'union, la différence
 d'ensembles et le calcul de minimums ou maximums lexicographiques.
 
-Au-delà des opérations d'ensembles basiques, l'une des fonctionnalités d'isl est
-son *moteur d'ordonnancement* intégré. Basé sur une variante de l'algorithme
-Pluto~@pluto1, isl peut calculer automatiquement des ordonnancements affines qui
-respectent toutes les dépendances de données tout en maximisant conjointement la
-localité des données et en exposant le parallélisme.
+Au-delà des opérations d'ensembles de base, l'une des fonctionnalités d'isl est
+son *moteur d'ordonnancement* intégré. Basé sur une variante de l'algorithme du
+compilateur polyédrique Pluto~@pluto2, isl peut calculer automatiquement des
+ordonnancements affines qui respectent toutes les dépendances de données tout en
+améliorant la localité des données et en exposant du parallélisme.
 
-Enfin, une fois que l'ordonnancement optimal a été calculé, isl dispose d'un
-générateur d'AST (Abstract Syntax Tree). Ce composant traduit la représentation
-polyédrique transformée en une structure classique de nid de boucles. Parce
-qu'elle encapsule la totalité de la chaîne de compilation mathématique, isl sert
-de moteur fondamental derrière la quasi-totalité des compilateurs polyédriques
-modernes. La @fig:scientificbackground:isl_syntax_example illustre comment un
-nid de boucles C standard est modélisé mathématiquement à l'aide de la syntaxe
-des ensembles et des maps d'#gls("isl").
+Enfin, une fois qu'un ordonnancement a été calculé, isl dispose d'un générateur
+d'AST. Ce composant traduit la représentation polyédrique transformée en une
+structure classique de nids de boucles. Parce qu'elle encapsule la totalité de
+la chaîne de compilation mathématique, isl sert de moteur fondamental pour la
+quasi-totalité des compilateurs polyédriques modernes. La
+@fig:scientificbackground:isl_syntax_example illustre comment un nid de boucles
+C standard est modélisé mathématiquement à l'aide de la syntaxe des Sets et des
+Maps d'#gls("isl").
 
 
 #subpar.super(
@@ -730,8 +739,9 @@ des ensembles et des maps d'#gls("isl").
         [N, M] -> { S1[i, j] -> B[i] }    // Lecture
         [N, M] -> { S1[i, j] -> C[j] }    // Lecture
         ```,
-        caption: [Représentation isl du domaine d'itération, de l'ordonnancement
-          et des fonctions d'accès pour le code donné en exemple.],
+        caption: [Représentation isl du domaine d'itérations, de
+          l'ordonnancement et des fonctions d'accès pour le code donné en
+          exemple.],
       )
     ],
   ),
@@ -748,10 +758,10 @@ représentation standardisée d'un #gls("scop"). Elle modélise les systèmes
 mathématiques d'inégalités affines (domaines, fonctions d'accès et
 ordonnancements) à l'aide d'un format matriciel structuré, où les colonnes
 correspondent aux itérateurs de boucles, aux paramètres globaux et aux termes
-constants, et où les lignes représentent les contraintes affines. Le
+constants, et où les lignes représentent les contraintes affines. La
 @code:scientificbackground:openscopexample_source montre un nid de boucles
-simple, tandis que sa représentation OpenScop correspondante est détaillée dans
-le @code:scientificbackground:openscopexample_representation.
+simple, tandis que sa représentation OpenScop correspondante est détaillée à la
+@code:scientificbackground:openscopexample_representation.
 
 
 #subpar.super(
@@ -802,7 +812,7 @@ le @code:scientificbackground:openscopexample_representation.
         ...
         </OpenScop>
         ```,
-        caption: [Représentation OpenScop du domaine d'itération, de
+        caption: [Représentation OpenScop du domaine d'itérations, de
           l'ordonnancement (scattering) et des fonctions d'accès pour le code
           donné en exemple.],
       ) <code:scientificbackground:openscopexample_representation>
@@ -820,67 +830,69 @@ spécifiques aux outils, permettant aux compilateurs d'intégrer des métadonné
 personnalisées sans rompre la compatibilité.
 
 
-=== Compilateurs Polyédriques
+=== Compilateurs polyédriques
 
 La communauté de recherche a développé divers compilateurs pour automatiser les
 optimisations de boucles. Bien qu'ils partagent tous la même base théorique, ils
 ciblent différents niveaux de la pile de compilation et diverses architectures
-matérielles. Parmi les frameworks polyédriques les plus notables, on trouve :
+matérielles. Parmi les compilateurs et outils polyédriques les plus notables, on
+trouve :
 
 - *Pluto~@pluto1* : Un compilateur C source-à-source renommé pour son algorithme
   d'ordonnancement, qui calcule automatiquement les transformations affines pour
-  maximiser simultanément la localité des données et exposer le parallélisme sur
-  les CPU multicoeurs.
+  maximiser simultanément la localité des données et exposer le parallélisme
+  pour les CPU multicoeurs.
 - *PPCG (Polyhedral Parallel Code Generator)~@ppcg :* Un compilateur
   source-à-source conçu spécifiquement pour les architectures hétérogènes,
   transformant les nids de boucles C séquentiels en code CUDA ou OpenCL optimisé
   pour l'exécution sur GPU.
-- *Apollo (Automatic speculative POLyhedral Loop Optimizer)~@apollo :* Un
-  framework qui étend le modèle statique traditionnel en appliquant des
-  transformations dynamiquement à l'exécution (runtime), permettant
-  l'optimisation des nids de boucles avec des accès mémoire non résolus
-  statiquement ou un flux de contrôle dépendant des données.
-- *Polygeist~@Polygeist :* Un frontend C/C++ moderne et un framework
-  d'optimisation construit au-dessus de MLIR (Multi-Level Intermediate
+- *Apollo (Automatic speculative POLyhedral Loop Optimizer)~@apollo :* Un outil
+  qui étend le modèle statique traditionnel en appliquant des transformations
+  dynamiquement à l'exécution, permettant l'optimisation des nids de boucles
+  avec des accès mémoire non résolus statiquement ou un flux de contrôle
+  dépendant des données.
+- *Polygeist~@Polygeist :* Un _frontend_ C/C++ moderne et une infrastructure
+  d'optimisation construite au-dessus de MLIR (Multi-Level Intermediate
   Representation), qui exploite le dialecte affine pour effectuer des
   transformations polyédriques au sein d'une chaîne de compilation LLVM.
 - *LLVM Polly~@polly1 :* Un optimiseur de boucles intégré dans l'infrastructure
-  du compilateur LLVM qui opère directement sur l'#gls("ir"), s'abstrayant du
-  langage source pour effectuer des optimisations avancées.
+  du compilateur LLVM qui opère directement sur la représentation intermédiaire,
+  s'abstrayant du langage source pour effectuer des optimisations avancées.
 
-Bien que chacun de ces outils optimise avec succès les performances des codes
-transformés, les travaux présentés dans cette thèse s'appuient principalement
-sur l'infrastructure LLVM, en utilisant Polly pour intercepter et optimiser les
-codes Kokkos. Par conséquent, la section suivante propose une plongée
-approfondie dans l'architecture et la chaîne de compilation de LLVM Polly.
+Bien que chacun de ces outils optimise avec plus ou moins de succès les
+performances des codes transformés, les travaux présentés dans cette thèse
+s'appuient principalement sur l'infrastructure LLVM, en utilisant Polly pour
+intercepter et optimiser les codes Kokkos. Par conséquent, la section suivante
+propose une plongée approfondie dans l'architecture et la chaîne de compilation
+de LLVM et de son extension Polly.
 
 
 
 == Plongée au Coeur de LLVM Polly <sec:scientificbackground:polly>
 
-Polly~@polly2 est un framework d'analyse et d'optimisation polyédrique de
-boucles de bas niveau, intégré dans l'optimiseur middle-end de LLVM. Il peut
-être invoqué nativement via le frontend du compilateur Clang (en utilisant des
-arguments de ligne de commande comme `-O3 -mllvm -polly`). Un avantage
-stratégique clé de Polly est sa dépendance à l'#gls("ir") de LLVM. En opérant
-strictement au niveau de l'#gls("ir"), Polly est complètement découplé du
-langage source du frontend, lui permettant d'optimiser les boucles
-indépendamment du code source original.
+Polly~@polly2 est un outil d'analyse et d'optimisation polyédrique de boucles de
+bas niveau, intégré dans l'optimiseur _middle-end_ de LLVM. Il peut être invoqué
+nativement via le frontend du compilateur Clang (en utilisant des arguments de
+ligne de commande comme `-O3 -mllvm -polly`). Un avantage stratégique clé de
+Polly est sa dépendance à l'#gls("ir") de LLVM. En opérant strictement au niveau
+de l'#gls("ir"), Polly est complètement découplé du langage source, lui
+permettant d'optimiser les boucles indépendamment de la syntaxe du code source
+original.
 
 Cette architecture basée sur l'#gls("ir") est particulièrement avantageuse lors
 du ciblage de frameworks parallèles modernes de haut niveau tels que Kokkos.
 Kokkos s'appuie fortement sur des fonctionnalités C++ avancées, incluant la
 métaprogrammation par templates, les fonctions lambda et les abstractions
-d'objets complexes, qui sont impossible à analyser et à parser pour les
+d'objets complexes, qui sont impossibles à analyser et à parser pour les
 compilateurs polyédriques source-à-source traditionnels. En se positionnant dans
 le middle-end, Polly n'intercepte le code qu'une fois que le frontend Clang a
 complètement instancié les templates, résolu les abstractions de haut niveau et
 effectué un inlining agressif des fonctions. Par conséquent, Polly opère sur une
 représentation "nettoyée" et canonicalisée où les nids de boucles
 multidimensionnels et les accès mémoire sont explicitement exposés, contournant
-entièrement la complexité syntaxique du code source C++ original.
+entièrement la complexité syntaxique du code source #box[C++] original.
 
-=== Architecture et Intégration dans la Chaîne de Compilation
+=== Architecture et intégration dans la chaîne de compilation
 
 Au sein de l'infrastructure du compilateur LLVM, les optimisations sont
 appliquées comme une séquence de passes orchestrées par le gestionnaire de
@@ -909,7 +921,7 @@ optimisée et parallélisable directement au vectoriseur natif de LLVM.
 
 Une fois invoqué, Polly exécute sa propre chaîne de compilation interne
 spécialisée. Ce système présente le flux de travail polyédrique en une séquence
-stricte de passes LLVM séquentielles, comme illustré dans la
+stricte de passes LLVM séquentielles, comme illustré par la
 @fig:scientificbackground:pollypipeline :
 
 - *`CodePreparation` :* Prépare l'#gls("ir") en scindant le bloc d'entrée afin
@@ -923,16 +935,16 @@ stricte de passes LLVM séquentielles, comme illustré dans la
   les traduit en représentations mathématiques #gls("isl") (domaines, accès,
   dépendances de données, et ordonnancement original).
 - *`ScheduleOptimizer` :* Invoque le moteur d'ordonnancement intégré d'isl pour
-  calculer des transformations affines optimales qui maximisent la localité des
-  données et exposent le parallélisme.
+  calculer des transformations affines qui améliorent la localité des données et
+  exposent du parallélisme.
 - *`IslAst` :* Génère un nouvel #gls("ast") #gls("isl") représentant la
   structure du nid de boucles ordonnancé de manière optimale.
 - *`CodeGeneration` :* Parcourt l'#gls("ast") #gls("isl") pour construire
   l'#gls("ir") LLVM finale et optimisée, en y intégrant des vérifications à
-  l'exécution (runtime checks) pour l'aliasing et les limites de tableaux
-  lorsque cela est nécessaire.
+  l'exécution (_runtime checks_) pour l'analyse d'aliasing et des bornes de
+  tableaux lorsque cela est nécessaire.
 
-Les mécanismes détaillés de chacune de ces passes internes sont explorés dans
+Les mécanismes détaillés de chacune de ces passes internes sont présentés dans
 les sous-sections suivantes.
 
 ==== Préparation du Code (`Code Preparation`)
@@ -940,8 +952,8 @@ les sous-sections suivantes.
 Avant d'identifier les régions polyédriques, Polly exécute une étape
 préparatoire via la passe `CodePreparation`. Dans son fonctionnement natif, son
 rôle est de scinder le bloc d'entrée de la fonction afin d'isoler les
-allocations mémoires locales (`alloca`) des opérations arithmétiques et d'accès
-aux données. Cette séparation structurelle évite que les instructions
+allocations mémoires locales (`alloca`) des opérations arithmétiques et des
+accès aux données. Cette séparation structurelle évite que les instructions
 d'allocation de pile ne polluent les blocs de calcul et réserve l'espace
 nécessaire à l'insertion de nouvelles allocations lors de la phase de
 regénération du code.
@@ -976,16 +988,17 @@ structures de code en objets #gls("isl").
 
 Pour chaque bloc de base au sein de la région, `ScopInfo` définit une
 instruction mathématique. Ensuite, il construit le *domaine d'itération* exact
-en traduisant les contraintes affines des boucles englobantes obtenu la passe
-SCEV en structure isl. De même, les instructions mémoire (telles que `load` et
-`store`) sont converties en relations d'accès isl, mappant l'exécution logique
-d'une instruction à des adresses mémoire spécifiques.
+en traduisant les contraintes affines des boucles englobantes obtenu grâce à la
+passe SCEV (_Scalar Evolution_) en structure isl. De même, les instructions
+mémoire (telles que `load` et `store`) sont converties en relations d'accès isl,
+mappant l'exécution logique d'une instruction à des adresses mémoire
+spécifiques.
 
 Cette phase extrait également l'ordonnancement original du programme non modifié
 et effectue une analyse des dépendances de données. À la fin de cette passe,
 Polly a construit une représentation mathématique complète du nid de boucles,
-entièrement détachée de l'#gls("ir") de LLVM, prête à être optimisée par le
-moteur polyédrique.
+entièrement détachée de l'#gls("ir") de LLVM, prête à être optimisée par
+l'ordonnanceur polyédrique.
 
 Toutefois, pour garantir la validité de cette représentation et capturer des
 dépendances de données exactes, Polly doit préalablement reconstruire la
@@ -1008,11 +1021,11 @@ $i times M times P + j times P + k$.
 
 #figure(
   ```cpp
-  void init(int N, int M, int P, double A[N][M][P]) {
+  void init(int N, int M, int P, double *A) {
       for (int i = 0; i < N; i++)
           for (int j = 0; j < M; j++)
               for (int k = 0; k < P; k++)
-                  A[i][j][k] = 0.0;
+                  A[i * M * P + j * P + k] = 0.0;
   }
   ```,
   caption: [Exemple de code source en C avec un accès multidimensionnel 3D.],
@@ -1078,11 +1091,13 @@ isoler les indices restants :
 - Quotient (Dimension externe $i$) :
   $"Index"_2 = floor(Q_2 / M) = floor((i times M + j) / M) = i$
 
-Grâce à cette méthode itérative détaillée, Polly réussit à séparer les tailles
-des différentes dimensions et à extraire les indices d'accès multidimensionnels
-affines ($i$, $j$, $k$). Cette étape de reconstruction est primordiale car elle
-restaure les accès multidimensionnels affines des tableaux indispensable pour le
-modèle polyédrique.
+Grâce à cette méthode itérative, Polly réussit à séparer les tailles des
+différentes dimensions et à extraire les indices d'accès ($i$, $j$, $k$). Cette
+étape de reconstruction est primordiale car elle restaure la vue
+multidimensionnelle et affine des tableaux, indispensable au modèle polyédrique.
+Toutefois, nous montrons au @sec:kokkosvisibility:delinearization qu'une telle
+délinéarisation échoue (ou est insuffisante) lorsque l'accès s'effectue avec un
+indice constant nul (0).
 
 
 ==== Optimisation des SCoPs (`SCoP Optimization`) <sec:scientificbackground:scopoptimization>
@@ -1092,17 +1107,17 @@ Avec la représentation mathématique entièrement construite, la passe
 d'ordonnancement intégré d'ISL. L'objectif premier du solveur est de calculer un
 nouvel ordonnancement qui redéfinit l'ordre d'exécution des instances
 d'instructions. Le planificateur recherche des transformations qui minimisent la
-distance de réutilisation des accès mémoire et exposent le parallélisme.Le
+distance de réutilisation des accès mémoire et exposent du parallélisme. Le
 moteur garantit mathématiquement l'équivalence sémantique du programme : tout
 ordonnancement calculé doit strictement respecter les dépendances de données
-exactes au niveau de l'instance extraites lors de la phase précédente.
+exactes extraites lors de la phase précédente.
 
 La sortie de cette passe est un arbre d'ordonnancement optimisé. En isolant les
 dimensions de boucles qui sont complètement dépourvues de dépendances cycliques
 portées par la boucle, le solveur prouve mathématiquement l'absence de
-concurence de données. Ce parallélisme exposé guide directement les phases
-ultérieures de génération de l'#gls("ast") et d'émission du code pour appliquer
-en toute sécurité la vectorisation ou le multithreading.
+dépendances de données. Ce parallélisme exposé guide directement les phases
+ultérieures de génération du code pour appliquer en toute sécurité la
+vectorisation ou le multithreading.
 
 === Génération de l'AST (`IslAst`) <sec:scientificbackground:islast>
 
@@ -1125,11 +1140,11 @@ permettant d'activer le multithreading et les instructions SIMD.
 La passe `CodeGeneration` est chargée de reconstruire l'#gls("ir") LLVM finale
 et optimisée à partir du nouvel #gls("ast") #gls("isl") généré. En parcourant
 les noeuds de l'#gls("ast"), cette passe utilise l'`IRBuilder` de LLVM pour
-construire les structures de boucles correspondantes et le #gls("cfg"). Si les
-noeuds de l'#gls("ast") parcourus portent les annotations parallèles ou
-vectorielles intégrées lors de la phase précédente, le générateur de code les
-traduit en appels appropriés de la bibliothèque d'exécution OpenMP ou en
-directives SIMD.
+construire les structures de boucles correspondantes et le graphe de contrôle
+flow. Si les noeuds de l'#gls("ast") parcourus portent les annotations
+parallèles ou vectorielles intégrées lors de la phase précédente, le générateur
+de code les traduit en appels appropriés de la bibliothèque d'exécution OpenMP
+ou en directives SIMD.
 
 Plutôt que de générer les instructions de calcul à partir de zéro, le générateur
 réutilise intelligemment le code d'origine. Il copie les anciennes instructions
@@ -1155,9 +1170,9 @@ polyédriques ne compromettent jamais la validité du programme.
 Bien que LLVM Polly fournisse un mécanisme pour l'optimisation des boucles, son
 choix architectural d'opérer exclusivement au niveau de l'#gls("ir") introduit
 plusieurs limites inhérentes. Ces défis sont particulièrement marqués lors de
-l'analyse de code C++ fortement abstrait comme Kokkos.
+l'analyse de code C++ fortement abstrait comme avec Kokkos.
 
-- *Le Fossé Sémantique et la Reconstruction de l'Information :* Opérer sur
+- *Le fossé sémantique et la reconstruction de l'information :* Opérer sur
   l'#gls("ir") de LLVM signifie que toutes les constructions du langage de haut
   niveau ont été abaissées et aplanies. Pour appliquer le modèle polyédrique,
   Polly doit reconstituer artificiellement la structure originale du programme à
@@ -1167,17 +1182,18 @@ l'analyse de code C++ fortement abstrait comme Kokkos.
   mathématiques. Si le code C++ original s'appuie sur des abstractions
   complexes, ce processus de reconstruction devient hautement fragile,
   provoquant l'échec de Polly à reconnaître des SCoPs valides.
-- *Manque de Prise en Charge des GPU :* Polly est conçu pour optimiser la
+- *Manque de prise en charge des GPU :* Polly est conçu pour optimiser la
   localité des données et le parallélisme pour les CPU multicoeurs (via OpenMP
   et la vectorisation SIMD). Bien que des extensions expérimentales comme
   Polly-ACC~@pollyacc aient été historiquement développées pour générer du code
-  GPU, elles ne sont plus activement maintenues dans les versions récentes du
-  framework LLVM. Par conséquent, Polly manque nativement de la capacité robuste
-  à générer du code GPU optimisé pour les architectures hétérogènes modernes.
+  GPU, elles ne sont plus activement maintenues dans les versions récentes de
+  l'infrastructure LLVM. Par conséquent, Polly manque nativement de la capacité
+  robuste à générer du code GPU optimisé pour les architectures hétérogènes
+  modernes.
 
-Ces deux limites, structurelle et matérielle, mettent en évidence
+Ces deux limites, structurelles et matérielles, mettent en évidence
 l'incompatibilité entre l'approche descendante classique de Polly et les
-exigences des frameworks de portabilité de performance :
+exigences des bibliothèques de portabilité des performances :
 
 D'une part, le choix d'opérer exclusivement au niveau d'une représentation
 intermédiaire de bas niveau crée un fossé sémantique majeur face aux
@@ -1189,11 +1205,12 @@ directe avec le modèle d'exécution de Kokkos, conçu pour cibler des
 architectures hétérogènes et exploiter les accélérateurs matériels (GPU).
 
 Ainsi, bien que le modèle polyédrique offre des garanties formelles puissantes
-pour optimiser la localité et paralléliser les boucles, son utilisation directe
-se heurte à une double impasse : une incapacité à percevoir la structure des
-calculs issus de Kokkos au niveau de l'IR, et une incapacité à générer du code
-pour les accélérateurs hétérogènes ciblés. Surmonter ce double verrou en
-conciliant l'expressivité de Kokkos avec les capacités d'optimisation de Polly
-constitue le coeur de cette thèse. Le @sec:stateoftheart dresse un panorama des
-solutions proposées dans la littérature pour rapprocher ces deux mondes, avant
-de détailler notre approche de co-design dans les chapitres suivants.
+pour améliorer la localité des données et paralléliser les boucles, son
+utilisation directe se heurte à un verrou double : une incapacité à percevoir la
+structure des calculs issus de Kokkos au niveau de l'IR, et une incapacité à
+générer du code pour les accélérateurs hétérogènes ciblés. Surmonter ce double
+verrou en conciliant l'expressivité de Kokkos avec les capacités d'optimisation
+de Polly constitue le coeur de cette thèse. Le @sec:stateoftheart dresse un
+panorama des solutions proposées dans la littérature pour rapprocher ces deux
+mondes, avant de détailler notre approche de co-design dans les chapitres
+suivants.

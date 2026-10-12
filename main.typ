@@ -58,7 +58,7 @@
 #let title-fr = "Optimisation polyédrique automatique des noyaux Kokkos : un co-design bibliothèque–compilateur"
 
 #set document(title: title-en, author: "Ugo Battiston", date: datetime(
-  day: 18,
+  day: 10,
   month: 12,
   year: 2026,
 ))
@@ -252,6 +252,24 @@
   it,
 )
 
+#set heading(supplement: it => {
+  if it.depth == 1 [chapitre] else [section]
+})
+
+#show figure.where(kind: image): set figure(supplement: [Figure])
+
+#set ref(supplement: it => {
+  if it.func() == figure and it.kind == image {
+    [figure]
+  } else if it.func() == figure and it.kind == table {
+    [tableau]
+  } else if it.func() == figure and it.kind == raw {
+    [liste]
+  } else {
+    it.supplement
+  }
+})
+
 // Pad lists
 #show list: it => pad(left: 1em, top: 0em, it)
 #show enum: it => pad(left: 1em, top: 0em, it)
@@ -387,8 +405,8 @@
   french-abstract: [
     #set text(lang: "fr")
     Dans cette thèse, nous présentons une approche de co-design visant à faire
-    bénéficier Kokkos, un framework de portabilité de performance, des
-    optimisations offertes par le modèle polyédrique. Si ce type de framework
+    bénéficier Kokkos, une bibliothèque de portabilité des performances, des
+    optimisations offertes par le modèle polyédrique. Si ce type d'environnement
     permet aux développeurs d'écrire un code unique pour CPU et GPU tout en
     garantissant des performances indépendantes de l'architecture, il ne permet
     pas de bénéficier des optimisations offertes par le modèle polyédrique. En
@@ -413,6 +431,7 @@
   ),
   english-title: title-en,
   english-abstract: [
+    #set text(lang: "en")
     In this thesis, we present a co-design approach aimed at bringing the
     optimizations offered by the polyhedral model to Kokkos, a performance
     portability framework. While this type of framework allows developers to
