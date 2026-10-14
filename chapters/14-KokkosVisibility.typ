@@ -199,135 +199,15 @@ d'exécution et des types de données templates spécifiés par l'utilisateur. L
 @fig:kokkosvisibility:backendselection illustre cette architecture de sélection
 et de redirection du code.
 
-#[
-  #figure(
-    scale(60%, reflow: true)[
-      #diagram(
-        spacing: (2em, 7em),
-        node-shape: rect,
-        node-stroke: 0.7pt,
-        edge-stroke: 0.7pt,
-        node-corner-radius: 4pt,
+#figure(
+  context {
+    let current-page = here().page()
+    let angle = if calc.even(current-page) { 90deg } else { -90deg }
 
-        // Row Titles
-        node(
-          (-2, 0),
-          text(size: 1.2em, weight: "bold")[Interface],
-          stroke: none,
-        ),
-        node(
-          (-2, 1),
-          text(size: 1.2em, weight: "bold")[Backend],
-          stroke: none,
-        ),
-        node(
-          (-2, 2),
-          text(size: 1.2em, weight: "bold")[Policy],
-          stroke: none,
-        ),
-
-        // Interface
-        node(
-          (1, 0),
-          align(left)[#raw(
-            "template<class Policy, class Backend>\nparallel_for(Policy<backend>, ...)",
-            lang: "cpp",
-          )],
-          fill: rgb("#dae8fc"),
-          stroke: rgb("#6c8ebf"),
-          corner-radius: 2pt,
-        ),
-
-        // Backend
-        node(
-          (0, 1),
-          align(left)[#raw(
-            "template<class Policy>\nparallel_for(Policy<Serial>, ...)",
-            lang: "cpp",
-          )],
-          fill: rgb("#d5e8d4"),
-          stroke: rgb("#82b366"),
-          corner-radius: 2pt,
-        ),
-        node(
-          (1, 1),
-          align(left)[#raw(
-            "template<class Policy>\nparallel_for(Policy<OpenMP>, ...)",
-            lang: "cpp",
-          )],
-          fill: rgb("#f8cecc"),
-          stroke: rgb("#b85450"),
-          corner-radius: 2pt,
-        ),
-        node(
-          (2, 1),
-          align(left)[#raw(
-            "template<class Policy>\nparallel_for(Policy<Cuda>, ...)",
-            lang: "cpp",
-          )],
-          fill: rgb("#e1d5e7"),
-          stroke: rgb("#9673a6"),
-          corner-radius: 2pt,
-        ),
-
-        // Policy
-        node(
-          (-0.5, 2),
-          align(left)[#raw("parallel_for(Range<Serial>, ...)", lang: "cpp")],
-          fill: rgb("#d5e8d4"),
-          stroke: rgb("#82b366"),
-          corner-radius: 2pt,
-        ),
-        node(
-          (0.5, 2),
-          align(left)[#raw("parallel_for(MDRange<Serial>, ...)", lang: "cpp")],
-          fill: rgb("#d5e8d4"),
-          stroke: rgb("#82b366"),
-          corner-radius: 2pt,
-        ),
-
-        node(
-          (1.5, 2),
-          align(left)[#raw("parallel_for(Range<OpenMP>, ...)", lang: "cpp")],
-          fill: rgb("#f8cecc"),
-          stroke: rgb("#b85450"),
-          corner-radius: 2pt,
-        ),
-        node(
-          (2.5, 2),
-          align(left)[#raw("parallel_for(MDRange<OpenMP>, ...)", lang: "cpp")],
-          fill: rgb("#f8cecc"),
-          stroke: rgb("#b85450"),
-          corner-radius: 2pt,
-        ),
-
-        // Target
-        node(
-          (1.5, 3),
-          [#raw("HostIterateTile", lang: "cpp")],
-          fill: rgb("#ffe6cc"),
-          stroke: rgb("#d79b00"),
-          corner-radius: 2pt,
-        ),
-
-        // Edges
-        edge((1, 0), (0, 1), "-|>"),
-        edge((1, 0), (1, 1), "-|>"),
-        edge((1, 0), (2, 1), "-|>"),
-
-        edge((0, 1), (-0.5, 2), "-|>"),
-        edge((0, 1), (0.5, 2), "-|>"),
-
-        edge((1, 1), (1.5, 2), "-|>"),
-        edge((1, 1), (2.5, 2), "-|>"),
-
-        edge((0.5, 2), (1.5, 3), "--|>"),
-        edge((2.5, 2), (1.5, 3), "--|>"),
-      )
-    ],
-    caption: [Architecture de sélection des backends dans Kokkos.],
-  ) <fig:kokkosvisibility:backendselection>
-]
+    rotate(angle, reflow: true, fig.kokkosvisibility-kokkosbackend)
+  },
+  caption: [Architecture de sélection des backends dans Kokkos.],
+) <fig:kokkosvisibility:backendselection>
 
 
 L'implémentation de ces backends étant masquée pour l'utilisateur, elle offre
@@ -351,9 +231,10 @@ des nids de boucles canoniques et réguliers, la politique `MDRangePolicy` a ét
 réécrite pour désactiver le tuilage de Kokkos lorsqu'elle est utilisée dans
 notre pipeline. Concrètement, une variante de la structure responsable du
 tuilage, nommée `HostIterate`, a été ajoutée et remplace `HostIterateTile` lors
-de l'utilisation du paramètre `usePolyOpt`. Cela garantit un code épuré pour
-Polly, tout en préservant le fonctionnement par défaut de Kokkos pour le reste
-de l'application, et sans nécessiter la moindre intervention du développeur.
+de l'utilisation du paramètre `usePolyOpt` (voir
+@fig:kokkosvisibility:backendselection). Cela garantit un code épuré pour Polly,
+tout en préservant le fonctionnement par défaut de Kokkos pour le reste de
+l'application, et sans nécessiter la moindre intervention du développeur.
 
 
 Par ailleurs, un noyau Kokkos n'est pas une simple boucle isolée : il est

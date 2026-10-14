@@ -7,6 +7,7 @@
 #let kokkosvisibility-pollybackendchoise = "../figures/kokkosvisibility/pollybackendchoise.pdf"
 #let kokkosvisibility-kokkosbackendchoise = "../figures/kokkosvisibility/kokkosbackendchoise.pdf"
 #let kokkosvisibility-arrayreg2mem = include "../figures/kokkosvisibility/arrayreg2mem.typ"
+#let kokkosvisibility-kokkosbackend = include "../figures/kokkosvisibility/kokkosbackend.typ"
 
 // Complex execution patterns figures
 #let complexexecutionpatterns-trisolvbefore = "../figures/complexexecutionpatterns/trisolvbefore.pdf"
