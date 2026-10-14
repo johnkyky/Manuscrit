@@ -51,3 +51,5 @@
 #let gls(..args) = glossarium.gls(link: false, ..args)
 #let glspl(..args) = glossarium.glspl(link: false, ..args)
 
+#import "colors.typ": *
+

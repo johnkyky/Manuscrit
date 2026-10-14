@@ -182,22 +182,24 @@ grandement l'analyse mathématique.
 
 #[
   #figure(
-    fletcher.diagram(
-      node-stroke: 1pt,
-      edge-stroke: 1pt,
-      node-inset: 8pt,
-      fletcher.node((0, 0), [Code Source \ (C/C++)], corner-radius: 3pt),
-      fletcher.edge((0, 0), (1, 0), "-|>"),
-      fletcher.node(
+    diagram(
+      spacing: 30pt,
+      node-shape: rect,
+      node-stroke: 0.7pt,
+      edge-stroke: 0.7pt,
+      node-corner-radius: 4pt,
+      node((0, 0), [Code Source \ (C/C++)]),
+      edge((0, 0), (1, 0), "-|>"),
+      node(
         (1, 0),
         [Source-à-Source \ (Pluto, PPCG)],
-        fill: rgb("eef5ff"),
-        corner-radius: 3pt,
+        fill: color-blue,
+        stroke: color-blue-stroke,
       ),
-      fletcher.edge((1, 0), (2, 0), "-|>"),
-      fletcher.node((2, 0), [C/C++ \ Optimisé], corner-radius: 3pt),
-      fletcher.edge((2, 0), (3, 0), "-|>"),
-      fletcher.node((3, 0), [Compilateur], corner-radius: 3pt),
+      edge((1, 0), (2, 0), "-|>"),
+      node((2, 0), [C/C++ \ Optimisé]),
+      edge((2, 0), (3, 0), "-|>"),
+      node((3, 0), [Compilateur]),
     ),
     caption: [Chaîne de compilation polyédrique source-à-source.],
   ) <fig:stateoftheart:polyhedral_s2s>
@@ -231,22 +233,24 @@ de compilation moderne au niveau de l'IR est représentée à la
 
 #[
   #figure(
-    fletcher.diagram(
-      node-stroke: 1pt,
-      edge-stroke: 1pt,
-      node-inset: 8pt,
-      fletcher.node((0, 1), [Code Source \ (C/C++)], corner-radius: 3pt),
-      fletcher.edge((0, 1), (1, 1), "-|>"),
-      fletcher.node((1, 1), [Front-End \ (Clang/GCC)], corner-radius: 3pt),
-      fletcher.edge((1, 1), (2, 1), "-|>"),
-      fletcher.node(
+    diagram(
+      spacing: 30pt,
+      node-shape: rect,
+      node-stroke: 0.7pt,
+      edge-stroke: 0.7pt,
+      node-corner-radius: 4pt,
+      node((0, 1), [Code Source \ (C/C++)]),
+      edge((0, 1), (1, 1), "-|>"),
+      node((1, 1), [Front-End \ (Clang/GCC)]),
+      edge((1, 1), (2, 1), "-|>"),
+      node(
         (2, 1),
         [Niveau IR \ (Polly, Polygeist)],
-        fill: rgb("eef5ff"),
-        corner-radius: 3pt,
+        fill: color-blue,
+        stroke: color-blue-stroke,
       ),
-      fletcher.edge((2, 1), (3, 1), "-|>"),
-      fletcher.node((3, 1), [Back-End], corner-radius: 3pt),
+      edge((2, 1), (3, 1), "-|>"),
+      node((3, 1), [Back-End]),
     ),
     caption: [Chaîne de compilation polyédrique au niveau de l'IR.],
   ) <fig:stateoftheart:polyhedral_ir>
@@ -276,63 +280,61 @@ transformations.
 
 #[
   #figure(
-    fletcher.diagram(
-      node-stroke: 1pt,
-      edge-stroke: 2pt,
-      node-inset: 8pt,
-      spacing: (4em, 2em),
-
-      // Nodes
-      fletcher.node(
+    diagram(
+      spacing: 30pt,
+      node-shape: rect,
+      node-stroke: 0.7pt,
+      edge-stroke: 0.7pt,
+      node-corner-radius: 4pt,
+      node(
         (0, 0),
-        align(center)[#text(size: 3em)[🧑‍💻] \ Programmer],
-        stroke: none,
+        align(center)[Développeur],
+        fill: color-orange,
+        stroke: color-orange-stroke,
       ),
-      fletcher.node(
+      node(
         (1, 0),
-        align(center)[Annotated \ source code],
-        fill: rgb("#ffffb3"),
-        corner-radius: 2pt,
+        align(center)[Code \ source \ annoté],
+        fill: color-yellow,
+        stroke: color-yellow-stroke,
       ),
-      fletcher.node(
+      node(
         (2, 0),
-        align(center)[Apollo \ Static \ Component],
-        fill: rgb("#99c2ff"),
-        corner-radius: 4pt,
+        align(center)[Composant \ statique \ Apollo],
+        fill: color-blue,
+        stroke: color-blue-stroke,
       ),
-      fletcher.node(
+      node(
         (3, 0),
-        align(center)[Binary \ Executable],
-        fill: rgb("#b3ffb3"),
-        corner-radius: 2pt,
+        align(center)[Exécutable \ binaire],
+        fill: color-green,
+        stroke: color-green-stroke,
       ),
-      fletcher.node(
+      node(
         (4, 0),
-        align(center)[Apollo \ Runtime \ System],
-        fill: rgb("#d9b3ff"),
-        corner-radius: 50pt,
+        align(center)[Système \ d'exécution \ Apollo],
+        fill: color-purple,
+        stroke: color-purple-stroke,
       ),
 
-      // Edges
-      fletcher.edge((0, 0), (1, 0), "-|>"),
-      fletcher.edge((1, 0), (2, 0), "-|>"),
-      fletcher.edge((2, 0), (3, 0), "-|>"),
-      fletcher.edge((3, 0), (4, 0), "-|>", bend: -20deg),
-      fletcher.edge((4, 0), (3, 0), "-|>", bend: -20deg),
+      edge((0, 0), (1, 0), "-|>"),
+      edge((1, 0), (2, 0), "-|>"),
+      edge((2, 0), (3, 0), "-|>"),
+      edge((3, 0), (4, 0), "-|>", bend: -20deg),
+      edge((4, 0), (3, 0), "-|>", bend: -20deg),
 
-      // Compile-time brackets
-      fletcher.edge((0, 0.8), (0, 1.2), (3, 1.2), (3, 0.8), stroke: (
+      edge((0, 0.8), (0, 1.2), (3, 1.2), (3, 0.8), stroke: (
         dash: "dotted",
         thickness: 1pt,
       )),
-      fletcher.node((1.5, 1.2), [Compile-Time], stroke: none, fill: white),
+      node((1.5, 1.2), [Compilation], stroke: none, fill: white),
 
       // Runtime brackets
-      fletcher.edge((3.1, 0.8), (3.1, 1.2), (4, 1.2), (4, 0.8), stroke: (
+      edge((3.1, 0.8), (3.1, 1.2), (4, 1.2), (4, 0.8), stroke: (
         dash: "dotted",
         thickness: 1pt,
       )),
-      fletcher.node((3.55, 1.2), [Runtime], stroke: none, fill: white),
+      node((3.55, 1.2), [Exécution], stroke: none, fill: white),
     ),
     caption: [Architecture de l'outil Apollo, séparant la compilation statique
       et l'optimisation dynamique à l'exécution.],

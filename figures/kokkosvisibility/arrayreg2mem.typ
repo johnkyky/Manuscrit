@@ -1,4 +1,5 @@
 #import "@preview/fletcher:0.5.8" as fletcher: diagram, edge, node
+#import "@preview/codly:1.3.0": *
 
 
 #show raw: set text(size: 5pt)
@@ -9,6 +10,8 @@
   edge-stroke: 0.7pt,
   node-corner-radius: 4pt,
 )
+
+#codly(display-name: false)
 
 #table(
   columns: (0.8fr, 1fr, 1fr),
@@ -43,9 +46,9 @@
         #line(length: 100%, stroke: 0.5pt + gray)
         #v(-10pt)
         ```llvm
-        phi = [Val, NewVal]
+        Curr = phi(Val, NewVal)
         ...
-        NewVal = fadd ....
+        NewVal = fadd ...
         store NewVal to ArrayAddr
         ...
         ```
@@ -60,7 +63,7 @@
       #v(-10pt)
       ```llvm
       ...
-      foo = fadd NewVal + ....
+      foo = fadd NewVal + ...
       ...
       ```
     ])),
@@ -87,9 +90,9 @@
         #line(length: 100%, stroke: 0.5pt + gray)
         #v(-10pt)
         ```llvm
-        phi = [Val, NewVal]
+        Curr = phi(Val, NewVal)
         ...
-        NewVal = fadd ....
+        NewVal = fadd ...
         store NewVal to ArrayAddr
         ...
         ```
@@ -105,7 +108,7 @@
       ```llvm
       ...
       load NewValReloaded ArrayAddr
-      foo = fadd NewVal + ....
+      foo = fadd NewVal + ...
       ...
       ```
     ])),
@@ -137,26 +140,17 @@
         #line(length: 100%, stroke: 0.5pt + gray)
         #v(-10pt)
         ```llvm
-        j = [1, j+1]
-        phi = [Val, NewVal]
+        j = phi(1, NewJ)
+        Curr = phi(Val, NewVal)
         ...
-        NewVal = fadd ....
+        NewVal = fadd ...
         store NewVal to A[i][j]
+        NewJ = j + 1
         ...
         ```
       ]),
       name: <body_node>,
     ),
-
-    //node((0, 2), box(width: 11em, align(left)[
-    //  *end :*
-    //  #v(-10pt)
-    //  #line(length: 100%, stroke: 0.5pt + gray)
-    //  #v(-10pt)
-    //  ```llvm
-    //  ...
-    //  ```
-    //])),
     edge((0, 0), (0, 1), "->"),
     edge((0, 1), (0, 2), "->"),
     edge(<body_node>, <body_node>, "->", bend: -105deg, loop-angle: 180deg),
@@ -179,26 +173,17 @@
         #line(length: 100%, stroke: 0.5pt + gray)
         #v(-10pt)
         ```llvm
-        j = [1, j+1]
+        j = phi(1, NewJ)
         load ValReloaded A[i][j-1]
         ...
-        NewVal = fadd ....
+        NewVal = fadd ...
         store NewVal to A[i][j]
+        NewJ = j + 1
         ...
         ```
       ]),
       name: <body_node>,
     ),
-
-    //node((0, 2), box(width: 11em, align(left)[
-    //  *end :*
-    //  #v(-10pt)
-    //  #line(length: 100%, stroke: 0.5pt + gray)
-    //  #v(-10pt)
-    //  ```llvm
-    //  ...
-    //  ```
-    //])),
     edge((0, 0), (0, 1), "->"),
     edge((0, 1), (0, 2), "->"),
     edge(<body_node>, <body_node>, "->", bend: -105deg, loop-angle: 180deg),
@@ -206,8 +191,9 @@
 
   [*Dépendance scalaire intra-bloc :* \
     la valeur `val` est chargée et utilisée à de multiples reprises au sein du
-    même bloc, induisant des dépendances entre les instructions si celui-ci est
-    scindé en plusieurs statements.
+    même bloc. Cette configuration induit une limitation pour l'ordonnanceur :
+    les instructions appartenant au même _statement_, elles sont indissociables
+    et ne peuvent être réordonnancées indépendamment.
   ],
   diagram(
     node(
@@ -260,8 +246,8 @@
 
   [*Dépendance scalaire intra-bloc :* \
     la valeur `val` est écrite à plusieurs reprises à des adresses distinctes,
-    générant des dépendances inter-instructions si le bloc est scindé en
-    plusieurs statements.
+    générant des dépendances inter-instructions scalaires si le bloc est scindé
+    en plusieurs statements.
   ],
   diagram(
     node(
@@ -314,9 +300,11 @@
   ),
 
   [*Dépendance scalaire étendue :* \
-    le chargement de `%val` est dissocié de son utilisation, ce qui crée des
-    dépendances inter-instructions si le bloc est scindé en plusieurs
-    statements.
+    le chargement de `%val` est dissocié de son utilisation. Lors du découpage
+    des blocs LLVM en _statements_ par Polly, l'instruction de chargement
+    mémoire se retrouve dans un _statement_ distinct de celui où la valeur est
+    consommée. Cette séparation spatiale engendre une dépendance scalaire entre
+    ces deux _statements_.
   ],
   diagram(
     node(
@@ -327,7 +315,7 @@
         #line(length: 100%, stroke: 0.5pt + gray)
         #v(-10pt)
         ```llvm
-        phi = [...]
+        ...
         %val = load %addr
         %x = fadd %a, %b
         %y = load %other_addr
@@ -352,7 +340,7 @@
         #line(length: 100%, stroke: 0.5pt + gray)
         #v(-10pt)
         ```llvm
-        phi = [...]
+        ...
         %x = fadd %a, %b
         %y = load %other_addr
         %val = load %addr
@@ -369,3 +357,5 @@
     edge(<body_node>, <body_node>, "->", bend: -105deg, loop-angle: 180deg),
   ),
 )
+
+#codly(display-name: true)

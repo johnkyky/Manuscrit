@@ -418,9 +418,9 @@
     informations nécessaires pour appliquer des transformations agressives. Le
     couplage avec un ordonnanceur et un générateur de code dédiés permet
     d'étendre ces optimisations aux architectures CPU et GPU. Notre évaluation
-    sur la suite PolyBench démontre des accélérations atteignant 118,26$times$
-    sur CPU et trois ordres de grandeur d'accélération sur GPU par rapport à
-    l'implémentation Kokkos idiomatique standard.
+    sur la suite PolyBench démontre des accélérations atteignant
+    #box[118,26$times$] sur CPU et trois ordres de grandeur d'accélération sur
+    GPU par rapport à l'implémentation Kokkos idiomatique standard.
   ],
   french-keywords: (
     "Calcul haute performance",
@@ -445,9 +445,9 @@
     necessary information for the optimizer to apply aggressive transformations.
     Coupling this with a dedicated scheduler and code generator allows extending
     these optimizations to CPU and GPU architectures. Our evaluation on the
-    PolyBench suite demonstrates speedups reaching 118.26$times$ on CPU and
-    three orders of magnitude on GPU compared to the standard idiomatic Kokkos
-    implementation.
+    PolyBench suite demonstrates speedups reaching #box[118.26$times$] on CPU
+    and three orders of magnitude on GPU compared to the standard idiomatic
+    Kokkos implementation.
   ],
   english-keywords: (
     "High-performance computing",

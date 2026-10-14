@@ -247,7 +247,7 @@ d'interface).
 
 Afin de combler cette lacune architecturale sans avoir à concevoir un moteur de
 génération de code GPU polyédrique, notre approche s'est portée sur la
-réhabilitation du projet *Polly-ACC* @pollyacc. Ce framework exploitait
+réhabilitation du projet *Polly-ACC* @pollyacc. Cet outil exploitait
 historiquement PPCG, un compilateur source-à-source polyédrique dédié à
 l'optimisation et la génération de code pour accélérateurs. La délégation de
 cette étape à PPCG, en substitution de la génération de code intrinsèque au
@@ -311,3 +311,9 @@ du code pour les architectures hétérogènes. Le rétablissement de ce pipeline
 polyédrique dans Polly est indispensable pour permettre l'optimisation
 performante de toutes les applications écrites en Kokkos compatibles avec le
 modèle polyédrique.
+
+L'intégration de Pluto et la réhabilitation du flot PPCG finalisent ainsi notre
+chaîne de compilation polyédrique adaptée à Kokkos. Le chapitre suivant
+(@sec:evaluations) est ainsi consacré à la présentation des résultats
+expérimentaux sur architectures CPU et GPU, en quantifiant les accélérations
+obtenues face aux implémentations de référence de Kokkos.

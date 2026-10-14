@@ -5,8 +5,8 @@
 L'optimisation des programmes constitue un enjeu majeur pour le calcul
 scientifique à haute performance. Le développement de codes de calcul est en
 effet confronté à la complexité et à l'hétérogénéité des architectures
-matérielles modernes. Si les frameworks de portabilité des performances, tels
-que Kokkos, permettent de s'abstraire de l'architecture cible pour le
+matérielles modernes. Si les bibliothèques de portabilité des performances,
+telles que Kokkos, permettent de s'abstraire de l'architecture cible pour le
 déploiement des noyaux de calcul, ils confient largement la charge de
 l'optimisation fine aux compilateurs. Or, ces derniers peinent souvent à
 appliquer des transformations agressives face à la complexité des nids de
@@ -50,7 +50,7 @@ Nous avons ainsi étendu notre approche hybride à la gestion et à la modélisa
 des nids de boucles triangulaires, ainsi qu'à la modélisation fidèle des nids de
 boucles fragmentés en différents appels à `parallel_for`.
 
-Nous avons démontré que notre framework pouvait s'appliquer efficacement à ces
+Nous avons démontré que notre approche pouvait s'appliquer efficacement à ces
 structures algorithmiques, augmentant significativement la portée des codes
 pouvant être optimisés par le modèle polyédrique.
 
@@ -105,7 +105,7 @@ l'amélioration de l'implémentation actuelle à des extensions plus fondamental
 de notre approche hybride.
 
 Premièrement, l'implémentation logicielle pourrait être améliorée. À l'heure
-actuelle, notre framework prend en charge les politiques d'exécution
+actuelle, notre prototype prend en charge les politiques d'exécution
 fondamentales de Kokkos, à savoir `Serial`, `OpenMP` et `CUDA`. Une évolution
 naturelle consisterait à intégrer d'autres backends d'exécution, tels que HIP
 pour cibler les accélérateurs matériels d'AMD, ou SYCL pour les architectures

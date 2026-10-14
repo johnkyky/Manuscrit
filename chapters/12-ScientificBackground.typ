@@ -21,16 +21,16 @@ de départ de notre implémentation.
 
 == Nids de Boucles <sec:scientificbackground:loopnests>
 
-En programmation comme en mathématiques, une boucle fondamentale est
-caractérisée par une variable d'itération $i$ (souvent appelée itérateur ou
-indice), une borne inférieure, une borne supérieure et un pas (stride).
-Lorsqu'une ou plusieurs boucles sont imbriquées dans une autre boucle, la
-structure résultante est appelée un *nid de boucles*. Le nombre de boucles
-imbriquées définit la *profondeur* du nid. À toute étape d'exécution donnée,
-l'état d'un nid de boucles de profondeur $n$ est identifié de manière unique par
-son *vecteur d'itération* $arrow(i) = (i_1, i_2, dots, i_n)^T$, qui regroupe les
-valeurs actuelles de tous les indices des boucles englobantes. À l'intérieur de
-ces boucles, une *instruction* représente l'opération ou l'instruction de calcul
+En programmation comme en mathématiques, une boucle `for` est caractérisée par
+une variable d'itération $i$ (souvent appelée itérateur ou indice), une borne
+inférieure, une borne supérieure et un pas (stride). Lorsqu'une ou plusieurs
+boucles sont imbriquées dans une autre boucle, la structure résultante est
+appelée un *nid de boucles*. Le nombre de boucles imbriquées définit la
+*profondeur* du nid. À toute étape d'exécution donnée, l'état d'un nid de
+boucles de profondeur $n$ est identifié de manière unique par son *vecteur
+d'itération* $arrow(i) = (i_1, i_2, dots, i_n)^T$, qui regroupe les valeurs
+actuelles de tous les indices des boucles englobantes. À l'intérieur de ces
+boucles, une *instruction* représente l'opération ou l'instruction de calcul
 réelle qui est exécutée à un point d'itération donné.
 
 Ces structures sont largement utilisées dans le calcul haute performance (HPC)
@@ -119,8 +119,8 @@ hétérogénéité en découplant clairement l'endroit où le code s'exécute de
 l'endroit où résident les données :
 
 - *Les Espaces d'Exécution* définissent où les noyaux de calcul sont exécutés.
-  Ils mappent les opérations parallèles vers un backend matériel spécifique via
-  une implémentation dédiée du modèle de programmation. Par exemple,
+  Ils mappent les opérations parallèles vers un matériel spécifique via une
+  implémentation dédiée du modèle de programmation. Par exemple,
   `Kokkos::Serial` ou `Kokkos::OpenMP` dictent que le code s'exécutera sur le
   CPU hôte, tandis que `Kokkos::Cuda` ou `Kokkos::HIP` ciblent les accélérateurs
   GPU.
@@ -872,7 +872,7 @@ de LLVM et de son extension Polly.
 
 Polly~@polly2 est un outil d'analyse et d'optimisation polyédrique de boucles de
 bas niveau, intégré dans l'optimiseur _middle-end_ de LLVM. Il peut être invoqué
-nativement via le frontend du compilateur Clang (en utilisant des arguments de
+nativement via le _frontend_ du compilateur Clang (en utilisant des arguments de
 ligne de commande comme `-O3 -mllvm -polly`). Un avantage stratégique clé de
 Polly est sa dépendance à l'#gls("ir") de LLVM. En opérant strictement au niveau
 de l'#gls("ir"), Polly est complètement découplé du langage source, lui
@@ -885,10 +885,10 @@ Kokkos s'appuie fortement sur des fonctionnalités C++ avancées, incluant la
 métaprogrammation par templates, les fonctions lambda et les abstractions
 d'objets complexes, qui sont impossibles à analyser et à parser pour les
 compilateurs polyédriques source-à-source traditionnels. En se positionnant dans
-le middle-end, Polly n'intercepte le code qu'une fois que le frontend Clang a
-complètement instancié les templates, résolu les abstractions de haut niveau et
-effectué un inlining agressif des fonctions. Par conséquent, Polly opère sur une
-représentation "nettoyée" et canonicalisée où les nids de boucles
+le _middle-end_, Polly n'intercepte le code qu'une fois que le _frontend_ Clang
+a complètement instancié les templates, résolu les abstractions de haut niveau
+et effectué un _inlining_ agressif des fonctions. Par conséquent, Polly opère
+sur une représentation "nettoyée" et canonicalisée où les nids de boucles
 multidimensionnels et les accès mémoire sont explicitement exposés, contournant
 entièrement la complexité syntaxique du code source #box[C++] original.
 
@@ -896,9 +896,9 @@ entièrement la complexité syntaxique du code source #box[C++] original.
 
 Au sein de l'infrastructure du compilateur LLVM, les optimisations sont
 appliquées comme une séquence de passes orchestrées par le gestionnaire de
-passes. Polly s'intègre nativement dans cette chaîne de compilation middle-end,
-et son point exact d'exécution peut être contrôlé via l'argument de ligne de
-commande `-polly-position`.
+passes. Polly s'intègre nativement dans cette chaîne de compilation
+_middle-end_, et son point exact d'exécution peut être contrôlé via l'argument
+de ligne de commande `-polly-position`.
 
 Par défaut et utilisé lors de tous les travaux expérimentaux présentés dans
 cette thèse, Polly est planifié à la position `before-vectorizer`. Ce placement
@@ -906,15 +906,15 @@ spécifique est hautement stratégique. Avant même que Polly n'inspecte le code
 l'#gls("ir") a déjà été fortement optimisée et canonicalisée par les passes
 standards de LLVM. Des passes telles que `mem2reg` (qui promeut les allocations
 mémoire en registres SSA), `simplifycfg` (qui nettoie le graphe de flot de
-contrôle) et un inlining agressif des fonctions ont déjà supprimé le surcoût lié
-à l'abstraction C++ de haut niveau. Par conséquent, Polly opère sur des
-structures de boucles propres et normalisées et fournit sa sortie hautement
-optimisée et parallélisable directement au vectoriseur natif de LLVM.
+contrôle) et un _inlining_ des fonctions ont déjà supprimé le surcoût lié à
+l'abstraction C++ de haut niveau. Par conséquent, Polly opère sur des structures
+de boucles propres et normalisées et fournit sa sortie hautement optimisée et
+parallélisable directement au vectoriseur natif de LLVM.
 
 #figure(
   image(fig.scientificbackground-pollypipeline),
   caption: [Intégration des passes de Polly au sein de la chaîne d'optimisation
-    middle-end de LLVM à la position `before-vectorizer`. (Source : #link(
+    _middle-end_ de LLVM à la position `before-vectorizer`. (Source : #link(
       "https://polly.llvm.org/docs/Architecture.html",
     )[Documentation de LLVM Polly])],
 ) <fig:scientificbackground:pollypipeline>

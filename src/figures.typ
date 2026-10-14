@@ -16,3 +16,9 @@
 
 #let complexexecutionpatterns-moveblocksbefore = include "../figures/complexexecutionpatterns/moveblocksbefore.typ"
 #let complexexecutionpatterns-moveblocksafter = include "../figures/complexexecutionpatterns/moveblocksafter.typ"
+
+
+// Evaluation figures
+#let evaluation-polybench-trahrhe-cpu = "../figures/evaluations/polybench_trahrhe_cpu.pdf"
+#let evaluation-polybench-eugene-cpu = "../figures/evaluations/polybench_eugene_cpu.pdf"
+#let evaluation-polybench-eugene-gpu = "../figures/evaluations/polybench_eugene_gpu.pdf"
