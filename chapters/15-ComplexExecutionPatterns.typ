@@ -2,24 +2,21 @@
 
 = Motifs d'exécution complexes <sec:complexexecutionpatterns>
 
-Le @sec:kokkosvisibility précédent a présenté la mise en place du pipeline de
-compilation, permettant d'extraire et de modéliser les informations
-structurelles nécessaires à l'application de transformations polyédriques sur
-des noyaux de calcul simples écrits avec Kokkos.
+Le @sec:kokkosvisibility a présenté la mise en place du pipeline de compilation,
+permettant d'extraire et de modéliser les informations structurelles nécessaires
+à l'application de transformations polyédriques sur des noyaux de calcul simples
+écrits avec Kokkos. Toutefois, de nombreux noyaux de calcul présentent des
+schémas d'exécution plus complexes qui résistent à cette première approche.
+D'une part, les boucles triangulaires, courantes dans le calcul scientifique,
+échouent à être correctement détectées et modélisées par Polly en raison de
+l'introduction de branchements irréguliers lors de leur abaissement dans la
+représentation intermédiaire. D'autre part, les algorithmes nécessitant
+plusieurs étapes de calcul imposent d'enchaîner de multiples appels consécutifs
+à la fonction `parallel_for`. Cette fragmentation structurelle empêche le
+compilateur d'acquérir une vision globale du noyau de calcul, restreignant ainsi
+l'application de transformations inter-noyaux telles que la fusion de boucles.
 
-Toutefois, de nombreux algorithmes réels présentent des schémas d'exécution plus
-complexes qui résistent à cette première approche. D'une part, les boucles
-triangulaires, courantes dans le calcul scientifique, échouent à être
-correctement détectées et modélisées par Polly en raison de l'introduction de
-branchements irréguliers lors de leur abaissement dans la représentation
-intermédiaire. D'autre part, les algorithmes nécessitant plusieurs étapes de
-calcul imposent d'enchaîner de multiples appels consécutifs à la fonction
-`parallel_for`. Cette fragmentation structurelle empêche le compilateur
-d'acquérir une vision globale du noyau de calcul, restreignant ainsi
-l'application de transformations inter-noyaux optimales telles que la fusion de
-boucles.
-
-Ce chapitre propose les solutions pour étendre l'applicabilité du modèle
+Ce chapitre présente nos solutions pour étendre l'applicabilité du modèle
 polyédrique à ces motifs complexes. Dans un premier temps, la
 @sec:complexexecutionpatterns:triangularloop détaille les défis liés aux nids de
 boucles triangulaires et introduit une technique d'épluchage statique de boucle
@@ -28,16 +25,16 @@ pour régulariser le flot de contrôle. Dans un second temps, la
 fragmentation des noyaux et décrit les mécanismes développés pour réunifier les
 noyaux de calcul en un seul `parallel_for` ainsi que la représentation
 intermédiaire associée. Enfin, nous introduisons une méthode permettant de
-transmettre des informations sémantiques explicites au modèle polyédrique sous
-forme de contraintes, afin de consolider l'analyse inter-noyaux.
+transmettre des informations sémantiques explicites sous forme de contraintes,
+afin de consolider l'analyse inter-noyaux.
 
 == Boucles triangulaires <sec:complexexecutionpatterns:triangularloop>
 
 Les boucles triangulaires constituent un motif d'exécution fondamental et
 récurrent dans les applications de calcul scientifique, notamment dans les
-algorithmes d'algèbre linéaire. Elles se caractérisent par des boucles
-imbriquées dont les bornes d'itération internes dépendent directement des
-variables d'induction des boucles englobantes. Par exemple, la
+implémentations d'algorithmes d'algèbre linéaire. Elles se caractérisent par des
+boucles imbriquées dont les bornes d'itération internes dépendent directement
+des variables d'induction des boucles englobantes. Par exemple, la
 @fig:complexexecutionpatterns:trisolv illustre le noyau de résolution de système
 triangulaire (*trisolv*) implémenté en Kokkos. Dans ce noyau, la boucle interne
 sur l'indice `j` a pour borne supérieure l'itérateur `i` de la boucle externe.
@@ -68,16 +65,16 @@ boucle externe, décrivant un espace de forme triangulaire.
 Bien que ce motif soit sémantiquement simple, son analyse par les compilateurs
 s'avère complexe. En associant ces boucles aux abstractions de Kokkos, la
 linéarité apparente des accès mémoire se perd au niveau de la représentation
-intermédiaire, empêchant directement la détection de telles régions par le
-modèle polyédrique.
+intermédiaire, empêchant directement la détection de telles régions par les
+outils polyédriques.
 
 === Problèmes liés à la représentation intermédiaire
 
 L'implémentation de ces boucles triangulaires pose un défi majeur lors de
 l'abaissement en représentation intermédiaire LLVM vis-à-vis de l'analyse
-polyédrique. La @fig:complexexecutionpatterns:trisolv_ir illustre le graphe de
-flot de contrôle et l'IR LLVM simplifié générés par le compilateur pour le noyau
-trisolv (@fig:complexexecutionpatterns:trisolv).
+polyédrique. La @fig:complexexecutionpatterns:trisolv_ir montre le graphe de
+flot de contrôle et l'IR LLVM simplifiée générés par le compilateur pour le
+noyau trisolv (@fig:complexexecutionpatterns:trisolv).
 
 #figure(
   fig.complexexecutionpatterns-trisolvissue,
@@ -96,9 +93,9 @@ s'effectue avec un décalage statique nul et dans le cas contraire, il s'opère
 avec le décalage constant `%gap_L`.
 
 Lorsque la phase de détection de Polly examine ces accès mémoire, elle s'appuie
-sur l'analyse de l'évolution scalaire (SCEV) de LLVM. Pour l'accès `L(i, i)`
-situé dans le bloc `for.body1.exit`, l'analyse produit l'évolution scalaire de
-LLVM suivante :
+sur l'analyse d'évolution scalaire (SCEV) de LLVM. Pour l'accès `L(i, i)` situé
+dans le bloc `for.body1.exit`, l'analyse produit l'évolution scalaire de LLVM
+suivante :
 $
   ((8 * "%gap_L") + {0,+,8}"<%for.body1>")
 $
@@ -119,30 +116,29 @@ optimisation polyédrique.
 Afin de pallier cette limitation inhérente sans nécessiter de modification
 profonde de l'architecture de détection de Polly, et pour neutraliser d'autres
 structures d'IR susceptibles de corrompre l'analyse, nous avons introduit une
-passe d'épluchage statique de boucle en amont du processus de détection des
-SCoP.
+passe d'épluchage de boucle en amont du processus de détection des SCoP.
 
 
-=== Épluchage statique de boucles
+=== Épluchage de boucles
 
-L'épluchage de boucle (ou *loop peeling*) est une technique d'optimisation
-consistant à extraire une ou plusieurs itérations spécifiques en début ou en fin
-d'exécution, hors de la boucle principale. L'objectif est d'isoler un
-comportement marginal pour régulariser l'espace d'itération restant.
+L'épluchage de boucle (ou *loop peeling*) est une transformation consistant à
+extraire une ou plusieurs itérations spécifiques en début ou en fin d'exécution,
+hors de la boucle principale. L'objectif est d'isoler un comportement marginal
+pour uniformiser l'espace d'itérations principal restant.
 
 Afin de pallier les irrégularités induites par les boucles triangulaires, cette
 technique est mise à profit au travers d'une passe de transformation dédiée. Son
-rôle est d'analyser la représentation intermédiaire (IR) pour cibler et éliminer
-systématiquement les branchements parasites du flot de contrôle. Le processus
-s'articule autour de trois étapes majeures :
-- la détection des boucles triangulaires,
-- le calcul du nombre d'itérations à éplucher pour chaque boucle,
-- la simplification des conditions résiduelles.
+rôle est d'analyser la représentation intermédiaire pour cibler et éliminer
+systématiquement les branchements "parasites" du flot de contrôle. Le processus
+s'articule autour de trois étapes principales :
++ la détection des boucles triangulaires,
++ le calcul du nombre d'itérations à éplucher pour chaque boucle,
++ la simplification des conditions résiduelles.
 
 ==== Détection des nids de boucles triangulaires
 L'identification d'une boucle triangulaire s'appuie sur l'analyse de l'évolution
 scalaire de LLVM (SCEV). Le compilateur évalue le nombre d'itérations garanties
-pour la boucle interne, appelé Backedge Taken Count (BETC). Dans le cas d'une
+pour la boucle interne, appelé _Backedge Taken Count_ (BETC). Dans le cas d'une
 boucle rectangulaire classique, cette valeur est invariante par rapport à la
 boucle externe. À l'inverse, si le compilateur détecte que l'expression SCEV du
 BETC dépend de la variable d'induction de la boucle englobante (exprimée par
@@ -169,16 +165,16 @@ stratégie d'épluchage adéquate et le nombre exact d'itérations à extraire :
   s'annuler puis devenir négatif vers la fin de l'espace d'itération englobant,
   ce qui nécessite un épluchage par l'arrière. Le nombre d'itérations à éplucher
   est déterminé en calculant d'abord le nombre d'itérations où la boucle interne
-  s'exécute effectivement. Ce nombre d'itérations pleines est ensuite soustrait
-  au nombre total d'itérations de la boucle englobante pour obtenir exactement
-  le nombre d'itérations à éplucher.
+  s'exécute effectivement. Ce nombre d'itérations effectives est ensuite
+  soustrait au nombre total d'itérations de la boucle englobante pour obtenir
+  exactement le nombre d'itérations à éplucher.
 
 Cette méthode analytique permet de caractériser complètement les boucles à
 traiter et d'éliminer de façon ciblée les itérations non exécutées du corps
 principal.
 
 
-==== Epluchage de boucles
+==== Épluchage de boucles
 L'étape d'analyse précédente permet de recenser toutes les boucles triangulaires
 et de déterminer le nombre d'itérations à éplucher requis pour chacune d'entre
 elles. Néanmoins, un noyau de calcul peut encapsuler plusieurs boucles internes
@@ -202,8 +198,8 @@ ou l'on utilise `%i` de la boucle originale comme valeur de départ de la
 nouvelle boucle épluchée). Pour isoler totalement ce bloc, notre passe remplace
 manuellement toutes les utilisations de l'ancien itérateur de la boucle
 originale par une constante dépendante de la borne de la boucle (par exemple
-`N-2`), puisque l'on connaît statiquement la valeur exacte de l'initialisation
-du nouvel itérateur pour briser toute fausse dépendance entre les deux boucles.
+`N-2`), puisque l'on connaît statiquement la valeur exacte d'initialisation du
+nouvel itérateur, pour supprimer toute fausse dépendance entre les deux boucles.
 
 ==== Régularisation du flot de contrôle
 La simple extraction matérielle des itérations rend théoriquement certaines
@@ -211,8 +207,8 @@ conditions de garde obsolètes. Bien que les passes de simplification standards
 de LLVM, exécutées en aval, puissent en résoudre une partie, elles ne
 parviennent pas systématiquement à détruire toutes les comparaisons générées par
 l'abaissement en IR. Afin de garantir formellement que la boucle résultante sera
-parfaitement analysable par le modèle polyédrique, une étape de nettoyage manuel
-est appliquée.
+parfaitement analysable par les outils polyédriques, une étape de nettoyage
+manuel est appliquée.
 
 Cette intervention anticipée élimine définitivement les gardes conditionnelles
 parasites inhérentes aux boucles triangulaires. Le graphe de flot de contrôle
@@ -221,10 +217,10 @@ précédents liés aux accès mémoire non linéaires. Cette régularisation aut
 enfin la modélisation complète du noyau Kokkos par Polly.
 
 L'impact de cette transformation est directement visible sur l'évolution du
-graphe de flot de contrôle : la structure initiale, illustrée par
+graphe de flot de contrôle : la structure initiale, représentée à la
 @fig:complexexecutionpatterns:trisolvbefore, est ainsi convertie en une forme
-parfaitement régulière sans optimisation local cassant la détection, comme le
-montre @fig:complexexecutionpatterns:trisolvafter, la rendant compatible avec
+parfaitement régulière sans optimisation locale cassant la détection, comme le
+montre la @fig:complexexecutionpatterns:trisolvafter, la rendant compatible avec
 les analyses et transformations polyédriques de Polly.
 
 #subpar.super(
@@ -254,12 +250,12 @@ les analyses et transformations polyédriques de Polly.
 
 == Vision Globale des Boucles <sec:complexexecutionpatterns:globalloopvision>
 
-Pour optimiser les performances de certains noyaux, le modele polyédrique peut
-avoir besoin d'appliquer des tranformation inter-noyaux. L'un d'elle est la
-fusion de boucle, généralement appliqué lorsque des noyaux successifs accède aux
-même données avec des dépendances de données inter-noyaux. Pour y parvenir,
-l'optimiseur doit être en mesure de capturer l'intégralité du contexte de calcul
-au sein d'un SCoP.
+Pour optimiser les performances des noyaux de calculs comportant plusieurs nids
+de boucles, le modèle polyédrique peut appliquer des tranformation inter-noyaux.
+L'un d'elle est la fusion de boucles, généralement appliquée lorsque des noyaux
+successifs accèdent aux mêmes données avec des dépendances de données
+inter-noyaux. Pour y parvenir, l'optimiseur doit être en mesure de capturer
+l'intégralité du contexte de calcul au sein d'un SCoP.
 
 Cependant, l'application du modèle polyédrique sur des codes Kokkos se heurte à
 une incompatibilité fondamentale de conception. Alors que le modèle polyédrique
@@ -271,9 +267,9 @@ structurelle limite Polly à une vision locale de chaque noyau, empêchant de fa
 toute optimisation inter-noyaux.
 
 La @code:complexexecutionpatterns:kokkosgemver illustre ce problème de
-conception à travers l'implémentation du noyau `gemver` réécrit avec Kokkos. On
-constate que la logique algorithmique globale est nécessairement fragmentée en
-quatre sous-noyaux distincts.
+conception à travers l'implémentation du noyau `gemver` de la suite Polybench
+réécrit avec Kokkos. On constate que la logique algorithmique globale est
+nécessairement fragmentée en quatre sous-noyaux distincts.
 
 
 #figure(
@@ -309,8 +305,8 @@ quatre sous-noyaux distincts.
 ) <code:complexexecutionpatterns:kokkosgemver>
 
 Pour pallier cette limitation et fournir à Polly une vision globale d'un noyau
-de calcul fragmenté, nous avons conçu un nouveau `parallel_for` permettant de
-donner plusieurs noyaux ainsi qu'un pipeline spécifique de traitement de l'IR
+de calcul fragmenté, nous avons conçu un nouveau motif `parallel_for` permettant
+de donner plusieurs noyaux ainsi qu'un pipeline spécifique de traitement de l'IR
 pour reconstruire un seul et unique SCoP.
 
 
@@ -326,10 +322,10 @@ prévisible, nous avons conçu une version variadique de la fonction
 `parallel_for`.
 
 En exploitant les capacités de métaprogrammation du C++, cette implémentation
-variadique (illustrée par @code:complexexecutionpatterns:variadicparallelfor)
+variadique (illustrée par la @code:complexexecutionpatterns:variadicparallelfor)
 permet d'accepter une séquence de paires `(Policy, Functor)`. Lors de la
 compilation, une fonction lambda est instanciée pour chaque paire, et ces
-lambdas sont ensuite invoquées séquentiellement.
+fonctions lambdas sont ensuite invoquées séquentiellement.
 
 #figure(
   ```cpp
@@ -391,9 +387,9 @@ fonction LLVM spécifique annoté par un attribut de fonction.
 
 Grâce à cette nouvelle implémentation, un noyau complexe tel que `gemver`
 (@code:complexexecutionpatterns:kokkosgemver) peut être réécrit de manière
-unifiée, comme le montre @code:complexexecutionpatterns:kokkosgemveravariadic.
-Un unique appel au `parallel_for` variadique suffit désormais pour écrire
-l'ensemble du noyau.
+unifiée, comme le montre la
+@code:complexexecutionpatterns:kokkosgemveravariadic. Un unique appel au
+`parallel_for` variadique suffit désormais pour écrire l'ensemble du noyau.
 
 #figure(
   ```cpp
@@ -436,7 +432,7 @@ de la compilation, LLVM traite chaque noyau individuellement et construit l'IR
 associée. Chaque noyau s'accompagne alors de ses propres chargements mémoire
 (bornes de boucles, pointeurs de tableaux, paramètres, etc.), des instructions
 qui s'intercalent entre les régions de calcul et brisent l'analyse polyédrique
-de Polly. La @code:complexexecutionpatterns:cfglinearizationbefore illustre le
+de Polly. La @code:complexexecutionpatterns:cfglinearizationbefore expose le
 graphe de flot de contrôle de l'IR pour deux noyaux de calcul exécutées via le
 `parallel_for` variadique. On y observe que les boucles sont séparées par le
 block `Preheader B`.
@@ -451,7 +447,7 @@ entre les noyaux, nous sommes en mesure d'opérer une véritable fusion des noya
 Kokkos directement au niveau de la représentation intermédiaire en remontant les
 blocs d'instructions problématiques au dessus du SCoP global.
 
-@code:complexexecutionpatterns:cfglinearizationafter présente l'IR après
+La @code:complexexecutionpatterns:cfglinearizationafter présente l'IR après
 l'application de cette passe de transformation. Le bloc `Preheader B` a été
 déplacé pour être exécuté juste après le `Preheader A` et avant la boucle
 `Loop A`. L'indépendance initiale des noyaux et la propriété SSA de l'IR
@@ -560,8 +556,8 @@ L'égalité de ces noms statiques est une garantie de l'utilisateur que les vues
 partagent à la fois le même pointeur de données et les mêmes dimensions.
 
 Une fois ces équivalences établies, nous appliquons une transformation globale
-sur l'IR en tirant parti de la méthode de remplacement de LLVM : Replace All
-Uses With (RAUW). Les références aux pointeurs dupliqués dans les noyaux
+sur l'IR en tirant parti de la méthode de remplacement de LLVM : _Replace All
+Uses With_ (RAUW). Les références aux pointeurs dupliqués dans les noyaux
 ultérieurs sont systématiquement remplacées par le pointeur originel capturé
 lors de la première occurrence du tableau. Cette unification des variables SSA
 permet non seulement d'éliminer les redondances dans l'IR, mais aussi
@@ -583,7 +579,7 @@ identiques ou strictement liées (pour permettre la fusion, par exemple), il est
 nécessaire que l'utilisateur fournisse des contraintes explicites à Polly pour
 permettre d'interpréter correctement les relations entre les bornes des
 différentes boucles. Ce mécanisme, que nous appelons système de contraintes
-(assumptions), permet de compenser la perte d'informations sémantiques induite
+(_assumptions_), permet de compenser la perte d'informations sémantiques induite
 par la structure interne de Kokkos.
 
 Pour injecter ces informations au niveau du modèle, le système de contraintes
@@ -643,13 +639,13 @@ Cette manipulation de contraintes est largement utilisée dans le domaine
 polyédrique car elle permet de définir simplement des polyèdres. La section
 suivante présente la grammaire de contraintes que nous utilisons pour
 contraindre les SCoPs à interpréter différentes variables comme une variable
-unique, et ainsi améliorer l'analyse et l'optimisation polyédrique par Polly.
+unique, et ainsi favoriser l'analyse et l'optimisation polyédriques de Polly.
 
 ==== Grammaire des contraintes
 
-Afin de formaliser ces relations, nous définissons une grammaire de contrainte
+Afin de formaliser ces relations, nous définissons une grammaire de contraintes
 sous la forme suivante :
-$ "Opérande"_G quad "Opérateur" quad "Opérande"_D $
+$ "Contrainte" arrow "Opérande"_G quad "Opérateur" quad "Opérande"_D $
 
 Un opérande peut appartenir à l'une des trois catégories distinctes : une borne
 de boucle issue d'une politique (*Policy Loop Bound*), une variable de boucle
@@ -754,3 +750,9 @@ d'évolution consisterait à introduire des vérifications à l'exécution. Des
 assertions dynamiques valideraient que les pointeurs des tableaux fusionnés sont
 bien identiques et que les bornes de boucles respectent les contraintes
 définies.
+
+Ces extensions permettent ainsi à Polly de modéliser une part bien plus large
+des noyaux Kokkos. Toutefois, leur optimisation reste dependant du flot standard
+de Polly, limité à l'ordonnanceur d'ISL et aux architectures CPU. Le
+@sec:schedulingheterogeneous présente l'intégration de l'ordonnanceur Pluto
+ainsi que celle de PPCG pour cibler les accélérateurs GPU.
