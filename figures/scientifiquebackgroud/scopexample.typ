@@ -1,4 +1,4 @@
-#import "../../plot.typ" as zplot: cetz
+#import "../../src/plot.typ" as zplot: cetz
 
 #cetz.canvas(length: 0.5cm, {
   import cetz.draw: *
@@ -92,7 +92,6 @@
   xtick(N - 1, $N-1$)
   ytick(0, $0$)
   ytick(M - 1, $M-1$)
-
 
   for i in range(0, N) {
     for j in range(0, M) {

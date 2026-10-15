@@ -1,5 +1,5 @@
 // Scientific Backgroudn figures
-#let scientificbackground-scopexample = include "fig/sci-background/scopexample.typ"
+#let scientificbackground-scopexample = include "../figures/scientifiquebackgroud/scopexample.typ"
 #let scientificbackground-pollypipeline = "../figures/scientifiquebackgroud/pollypipeline.png"
 
 
