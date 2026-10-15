@@ -1,32 +1,33 @@
 #import "../src/common.typ": *
 
-= Ordonnancement et Génération Hétérogène <sec:schedulingheterogeneous>
+= Ordonnancement et Génération Hétérogènes <sec:schedulingheterogeneous>
 
 L'extraction de la représentation polyédrique et la génération de code optimisé
-constituent deux phases fondamentales du flot de compilation polyédrique. Dans
-son fonctionnement par défaut, Polly orchestre ces étapes en s'appuyant sur
+constituent les deux phases fondamentales du flot de compilation polyédrique.
+Dans son fonctionnement par défaut, Polly orchestre ces étapes en s'appuyant sur
 l'ordonnanceur de la bibliothèque ISL
 (@sec:scientificbackground:scopoptimization) avant la reconstruction de la
-représentation intermédiaire LLVM optimisée (@sec:scientificbackground:islast,
-@sec:scientificbackground:codegen).
+représentation intermédiaire LLVM optimisée (@sec:scientificbackground:codegen).
 
 Cependant, cette infrastructure standard présente des limitations vis-à-vis des
 objectifs de notre chaîne de compilation, tant en matière de support matériel
 que de diversité des optimisations. D'une part, l'abstraction de programmation
-Kokkos tire une part essentielle de ses performances de son exécution sur
-accélérateurs graphiques (GPU), tandis que le flot standard de Polly cible
-exclusivement les processeurs multi-coeurs (CPU). D'autre part, Polly se limite
-aux heuristiques d'un unique ordonnanceur, restreignant l'espace des
-transformations de code explorées.
+Kokkos tire une part essentielle de ses performances d'exécutions sur
+accélérateurs graphiques et machines multi-processeurs généralistes à mémoire
+partagée (GPU), tandis que le flot standard de Polly cible exclusivement les
+processeurs multi-coeurs (CPU). D'autre part, Polly se limite aux heuristiques
+d'un unique ordonnanceur, celui d'isl, restreignant l'espace des transformations
+de code explorées.
 
 Afin de pallier ces limitations, nous avons étendu le compilateur en y intégrant
 un nouveau moteur d'ordonnancement. Ce chapitre expose cette démarche visant à
-diversifier les approches d'optimisation et les architectures cibles.
-@sec:schedulingheterogeneous:pluto détaille l'intégration de Pluto pour étendre
-les stratégies d'ordonnancement sur architectures CPU. Ensuite, la
-@sec:schedulingheterogeneous:ppcg présente l'intégration de PPCG, un outil
-permettant la génération de code pour accélérateurs matériels (GPU), répondant
-ainsi aux exigences de portabilité des performances inhérentes à Kokkos.
+diversifier les approches d'optimisation et les architectures cibles. La
+@sec:schedulingheterogeneous:pluto détaille l'intégration de l'ordonnanceur de
+Pluto pour étendre les stratégies d'ordonnancement sur architectures CPU.
+Ensuite, la @sec:schedulingheterogeneous:ppcg présente l'intégration de PPCG, un
+outil d'optimisation polyédrique permettant la génération de code pour
+accélérateurs matériels (GPU), répondant ainsi aux exigences de portabilité des
+performances inhérentes à Kokkos.
 
 == Intégration de Pluto <sec:schedulingheterogeneous:pluto>
 
@@ -43,10 +44,10 @@ minimiser les distances de dépendance, ISL compose l'ordonnancement par
 sous-graphes et intègre l'algorithme de Feautrier comme solution de repli.
 
 De plus, Pluto supporte nativement des transformations géométriques avancées, à
-l'instar du tuilage en losange (diamond tiling) @diamond, non réalisables
+l'instar du tuilage en losange (_diamond tiling_) @diamond, non réalisables
 directement via ISL. Ces dernières permettent de maximiser la localité et
 l'exécution concurrente, particulièrement au sein des schémas de calcul de type
-stencil. Comme le souligne l'étude @surveypolyedric, Pluto démontre
+_stencil_. Comme le souligne l'étude dans @surveypolyedric, Pluto démontre
 régulièrement une capacité supérieure à extraire des opportunités de
 parallélisation sur des codes aux accès réguliers. Son intégration constitue
 ainsi une extension particulièrement pertinente pour notre flot de compilation.
@@ -80,7 +81,7 @@ OpenSCoP repose sur une représentation matricielle de ces contraintes linéaire
 Afin de concevoir une passerelle fiable entre les structures ISL et le format
 OpenSCoP, nous nous appuyons sur la bibliothèque `libopenscop`. Durant la phase
 d'exportation, notre interface traverse récursivement les structures de données
-d'ISL afin d'en extraire contraintes géométriques, reformulant ainsi un SCoP
+d'ISL afin d'en extraire les contraintes géométriques, reformulant ainsi un SCoP
 sémantiquement équivalent sous la forme de matrices OpenSCoP.
 
 À titre d'illustration, considérons le domaine d'itération et l'ordonnancement
@@ -107,7 +108,7 @@ décrivent successivement : le type de contrainte (1 pour une inégalité $\geq 
 constante de la fonction affine. L'ordonnancement fait l'objet d'une
 transformation analogue, traduite au sein d'une matrice d'ordonnancement. Les
 colonnes additionnelles y représentent les nouvelles dimensions temporelles ou
-spatiales ($t_1, t_2$).
+spatiales.
 
 #figure(
   ```openscop
@@ -157,8 +158,9 @@ domaine d'itération originel, tout en préservant scrupuleusement l'ordre
 d'exécution lexicographique défini par Pluto.
 
 La séquence de figures suivante illustre les différentes étapes de cette
-transformation géométrique pour un statement extrait de `syr2k`:
-- La @fig:schedulingheterogeneous:polly_orig expose le domaine d'itération et
+transformation géométrique pour un statement extrait du noyau `syr2k` de la
+suite Polybench:
+- La @fig:schedulingheterogeneous:polly_orig expose le domaine d'itérations et
   l'ordonnancement identité extraits initialement par Polly.
 - La @fig:schedulingheterogeneous:pluto_tiled détaille l'ordonnancement optimisé
   restitué par Pluto. On y observe l'altération du domaine d'itération par
@@ -231,19 +233,19 @@ transformation géométrique pour un statement extrait de `syr2k`:
 
 == Intégration de PPCG et Réhabilitation de Polly-ACC <sec:schedulingheterogeneous:ppcg>
 
-Le support de la génération de code pour accélérateurs matériels GPU constitue
-un prérequis incontournable de nos travaux, initialement absent de notre flot de
-compilation. En effet, une divergence fondamentale subsistait entre les modèles
-d'exécution de Kokkos et les capacités de Polly en matière d'architectures
-hétérogènes. Tandis que l'abstraction de Kokkos s'appuie structurellement sur
-une compilation CPU/GPU visant la portabilité des performances, Polly s'est
-historiquement restreint à l'optimisation pour architectures multi-coeurs CPU.
-Or, un ordonnancement polyédrique taillé pour un processeur classique s'avère
-profondément inadapté au modèle d'exécution massivement parallèle d'un GPU. Ce
-dernier requiert une projection spatiale très contrainte des itérations sur une
-hiérarchie matérielle stricte (grilles, blocs), doublée d'une gestion explicite
-de la hiérarchie mémoire (mémoire globale, mémoire partagée, transferts
-d'interface).
+L'existance d'un support permettant la génération de code pour accélérateurs
+matériels GPU constitue un prérequis incontournable de nos travaux, initialement
+absent de notre flot de compilation. En effet, une divergence fondamentale
+subsistait entre les modèles d'exécution de Kokkos et les capacités de Polly en
+matière d'architectures hétérogènes. Tandis que l'abstraction de Kokkos s'appuie
+structurellement sur une compilation CPU/GPU visant la portabilité des
+performances, Polly s'est historiquement restreint à l'optimisation pour
+architectures multi-coeurs et multi-processeurs CPU. Or, un ordonnancement
+polyédrique taillé pour un processeur classique s'avère profondément inadapté au
+modèle d'exécution massivement parallèle d'un GPU. Ce dernier requiert une
+projection spatiale très contrainte des itérations sur une hiérarchie matérielle
+stricte (grilles, blocs), doublée d'une gestion explicite de la hiérarchie
+mémoire (mémoire globale, mémoire partagée, transferts d'interface).
 
 Afin de combler cette lacune architecturale sans avoir à concevoir un moteur de
 génération de code GPU polyédrique, notre approche s'est portée sur la
