@@ -28,6 +28,16 @@ surpasser des codes experts optimisés pour une architecture donnée, mais de
 mesurer ce que les transformations polyédriques apportent à un code Kokkos
 idiomatique, sans intervention de l'utilisateur.
 
+*Version optimisée.* La version évaluée exprime les mêmes calculs, sous la forme
+attendue par notre chaîne de compilation : chaque noyau est écrit en entier dans
+un `parallel_for` annoté par l'option `usePolyOpt`, y compris ses boucles
+externes non parallèles. La politique d'exécution ne décrit alors plus le
+parallélisme à exploiter : elle délimite l'espace d'itération du noyau et
+désigne le backend ciblé. Polly analyse l'ensemble comme un nid de boucles
+séquentiel, en calcule les dépendances, puis décide lui-même des boucles à
+paralléliser. Le même code sert ainsi pour les deux cibles, seul l'espace
+d'exécution de la politique changeant.
+
 *Plates-formes.* Les expérimentations sont menées sur deux machines, décrites
 dans le @table:evaluations:hardware : une machine bi-socket équipée de deux
 processeurs AMD EPYC 7502, et une machine combinant un processeur Intel Core
@@ -160,12 +170,12 @@ PolyBench et la taille utilisée.
 
 Cette section évalue l'efficacité de notre chaîne de compilation sur processeurs
 multicoeurs. Pour chacun des 27 noyaux retenus, la version de référence Kokkos
-est comparée à la même source compilée avec l'option `usePolyOpt`. Les deux
+est comparée à sa version optimisée (@sec:evaluations:setup). Les deux
 ordonnanceurs polyédriques sont confrontés : l'ordonnanceur natif de Polly,
-reposant sur ISL, et l'ordonnanceur Pluto @sec:schedulingheterogeneous:pluto.
+reposant sur ISL, et l'ordonnanceur Pluto (@sec:schedulingheterogeneous:pluto).
 Dans les deux cas, le tuilage est appliqué avec une taille de tuile fixe de 32
-sur chaque dimension, et le code généré est exécuté par le backend OpenMP de
-Kokkos.
+sur chaque dimension, et Polly parallélise le code généré au moyen du support
+d'exécution OpenMP.
 
 === Étude des résultats CPU <sec:evaluations:cpu:global>
 
@@ -750,22 +760,20 @@ de référence suit la même démarche que sur CPU : une implémentation Kokkos
 idiomatique, compilée avec le backend CUDA de Kokkos, qui parallélise
 directement les boucles parallèles de l'algorithme d'origine, à la manière des
 implémentations de la suite PolyBench/GPU @polybenchgpu. La version optimisée
-exprime les mêmes calculs, regroupés dans des `parallel_for` annotés par
-l'option `usePolyOpt`, que Polly analyse comme un nid de boucles séquentiel ;
-lorsque l'espace d'exécution ciblé est un GPU, le calcul de l'ordonnancement, le
-placement mémoire et la projection sur la grille de blocs et de threads sont
-délégués à PPCG.
+est celle décrite dans la @sec:evaluations:setup, dont la politique d'exécution
+désigne cette fois le backend CUDA : le calcul de l'ordonnancement, le placement
+mémoire et la projection sur la grille de blocs et de threads sont délégués à
+PPCG.
 
 Les mesures sont réalisées sur la carte NVIDIA RTX 5090 de la machine Intel
 (@table:evaluations:hardware) et incluent, dans les deux versions, les
 transferts de données entre l'hôte et le GPU. Kokkos choisit dynamiquement la
 taille des blocs de threads de la version de référence. PPCG découpe au
-contraire chaque noyau en tuiles de 32 itérations par dimension, confiées à des
-blocs de 32 threads pour un noyau à une dimension et de $4 times 32$ threads
-pour un noyau à deux dimensions ; au-delà de 32 768 blocs, ou de $256 times 256$
-blocs en deux dimensions, chaque bloc traite plusieurs tuiles. La promotion des
-données en mémoire partagée, limitée à 16 Ko par bloc, et leur privatisation en
-registres sont activées.
+contraire chaque noyau en tuiles de 32 itérations fixes par dimension, confiées
+à des blocs de 32 threads pour un noyau à une dimension et de $4 times 32$
+threads pour un noyau à deux dimensions. La promotion des données en mémoire
+partagée, limitée à 16 Ko par bloc, et leur privatisation en registres sont
+activées.
 
 === Étude des résultats GPU <sec:evaluations:gpu:global>
 
@@ -830,24 +838,24 @@ Les accélérations s'étendent sur plus de quatre ordres de grandeur, de
 accélérés, dont `gemver` de façon marginale (1.01$times$), quatre restent
 pratiquement neutres (`gesummv`, `atax`, `bicg` et `mvt`, à 0.99$times$) et
 quatre régressent (`doitgen`, `deriche`, `jacobi-1d` et `jacobi-2d`). La moyenne
-géométrique globale de 7.25$times$ est dominée par les six noyaux dont la
-version de référence est limitée par une boucle externe séquentielle ; sans eux,
-elle s'établit à 1.65$times$. Les résultats se répartissent ainsi en trois
-groupes, détaillés ci-après.
+géométrique globale de 7.25$times$ est tirée vers le haut par les six noyaux
+dont la version de référence est limitée par une boucle externe séquentielle.
+Sans eux, l'accélération moyenne est de 1.65$times$. Les résultats se
+répartissent ainsi en trois groupes, détaillés ci-dessous.
 
 === Parallélisation des noyaux à dépendances <sec:evaluations:gpu:dependences>
 
 Les accélérations les plus élevées concernent les solveurs et les factorisations
-: `lu` (3581.16$times$), `cholesky` (3474.92$times$), `durbin` (178.65$times$),
-`ludcmp` (123.25$times$) et `trisolv` (105.62$times$), ainsi que le stencil
-`seidel-2d` (1823.46$times$). Ces noyaux ont en commun une boucle externe
-porteuse de dépendances, qui interdit une projection directe de l'ensemble du
-nid sur la grille de threads. Dans la version de référence, cette boucle externe
-s'exécute séquentiellement sur l'hôte, et seules les boucles internes parallèles
-de l'algorithme d'origine sont parallélisées, comme sur CPU ; le reste du calcul
-s'exécute sur un seul thread du GPU. Les références de `cholesky` et
-`seidel-2d`, dont aucune boucle n'est parallèle sans transformation préalable,
-sont même entièrement séquentielles.
+: `lu` (#box[3581.16$times$]), `cholesky` (#box[3474.92$times$]), `durbin`
+(#box[178.65$times$]), `ludcmp` (#box[123.25$times$]) et `trisolv`
+(#box[105.62$times$]), ainsi que le stencil `seidel-2d` (#box[1823.46$times$]).
+Ces noyaux ont en commun une boucle externe porteuse de dépendances, qui
+interdit une projection directe de l'ensemble du nid sur la grille de threads.
+Dans la version de référence, cette boucle externe s'exécute séquentiellement
+sur l'hôte, et seules les boucles internes parallèles de l'algorithme d'origine
+sont parallélisées. Les références de `cholesky` et `seidel-2d`, dont aucune
+boucle n'est parallèle sans transformation préalable, sont même entièrement
+séquentielles.
 
 PPCG réorganise au contraire ces calculs pour en extraire le parallélisme. Pour
 les factorisations `lu`, `ludcmp` et `cholesky`, il découpe le calcul en étapes
@@ -865,7 +873,7 @@ parallèle dont le résultat est rapatrié sur l'hôte, soit des dizaines de
 milliers de synchronisations, ce qui explique vraisemblablement l'essentiel de
 l'écart. Enfin, l'accélération plus faible de `ludcmp` que de `lu`, dont la
 factorisation est identique, tient vraisemblablement à la dernière substitution
-triangulaire, que le code généré exécute sur l'hôte au moyen d'une boucle très
+triangulaire, que le code généré exécute sur l'hôte au moyen d'une boucle
 inefficace.
 
 #figure(
@@ -881,74 +889,53 @@ inefficace.
   cudaMemcpy(A, dev_A, N * N * sizeof(double), cudaMemcpyDeviceToHost);
   ```,
   caption: [Extrait simplifié du code hôte généré par PPCG pour `lu`, avec les
-    dimensions de grille et de bloc obtenues pour $N = 2048$. Les noyaux
-    d'initialisation et les gardes sont omis.],
+    dimensions de grille et de bloc obtenues pour $N = 2048$.],
 ) <code:evaluations:lu-ppcg>
 
-Le noyau `gramschmidt`, bien qu'appartenant à la même famille, n'obtient qu'un
-gain modeste (1.58$times$). Sa version de référence parallélise déjà chacune des
-2 600 étapes de son calcul. PPCG en parallélise davantage la mise à jour
-principale, mais calcule séquentiellement, sur un seul thread, la norme
-nécessaire à chaque étape, ce qui limite le gain.
+Le noyau `gramschmidt` n'obtient qu'un gain modeste (1.58$times$). Sa version de
+référence parallélise déjà chacune des 2 600 étapes de son calcul. PPCG en
+parallélise davantage, la mise à jour principale, mais calcule séquentiellement,
+sur un seul thread, la norme nécessaire à chaque étape, ce qui limite le gain.
 
-Ces ratios extrêmes doivent être interprétés avec précaution. Ils ne traduisent
-pas une optimalité du code généré, mais l'écart entre une version de référence
-idiomatique, dont une partie du calcul s'exécute sur un seul thread du GPU, et
-un ordonnancement qui en extrait le parallélisme latent. Ils illustrent
-toutefois l'intérêt principal de l'approche : ce parallélisme est obtenu
-automatiquement, à partir d'un code source portable et non modifié.
+Ces ratios extrêmes doivent être interprétés avec précaution. Ils traduisent
+l'écart entre une version de référence idiomatique et un ordonnancement qui en
+extrait le parallélisme. Il permet d'illustrent l'intérêt principal de
+l'approche : ce parallélisme est obtenu automatiquement, à partir d'un code
+source portable et non modifié.
 
 === Exploitation de la hiérarchie mémoire <sec:evaluations:gpu:memory>
 
 Sur les noyaux d'algèbre linéaire, les gains dépendent surtout du parallélisme
 exploité par la version de référence. Celles de `syrk` (42.99$times$), `syr2k`
 (21.17$times$) et `covariance` (7.31$times$) ne parallélisent qu'une seule
-dimension, avec un thread par ligne du résultat : quelques milliers de threads
-seulement, de charges inégales puisque le calcul est triangulaire. Celle de
-`symm` (34.13$times$) enchaîne 1 000 lancements successifs de 1 200 threads
-chacun. C'est bien trop peu pour occuper les 21 760 coeurs CUDA de la carte.
-PPCG génère au contraire un noyau bidimensionnel, découpé en tuiles de
-$32 times 32$ éléments : chaque tuile est chargée en mémoire partagée par les
-threads d'un bloc, puis réutilisée depuis cette mémoire rapide. Pour `trmm`
-(2.86$times$), les dépendances du calcul limitent le code généré à la même
-parallélisation que la référence, avec un thread par colonne, et le gain
-provient essentiellement de la mémoire partagée. Enfin, `gemm` (1.90$times$),
-`2mm` (1.41$times$) et `3mm` (1.09$times$) n'obtiennent que des gains modérés :
-leur version de référence projette déjà un parallélisme bidimensionnel abondant
-sur la grille de threads.
+dimension, avec un thread par ligne du résultat. Celle de `symm` (34.13$times$)
+enchaîne des lancements successifs d'un petit nombre de threads. C'est bien trop
+peu pour occuper tous les coeurs de la carte. PPCG génère au contraire un noyau,
+découpé en tuiles de $32 times 32$ éléments : chaque tuile est chargée en
+mémoire partagée par les threads d'un bloc, puis réutilisée depuis cette mémoire
+rapide. Pour `trmm` (2.86$times$), les dépendances du calcul limitent le code
+généré à la même parallélisation que la référence, avec un thread par colonne,
+et le gain provient essentiellement de la mémoire partagée. Enfin, `gemm`
+(1.90$times$), `2mm` (1.41$times$) et `3mm` (1.09$times$) n'obtiennent que des
+gains modérés : leur version de référence projette déjà un parallélisme
+efficace.
 
 À l'inverse, `gemver` (1.01$times$), `gesummv`, `atax`, `bicg` et `mvt`
 (0.99$times$) restent neutres. Comme sur CPU, ces produits matrice-vecteur
 lisent chaque élément de matrice une seule fois : leur performance est bornée
-par la bande passante de la mémoire globale, et PPCG ne peut que reproduire la
-parallélisation déjà présente dans la version de référence.
+par la bande passante de la mémoire globale. PPCG reproduit la parallélisation
+faite dans la version de référence.
 
 === Contre-performances <sec:evaluations:gpu:slowdowns>
 
 Quatre noyaux régressent : `jacobi-1d` (0.12$times$), `doitgen` (0.20$times$),
 `deriche` (0.20$times$) et `jacobi-2d` (0.60$times$). Dans les quatre cas, PPCG
 n'expose aucun parallélisme supplémentaire et reproduit la parallélisation de la
-version de référence. Pour `deriche`, il parallélise ainsi les passes récursives
-sur les lignes puis sur les colonnes, comme la référence : contrairement au CPU,
-la privatisation des scalaires lève ici les fausses dépendances décrites
-précédemment. Pour `jacobi-1d` et `doitgen`, il conserve même la structure de
-lancement de la référence, soit 20 000 lancements pour le premier et plus de 870
-000 pour le second, chacun portant sur très peu de travail.
+version de référence. PPCG génère des gardes conditionnelles et des boucles
+supplémentaires pour garantir la correction aux bords du domaine, dont le coût
+devient sensible sur des noyaux aussi légers. Ces surcoûts, multipliés par le
+nombre de lancements, expliquent l'ampleur des régressions.
 
-Le code généré perd alors les avantages propres au backend CUDA de Kokkos. D'une
-part, PPCG utilise des blocs petits et de taille fixe, de 32 ou 128 threads,
-alors que Kokkos ajuste la configuration de lancement de chaque noyau à sa
-consommation de ressources. D'autre part, PPCG génère des gardes conditionnelles
-et des boucles supplémentaires pour garantir la correction aux bords du domaine,
-dont le coût devient sensible sur des noyaux aussi légers. Ces surcoûts,
-multipliés par le nombre de lancements, expliquent vraisemblablement l'ampleur
-des régressions de `jacobi-1d` et `doitgen`.
-
-Il est instructif de rapprocher ces résultats de ceux obtenus sur CPU : les
-stencils `jacobi-1d` et `jacobi-2d`, qui régressent sur GPU, sont accélérés de
-2.91$times$ et 8.70$times$ par Pluto sur le processeur hôte grâce au tuilage
-temporel. PPCG ne réalise pas ce type de tuilage dans sa configuration par
-défaut.
 
 === Bilan de l'évaluation sur GPU <sec:evaluations:gpu:summary>
 
@@ -958,20 +945,15 @@ les plus importants, atteignant trois ordres de grandeur, sont obtenus sur les
 noyaux à dépendances, dont PPCG réorganise le calcul en étapes ou en fronts
 d'onde massivement parallèles, là où la version de référence exécute une partie
 du calcul sur un seul thread. Sur les noyaux d'algèbre linéaire dont la
-référence ne parallélise qu'une dimension, la projection bidimensionnelle et la
-mémoire partagée apportent des gains d'environ un ordre de grandeur.
+référence ne parallélise qu'une dimension, la projection du calcul sur
+l'architecture GPU et l'utilisation de la mémoire partagée apportent des gains
+d'environ un ordre de grandeur.
 
 Cette évaluation met également en évidence les limites actuelles de la
-génération de code GPU. Lorsque la version de référence est déjà parallèle, le
-code généré ne fait au mieux que l'égaler ; sur les noyaux légers, lancés un
-grand nombre de fois, ses blocs de taille fixe et ses surcoûts de contrôle le
-rendent moins performant que celui du backend CUDA de Kokkos. Par ailleurs,
-trois noyaux ne peuvent pas être compilés en raison du coût du calcul
-d'ordonnancement de PPCG. Ces observations rejoignent celles faites sur CPU :
-elles plaident pour une sélection adaptative des paramètres de tuilage et de
-lancement en fonction du noyau et de l'architecture cible, ainsi que pour un
-mécanisme de repli vers la version de référence lorsque l'ordonnancement
-polyédrique n'apporte aucun gain.
+génération de code GPU. Lorsque l'ordonnanceur ne parvient pas à trouver
+d'avantage de parallélisme, le surcoût de contrôle rend le code généré moins
+performant que celui du backend CUDA de Kokkos.
+
 
 == Temps de compilation <sec:evaluations:compiletime>
 
@@ -1065,17 +1047,16 @@ Pour la grande majorité des noyaux, le surcoût reste faible : les médianes
 s'établissent à 1.05$times$ pour ISL, 1.16$times$ pour Pluto et 1.00$times$ pour
 PPCG, et 25 des 27 noyaux se compilent en moins de 1.2$times$ le temps de
 référence avec ISL. Ce résultat s'explique en partie par l'isolation des noyaux
-(#chref(<sec:kokkosvisibility>)) : Polly n'analyse que les fonctions marquées
-par l'option `usePolyOpt`, et non l'ensemble du module. Le surcoût légèrement
-plus élevé de Pluto provient des étapes d'export et d'import au format OpenScop
+(#chref(<sec:kokkosvisibility>)). Polly n'analyse que les fonctions marquées par
+l'option `usePolyOpt`, et non l'ensemble du module mais aussi par la réduction
+de l'usage intenssif de templates dans les backends modifiés. Le surcoût
+légèrement plus élevé de Pluto provient de l'étapes d'ordonnancement et des
+étapes d'export et d'import au format OpenScop
 (@sec:schedulingheterogeneous:pluto).
 
 Quelques noyaux font exception. Le plus marquant est `3mm`, dont la compilation
-est 28.82$times$ plus longue avec ISL et 17.36$times$ avec PPCG : ce noyau
-fusionne trois produits matriciels en un unique SCoP et fait intervenir cinq
-paramètres de taille, ce qui accroît fortement la dimension du problème
-d'ordonnancement. Pluto est quant à lui pénalisé sur `gesummv`, `syrk`
-(10.40$times$) et `heat-3d` (24.04$times$), et PPCG sur `jacobi-2d`
-(88.28$times$). Enfin, la compilation de `adi`, `fdtd-2d` et `heat-3d` avec PPCG
-ne termine pas en un temps raisonnable ; ce point est discuté dans l'évaluation
-sur GPU (@sec:evaluations:gpu:global).
+est 28.82$times$ plus longue avec ISL et 17.36$times$ avec PPCG. Pluto est quant
+à lui pénalisé sur `gesummv`, `syrk` (10.40$times$) et `heat-3d` (24.04$times$),
+et PPCG sur `jacobi-2d` (88.28$times$). Enfin, la compilation de `adi`,
+`fdtd-2d` et `heat-3d` avec PPCG ne termine pas en un temps raisonnable. Ce
+point est discuté dans l'évaluation sur GPU (@sec:evaluations:gpu:global).
