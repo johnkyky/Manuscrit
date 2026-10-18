@@ -265,19 +265,18 @@ géométrique des accélérations atteint 5.32$times$ sur la machine AMD et
 4.36$times$ sur la machine Intel. L'accélération maximale, 118.26$times$, est
 obtenue sur `lu` avec l'ordonnanceur ISL sur la machine AMD. Ces résultats
 confirment qu'une fois la structure des boucles rendue visible à Polly, les
-transformations polyédrique exploite efficacement la localité et le parallélisme
-laissés inexploités par une écriture Kokkos idiomatique des noyaux.
+transformations polyédriques exploitent efficacement la localité et le
+parallélisme laissés inexploités par une écriture Kokkos idiomatique des noyaux.
 
-Le second constat est que l'ordonnanceur Pluto surpasse l'ordonnanceur ISL en
-moyenne : 4.44$times$ contre 2.21$times$ sur AMD, 3.74$times$ contre 1.88$times$
-sur Intel. Comme le montre le @table:evaluations:cpu-geomean, cet écart se
-concentre sur deux catégories. Sur les _stencils_, l'ordonnanceur ISL dégrade
-systématiquement les performances (0.38$times$ sur les deux machines, contre
-4.31$times$ et 2.08$times$ pour Pluto). Sur les _solvers_, il n'accélère que la
-moitié des noyaux (3.48$times$ et 1.57$times$, contre 5.80$times$ et 4.77$times$
-pour Pluto). Sur les catégories _datamining_, _blas_ et _kernels_, en revanche,
-les deux ordonnanceurs restent comparables, ISL prenant même l'avantage sur les
-_kernels_ et sur `covariance` sur la machine Intel.
+Ces gains dépendent avant tout de la manière dont la version de référence est
+écrite, et proviennent de deux sources : la localité, lorsque la référence est
+déjà parallèle mais réutilise mal ses données, et le parallélisme, lorsqu'elle
+exécute une partie du calcul séquentiellement. Le choix de l'ordonnanceur compte
+surtout dans ce second cas : seul Pluto expose un parallélisme en front d'onde,
+ce qui explique son avantage moyen (4.44$times$ contre 2.21$times$ sur AMD,
+3.74$times$ contre 1.88$times$ sur Intel), concentré sur les _stencils_ et les
+_solvers_. Les sections suivantes examinent ces deux sources de gain, puis les
+noyaux pour lesquels le code généré reste en deçà de la référence.
 
 Sur les 54 variantes compilées (27 noyaux $times$ 2 ordonnanceurs), 53
 produisent des résultats conformes à la référence. Seul le noyau `atax` avec
@@ -286,14 +285,7 @@ invalide. L'erreur provient de l'outil Pluto lui-même. En reproduisant le noyau
 sans la première boucle (remplacée par un `memset` par LLVM lors de la
 compilation), on obtient le même résultat incorrect.
 
-
-=== Comportements stables entre architectures <sec:evaluations:cpu:invariants>
-
-Cette section isole les comportements observés de manière identique sur les deux
-machines. Ils caractérisent les transformations elles-mêmes, indépendamment du
-matériel.
-
-==== Succès systématiques
+=== Gains de localité <sec:evaluations:cpu:locality>
 
 Plusieurs noyaux bénéficient d'accélérations importantes avec les deux
 ordonnanceurs et sur les deux machines. Le cas le plus marquant est `symm`, qui
@@ -391,15 +383,18 @@ temps de recevoir toutes ses mises à jour.
     boucles internes aux tuiles et les instructions secondaires sont omises.],
 ) <code:evaluations:symm-isl>
 
-L'ordonnanceur Pluto obtient également des gains stables sur plusieurs noyaux où
-l'ordonnanceur ISL échoue ou reste nettement en retrait : `seidel-2d`
-(18.56$times$ et 15.66$times$), `cholesky` (14.52$times$ et 7.31$times$),
-`ludcmp` (14.20$times$ et 8.75$times$) et `trisolv` (2.30$times$ et
-3.67$times$). Ces noyaux présentent des dépendances portées par toutes les
-dimensions du nid de boucles, de sorte qu'aucune boucle n'est directement
-parallélisable sans transformation préalable. En appliquant des transformations
-de torsion de boucle, Pluto rend le nid de boucle tuilable et expose un
-parallélisme en front d'onde entre les tuiles.
+=== Gains de parallélisme <sec:evaluations:cpu:parallelism>
+
+Sur plusieurs noyaux, le gain provient du parallélisme que la version de
+référence n'exploite pas : `seidel-2d` (18.56$times$ et 15.66$times$ avec
+Pluto), `cholesky` (14.52$times$ et 7.31$times$), `ludcmp` (14.20$times$ et
+8.75$times$) et `trisolv` (2.30$times$ et 3.67$times$), ainsi que `lu`, discuté
+dans la @sec:evaluations:cpu:sensitivity. Ces noyaux présentent des dépendances
+portées par toutes les dimensions du nid de boucles, de sorte qu'aucune boucle
+n'est directement parallélisable sans transformation préalable : leur version de
+référence exécute donc tout ou partie du calcul séquentiellement. En appliquant
+des transformations de torsion de boucle, Pluto rend le nid tuilable et expose
+un parallélisme en front d'onde entre les tuiles.
 
 Le code généré par Pluto pour `seidel-2d` illustre ce mécanisme
 (@code:evaluations:seidel-pluto). Chaque instance $(t, i, j)$ y est placée en
@@ -410,24 +405,15 @@ parallèle. Pluto applique le même mécanisme à `ludcmp`.
 
 L'écriture des versions de référence explique l'ampleur de ces gains. La version
 de `seidel-2d` est entièrement séquentielle, la mise à jour en place du tableau
-interdisant toute parallélisation directe. Les accélérations de Pluto
-(18.56$times$ et 15.66$times$) mesurent directement le parallélisme par front
-d'onde et le gain de localité grâce au tuilage des boucles. `ludcmp` n'est que
-partiellement parallèle. La boucle externe de la factorisation s'exécute
-séquentiellement tandis que la partie supérieure de chaque ligne, est
-parallélisée. En parallélisant l'ensemble de la factorisation par fronts d'onde,
-Pluto lève cette limite.
-
-L'écriture des versions de référence explique l'ampleur de ces gains. La version
-de `seidel-2d` est entièrement séquentielle, la mise à jour en place du tableau
-interdisant toute parallélisation directe. Les accélérations de Pluto
-(18.56$times$ et 15.66$times$) mesurent donc à la fois le parallélisme par front
-d'onde et le gain de localité apporté par le tuilage des boucles. La version de
-référence de `ludcmp` n'est que partiellement parallèle : la boucle externe de
-la factorisation s'exécute séquentiellement, et à chacune de ses itérations
-seule la partie supérieure de la ligne est parallélisée, la partie inférieure
-restant séquentielle. En transformant l'ensemble de la factorisation par fronts
-d'onde, Pluto lève cette limitation de parallélisation.
+interdisant toute parallélisation directe ; celle de `cholesky` l'est également.
+Les accélérations de Pluto (18.56$times$ et 15.66$times$) mesurent donc à la
+fois le parallélisme par front d'onde et le gain de localité apporté par le
+tuilage des boucles. La version de référence de `ludcmp` n'est que partiellement
+parallèle : la boucle externe de la factorisation s'exécute séquentiellement, et
+à chacune de ses itérations seule la partie supérieure de la ligne est
+parallélisée, la partie inférieure restant séquentielle. En transformant
+l'ensemble de la factorisation par fronts d'onde, Pluto lève cette limitation de
+parallélisation.
 
 #figure(
   ```cpp
@@ -449,10 +435,16 @@ d'onde, Pluto lève cette limitation de parallélisation.
     `seidel-2d` sur CPU.],
 ) <code:evaluations:seidel-pluto>
 
-==== Échecs récurrents
+ISL n'applique pas cette transformation en front d'onde. Sur `seidel-2d`, il
+produit un code tuilé mais toujours séquentiel, qui ne gagne que par la localité
+(2.43$times$ et 2.92$times$) ; sur les autres noyaux de ce groupe, il ne fait au
+mieux qu'égaler la référence, comme le détaille la section suivante.
 
-À l'inverse, quatre catégories d'échecs se reproduisent à l'identique sur les
-deux machines.
+=== Régressions <sec:evaluations:cpu:regressions>
+
+À l'inverse, plusieurs noyaux ne gagnent rien ou régressent, de manière
+identique sur les deux machines. Dans la plupart des cas, le code généré
+exploite moins de parallélisme que la version de référence.
 
 *Les noyaux sans réutilisation de données.* `gesummv` reste neutre quels que
 soient l'ordonnanceur et la machine (entre 0.91$times$ et 0.99$times$), et
@@ -461,8 +453,8 @@ matrice-vecteur lisent chaque élément de matrice une seule fois : leur
 performance est bornée par la bande passante mémoire et le tuilage n'a aucune
 localité à exploiter.
 
-*Les récurrences portées par des scalaires.* Le noyau `deriche` régresse sur les
-deux machines avec les deux ordonnanceurs (de 0.35$times$ à 0.50$times$). Ce
+*Les fausses dépendances dues aux scalaires.* Le noyau `deriche` régresse sur
+les deux machines avec les deux ordonnanceurs (de 0.35$times$ à 0.50$times$). Ce
 filtre parcourt l'image ligne par ligne, puis colonne par colonne. Le long d'une
 ligne, chaque pixel dépend des pixels déjà traités, dont les valeurs sont
 transmises d'une itération à l'autre par des variables scalaires remises à zéro
@@ -503,18 +495,19 @@ suffirait à lever ces fausses dépendances.
     `deriche` sur CPU : une passe récursive et une passe de combinaison.],
 ) <code:evaluations:deriche-isl>
 
-*L'ordonnanceur ISL sur les stencils.* L'ordonnanceur ISL s'effondre sur
-`heat-3d` (0.01$times$ et 0.02$times$) et dégrade `jacobi-1d` (0.23$times$ et
-0.20$times$), `jacobi-2d` (0.70$times$ et 0.74$times$) et `fdtd-2d` (0.47$times$
-et 0.67$times$). Sur ces noyaux, chaque pas de temps dépend du précédent, ce qui
-interdit de paralléliser directement les boucles externes. ISL parvient pourtant
-à tuiler le nid, y compris selon la dimension temporelle, grâce à une torsion
-des boucles (@code:evaluations:heat3d-isl). Mais il n'exécute pas en parallèle
-les tuiles indépendantes. La seule boucle parallèle qu'il identifie comme
-parallèle est la plus interne mais Polly ne génère pas de parallélisation pour
-une telle boucle (rarement rentable). Le code généré s'exécute sur un seul
-coeur, alors que la version de référence parallélise chaque pas de temps. Le
-même phénomène se produit sur `jacobi-1d`, `jacobi-2d` et `fdtd-2d`.
+*Le parallélisme limité à la boucle la plus interne.* Avec ISL, le code généré
+s'effondre sur `heat-3d` (0.01$times$ et 0.02$times$) et dégrade `jacobi-1d`
+(0.23$times$ et 0.20$times$), `jacobi-2d` (0.70$times$ et 0.74$times$) et
+`fdtd-2d` (0.47$times$ et 0.67$times$). Sur ces noyaux, chaque pas de temps
+dépend du précédent, ce qui interdit de paralléliser directement les boucles
+externes. ISL parvient pourtant à tuiler le nid, y compris selon la dimension
+temporelle, grâce à une torsion des boucles (@code:evaluations:heat3d-isl). Mais
+il n'exécute pas en parallèle les tuiles indépendantes. La seule boucle
+parallèle qu'il identifie comme parallèle est la plus interne mais Polly ne
+génère pas de parallélisation pour une telle boucle (rarement rentable). Le code
+généré s'exécute sur un seul coeur, alors que la version de référence
+parallélise chaque pas de temps. Le même phénomène se produit sur `jacobi-1d`,
+`jacobi-2d` et `fdtd-2d`.
 
 #figure(
   ```cpp
@@ -550,12 +543,7 @@ même phénomène se produit sur `jacobi-1d`, `jacobi-2d` et `fdtd-2d`.
 
 Pluto, au contraire, exécute en parallèle les tuiles indépendantes, parcourues
 par fronts d'onde, et accélère ces mêmes noyaux, par exemple `jacobi-2d`
-(18.63$times$ et 8.70$times$). Le cas de `seidel-2d`, entièrement séquentielle
-pour la référence, illustre bien cette différence : ISL l'accélère (2.43$times$
-et 2.92$times$) grâce à l'amélioration de la localité, puisque le code tuilé
-reste séquentiel. Tandis que Pluto le parallélise par fronts d'onde
-(@code:evaluations:seidel-pluto) atteint 18.56$times$ et 15.66$times$
-d'accélération.
+(18.63$times$ et 8.70$times$).
 
 ISL échoue également sur les solveurs triangulaires `ludcmp` (0.76$times$ et
 0.95$times$) et `trisolv` (0.96$times$ et 0.92$times$). Sur `trisolv`, il
@@ -574,7 +562,18 @@ l'ensemble de la factorisation par fronts d'onde. Faute de gain de localité, le
 code généré ne peut au mieux qu'égaler la référence, et ses surcoûts propres se
 traduisent par un léger ralentissement.
 
-*L'ordonnanceur Pluto sur `adi`.* Symétriquement, Pluto régresse fortement sur
+Le noyau `durbin` régresse sur la machine AMD (0.51$times$ et 0.56$times$) mais
+s'accélère légèrement sur la machine Intel (1.28$times$ et 1.32$times$). Ce
+noyau comporte une boucle externe intrinsèquement séquentielle, dont chaque
+itération ne contient que de petites boucles. La version de référence
+parallélise ces petites boucles, au prix de trois synchronisations par
+itération, tandis que le code généré par ISL comme par Pluto est entièrement
+séquentiel, Polly ne parallélisant ni la réduction ni les boucles les plus
+internes. Le résultat dépend donc du matériel : le code séquentiel profite de la
+fréquence élevée d'un coeur Intel, mais ne rivalise pas, sur la machine AMD et
+ses coeurs plus lents, avec une version parallèle répartie sur 64 coeurs.
+
+*Une fusion défavorable.* Avec Pluto, le code généré régresse fortement sur
 `adi` sur les deux machines (0.12$times$ et 0.03$times$), alors qu'ISL
 l'accélère sur la machine AMD (1.64$times$). Chaque pas de temps de ce noyau
 enchaîne deux balayages de la grille, l'un selon les colonnes et l'autre selon
@@ -617,18 +616,18 @@ ainsi l'essentiel du parallélisme de la version de référence.
     indices et les gardes sont omis, et le paramètre `p_0` a été renommé `N`.],
 ) <code:evaluations:adi-pluto>
 
-Ces échecs se reproduisent à l'identique sur les deux machines : ils proviennent
-donc des ordonnanceurs ou du modèle lui-même, et non du matériel. Ni ISL ni
-Pluto ne disposent d'un modèle de coût capable d'estimer le parallélisme
-réellement exploité ou l'absence de réutilisation des données, et aucun des deux
-ne domine l'autre sur l'ensemble des noyaux, ce qui justifie a posteriori
-l'intégration de Pluto comme alternative à l'ordonnanceur natif.
+Ces régressions se reproduisent à l'identique sur les deux machines : elles
+tiennent aux transformations elles-mêmes, et non au matériel. Aucun des deux
+ordonnanceurs ne dispose d'un modèle de coût capable de détecter qu'une
+transformation réduit le parallélisme ou la localité par rapport au code
+d'origine. Comme ils n'échouent pas sur les mêmes noyaux, disposer des deux au
+sein de la même chaîne de compilation limite toutefois ces régressions.
 
 === Sensibilité au matériel <sec:evaluations:cpu:sensitivity>
 
-Au-delà de ces invariants, plusieurs noyaux présentent des écarts importants
-entre les deux machines, qui révèlent la sensibilité des transformations aux
-caractéristiques matérielles.
+Au-delà de ces comportements stables, plusieurs noyaux présentent des écarts
+importants entre les deux machines, qui révèlent la sensibilité des
+transformations aux caractéristiques matérielles.
 
 ==== Le cas de la factorisation `lu`
 
@@ -647,107 +646,53 @@ petite pour la matrice de 32 Mo, alors qu'un coeur Intel accède aux 30 Mo du L3
 Chaque itération se termine en outre par une synchronisation, qui réunit sur la
 machine AMD 64 threads répartis sur deux sockets.
 
-Le second effet est l'inversion entre les deux ordonnanceurs, qui adoptent des
-stratégies opposées. ISL réorganise la factorisation en une succession d'étapes
-séquentielles, dont chacune met à jour en parallèle la sous-matrice restante,
-avec des accès contigus et vectorisés. Pluto tuile au contraire l'ensemble du
-calcul et le parcourt par fronts d'onde, comme pour `ludcmp` : il réutilise
-mieux les données et se synchronise beaucoup moins souvent, mais chaque front ne
-compte qu'au plus 64 tuiles, de charges inégales, et sa boucle la plus interne
-n'est pas vectorisée. Les temps d'exécution traduisent ces différences. Le code
-d'ISL tire parti du nombre de coeurs : il s'exécute en 0.12 s sur les 64 coeurs
-de la machine AMD, contre 0.43 s sur les 20 coeurs de la machine Intel. Celui de
-Pluto est au contraire plus rapide sur la machine Intel (0.25 s contre 0.77 s) :
-ses fronts d'onde ne suffisent vraisemblablement pas à occuper les 64 coeurs de
-la machine AMD, et sa boucle interne profite de la fréquence plus élevée des
-coeurs Intel.
+Le second effet tient à la manière dont chaque code généré exploite la machine.
+Les deux ordonnanceurs parallélisent la factorisation de façons opposées. ISL la
+réorganise en une succession d'étapes séquentielles, dont chacune met à jour en
+parallèle la sous-matrice restante, avec des accès contigus et vectorisés. Pluto
+tuile au contraire l'ensemble du calcul et le parcourt par fronts d'onde, comme
+pour `ludcmp` : il réutilise mieux les données et se synchronise beaucoup moins
+souvent, mais chaque front ne compte qu'au plus 64 tuiles, de charges inégales,
+et sa boucle la plus interne n'est pas vectorisée. Le code d'ISL tire ainsi
+parti du nombre de coeurs : il s'exécute en 0.12 s sur les 64 coeurs de la
+machine AMD, contre 0.43 s sur les 20 coeurs de la machine Intel. Celui de Pluto
+est au contraire plus rapide sur la machine Intel (0.25 s contre 0.77 s) : ses
+fronts d'onde ne suffisent vraisemblablement pas à occuper les 64 coeurs de la
+machine AMD, et sa boucle interne profite de la fréquence plus élevée des coeurs
+Intel.
 
-Une exploration de la taille de tuile sur `lu` confirme enfin que la taille par
-défaut de 32 est sous-optimale sur les deux machines, mais seulement modérément
-: le meilleur choix (tuiles de $8 times 32 times 32$ sur la machine AMD, de
-$32 times 64 times 4$ sur la machine Intel) n'apporte qu'un gain supplémentaire
-de 1.24$times$ et 1.16$times$. #text(red)[Préciser l'ordonnanceur utilisé pour
-  cette exploration.] Le réglage de la taille de tuile affine donc les
-performances, mais n'explique pas l'écart entre les architectures.
 
 ==== Régressions liées au tuilage fixe
 
 Pour `cholesky` et `adi`, ISL obtient 4.68$times$ et 1.64$times$ sur la machine
-AMD, mais régresse à 0.74$times$ et 0.52$times$ sur la machine Intel ;
-l'accélération de Pluto sur `cholesky` est elle aussi divisée par deux (de
+AMD, mais régresse à 0.74$times$ et 0.52$times$ sur la machine Intel.
+L'accélération de Pluto sur `cholesky` est elle aussi divisée par deux (de
 14.52$times$ à 7.31$times$). Les deux ordonnanceurs utilisent une taille de
 tuile fixe de 32. Or le cache L2 de 3 Mo de la machine Intel contient déjà une
 grande partie des données manipulées par la version de référence : le tuilage
 n'y apporte plus de gain de localité, et son surcoût le rend contre-productif.
 Sur la machine AMD, dont le L2 ne fait que 512 Ko, le tuilage reste bénéfique.
 
-==== Variations liées au goulot d'étranglement de la machine
-
-Plusieurs noyaux voient leur rentabilité évoluer en sens opposés d'une machine à
-l'autre.
-
-Pour `gemm` et `syrk`, l'accélération diminue sur la machine Intel : `gemm`
-passe d'environ 5.7$times$ à environ 2.5$times$ avec les deux ordonnanceurs, et
-`syrk` d'environ 5.9$times$ à 4.0$times$. Le gain du tuilage vient ici de la
-réutilisation des données en cache : la version de référence de `gemm`, par
-exemple, relit une matrice entière pour chaque ligne du résultat. Sur la machine
-Intel, la fréquence élevée des coeurs, le grand cache L2 et le préchargement
-matériel permettent à la version de référence d'exploiter déjà une partie de
-cette réutilisation, ce qui réduit la marge laissée au tuilage.
-
-Inversement, `covariance` gagne en rentabilité sur la machine Intel (de
-11.15$times$ à 19.19$times$ et 21.97$times$), de même que `atax` avec ISL (de
-2.69$times$ à 9.51$times$), `gemver` (de 1.0$times$ à environ 2.0-2.5$times$) et
-`trmm` avec Pluto (de 4.86$times$ à 9.96$times$). Pour `covariance`, ISL et
-Pluto tuilent le calcul de la même manière, d'où des accélérations identiques
-sur la machine AMD : les données, que la version de référence parcourt colonne
-par colonne, sont alors traitées par petits blocs réutilisés depuis le cache. Ce
-gain reste toutefois bridé par la répartition du travail. Le calcul étant
-triangulaire, les premières lignes sont les plus coûteuses. La version de
-référence distribue les lignes aux threads de manière cyclique, ce qui équilibre
-la charge, alors que le code généré distribue des blocs contigus de lignes : le
-premier thread reçoit les lignes les plus coûteuses, et sa charge atteint 2.6
-fois la moyenne sur la machine AMD, contre 2.1 fois sur la machine Intel. Ce
-déséquilibre, plus marqué avec 64 threads qu'avec 20, explique une partie de
-l'écart entre les deux machines. #text(red)[À compléter : origine du reste de
-  l'écart.]
-
-Pour `atax`, la version de référence enchaîne plus de 20 000 lancements
-parallèles, chacun ne portant que sur une seule ligne de la matrice. ISL sépare
-au contraire le calcul en deux nids parallèles, qui ne nécessitent que deux
-lancements, au prix d'une seconde lecture de la matrice. #text(red)[À compléter
-  : expliquer l'écart entre les deux machines (2.69$times$ contre 9.51$times$).]
-
-Enfin, `durbin` régresse sur la machine AMD (0.51$times$ et 0.56$times$) mais
-s'accélère légèrement sur la machine Intel (1.28$times$ et 1.32$times$). Ce
-noyau comporte une boucle externe intrinsèquement séquentielle, dont chaque
-itération ne contient que de petites boucles. La version de référence
-parallélise ces petites boucles, au prix de trois synchronisations par
-itération, tandis que le code généré par ISL comme par Pluto est entièrement
-séquentiel, Polly ne parallélisant ni la réduction ni les boucles les plus
-internes. Le résultat dépend donc du matériel : le code séquentiel profite de la
-fréquence élevée d'un coeur Intel, mais ne rivalise pas, sur la machine AMD et
-ses coeurs plus lents, avec une version parallèle répartie sur 64 coeurs.
-
 
 === Bilan de l'évaluation sur CPU <sec:evaluations:cpu:summary>
 
 Cette évaluation montre que la visibilité restaurée par nos contributions permet
 à Polly d'optimiser des codes Kokkos non modifiés avec des gains substantiels :
-24 des 27 noyaux sont accélérés sur chaque machine, avec une moyenne géométrique
-atteignant 4.44$times$ avec Pluto sur la machine AMD.
+24 des 27 noyaux sont accélérés sur chaque machine. Ces gains ont deux origines
+: la localité, lorsque la version de référence est parallèle mais réutilise mal
+ses données, et le parallélisme, lorsqu'elle exécute une partie du calcul
+séquentiellement. Dans ce second cas, seul Pluto expose un parallélisme en front
+d'onde, ce qui en fait le choix le plus sûr pour les stencils et les solveurs.
 
-Elle met également en évidence deux sources d'instabilité. La première est
-algorithmique : aucun ordonnanceur ne domine sur l'ensemble des noyaux. Pluto
-s'impose sur les stencils et les solveurs triangulaires, tandis qu'ISL l'emporte
-sur `lu` (AMD), `adi` ou `covariance` (Intel). Disposer des deux ordonnanceurs
-au sein de la même chaîne de compilation est donc un atout, et Pluto constitue
-le choix par défaut le plus sûr pour la famille des stencils. La seconde est
-matérielle : la taille de tuile fixe et l'absence de modèle de coût prenant en
-compte la hiérarchie de caches provoquent des régressions sur certaines
-architectures, comme `cholesky` et `adi` sur la machine Intel. Ces observations
-motivent la sélection adaptative des paramètres de tuilage en fonction de
-l'architecture cible, discutée en fin de chapitre.
+Les régressions surviennent lorsque le code généré exploite moins de
+parallélisme que la référence : fausses dépendances dues aux scalaires,
+parallélisme limité à la boucle la plus interne ou fusion défavorable. S'y
+ajoute une sensibilité au matériel : la taille de tuile fixe et l'absence de
+modèle de coût prenant en compte la hiérarchie de caches provoquent des
+régressions sur certaines architectures, comme `cholesky` et `adi` sur la
+machine Intel. Ces observations motivent la sélection adaptative des paramètres
+de tuilage en fonction de l'architecture cible, ainsi qu'un mécanisme de repli
+vers la version de référence lorsque la transformation n'apporte aucun gain.
 
 La section suivante étend cette évaluation aux accélérateurs GPU, où la
 génération de code repose sur PPCG.
