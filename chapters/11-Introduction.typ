@@ -149,7 +149,7 @@ de génération de code hétérogène, incluant l'intégration d'ordonnanceurs
 externes comme Pluto et la génération de code GPU via PPCG.
 
 Le #chref(<sec:evaluations>) présente l'évaluation expérimentale de cette chaîne
-d'outils. Notre approche est testée face à divers codes scientifiques, et ses
+d'outils. Notre approche est testée sur divers codes scientifiques, et ses
 performances sont comparées à la fois à des implémentations Kokkos idiomatiques
 parallélisées et à des versions Kokkos optimisées par des techniques
 polyédriques. Ces résultats expérimentaux valident l'efficacité et la viabilité

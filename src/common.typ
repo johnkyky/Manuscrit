@@ -5,7 +5,7 @@
 #import "@preview/codly-languages:0.1.1"
 #import "@preview/cetz:0.4.2"
 #import "@preview/cetz-plot:0.1.3"
-#import "@preview/subpar:0.2.2"
+#import "subpar.typ"
 #import "@preview/lovelace:0.3.0": *
 #import "@preview/drafting:0.2.2": *
 #import "@preview/pinit:0.2.2": *

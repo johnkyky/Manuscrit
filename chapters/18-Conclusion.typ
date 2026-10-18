@@ -88,10 +88,10 @@ polyédrique, limitant ainsi notre périmètre d'action actuel aux politiques
 `RangePolicy` et `MDRangePolicy`.
 
 Deuxièmement, la complexité des algorithmes polyédriques peut entraîner des
-problèmes de scalabilité lors de la phase de compilation. L'analyse et la
-résolution de dépendances sur des noyaux de calcul hautement complexes,
-comportant un grand nombre de variables et de contraintes entrelacées (tels que
-`adi` ou `heat-3d`), engendrent des temps de compilation extrêmement longs.
+problèmes de scalabilité lors de la phase de compilation. Si le surcoût reste
+modéré pour la grande majorité des noyaux, le calcul de l'ordonnancement par
+PPCG ne termine pas en un temps raisonnable sur les stencils `adi`, `fdtd-2d` et
+`heat-3d`, en raison du nombre de contraintes générées pour ces nids de boucles.
 
 Enfin, l'outil accorde actuellement une confiance totale aux informations
 sémantiques fournies par le développeur (noms statiques, suppositions
@@ -105,12 +105,12 @@ l'amélioration de l'implémentation actuelle à des extensions plus fondamental
 de notre approche hybride.
 
 Premièrement, l'implémentation logicielle pourrait être améliorée. À l'heure
-actuelle, notre prototype prend en charge les politiques d'exécution
-fondamentales de Kokkos, à savoir `Serial`, `OpenMP` et `CUDA`. Une évolution
-naturelle consisterait à intégrer d'autres backends d'exécution, tels que HIP
-pour cibler les accélérateurs matériels d'AMD, ou SYCL pour les architectures
-Intel. Cette extension garantirait une portabilité des performances sur un
-spectre matériel encore plus vaste.
+actuelle, notre prototype prend en charge les espaces d'exécution fondamentaux
+de Kokkos, à savoir `Serial`, `OpenMP` et `CUDA`. Une évolution naturelle
+consisterait à intégrer d'autres backends d'exécution, tels que HIP pour cibler
+les accélérateurs matériels d'AMD, ou SYCL pour les architectures Intel. Cette
+extension garantirait une portabilité des performances sur un spectre matériel
+encore plus vaste.
 
 Deuxièmement, la robustesse de l'outil face aux spécifications de l'utilisateur
 pourrait être considérablement renforcée. Actuellement, notre approche permet
