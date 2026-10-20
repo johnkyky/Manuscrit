@@ -23,3 +23,4 @@
 #let evaluation-polybench-trahrhe-cpu = "../figures/evaluations/polybench_trahrhe_cpu.pdf"
 #let evaluation-polybench-eugene-cpu = "../figures/evaluations/polybench_eugene_cpu.pdf"
 #let evaluation-polybench-eugene-gpu = "../figures/evaluations/polybench_eugene_gpu.pdf"
+#let evaluation-polybench-eugene-polly-vanilla = "../figures/evaluations/polybench_eugene_polly_vanilla.pdf"

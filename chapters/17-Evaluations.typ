@@ -95,7 +95,7 @@ de la version optimisée élément par élément à ceux de la version de réfé
 avec une tolérance absolue de $10^(-8)$.
 
 *Noyaux évalués.* L'évaluation porte sur 27 des 30 noyaux de la suite
-PolyBench/C~@polybench. Les trois noyaux écartés, `correlation`, `nussinov` et
+PolyBench~@polybench. Les trois noyaux écartés, `correlation`, `nussinov` et
 `floyd-warshall`, sortent du cadre du modèle polyédrique statique, car leur flot
 de contrôle dépend de valeurs calculées pendant l'exécution, ce qui produit dans
 l'IR LLVM des structures non affines que Polly ne peut pas représenter. Les jeux
@@ -494,7 +494,12 @@ il n'exécute pas en parallèle les tuiles indépendantes. La seule boucle qu'il
 identifie comme parallèle est la plus interne mais Polly ne génère pas de
 parallélisation pour une boucle interne. Le code généré s'exécute sur un seul
 coeur, alors que la version de référence parallélise chaque pas de temps. Le
-même phénomène se produit sur `jacobi-1d`, `jacobi-2d` et `fdtd-2d`.
+même phénomène se produit sur `jacobi-1d`, `jacobi-2d` et `fdtd-2d`. Sur
+`jacobi-1d`, cette explication n'est toutefois que partielle, car l'essentiel de
+la régression vient d'une vectorisation défavorable du code généré, détaillée
+dans la @sec:evaluations:vanilla. Sans cette vectorisation, le code séquentiel
+produit par ISL atteint 0.99$times$ de la version de référence parallèle sur la
+machine Intel.
 
 #figure(
   ```cpp
@@ -969,3 +974,111 @@ Pluto est quant à lui pénalisé sur `gesummv`, `syrk` (#box[10.40$times$]) et
 Enfin, la compilation de `adi`, `fdtd-2d` et `heat-3d` avec PPCG ne termine pas
 en un temps raisonnable. Ce point est discuté dans l'évaluation sur GPU
 (@sec:evaluations:gpu:global).
+
+
+== Comparaison avec Polly sur PolyBench <sec:evaluations:vanilla>
+
+Les sections précédentes comparent notre chaîne de compilation à une
+implémentation Kokkos idiomatique. Cette section la compare à l'usage habituel
+de Polly, appliqué aux noyaux de la suite PolyBench écrits en C séquentiel. Elle
+vérifie que l'abstraction Kokkos, une fois rendue visible au compilateur,
+n'empêche pas Polly d'obtenir des performances comparables à celles qu'il
+atteint sur le code C d'origine. La version de Polly utilisée est issue de la
+même version de LLVM que notre chaîne de compilation, sans nos modifications.
+Les mesures sont réalisées sur la machine Intel avec l'ordonnanceur ISL, une
+taille de tuile de 32, 20 threads et les mêmes tailles de problème que dans le
+reste du chapitre (@table:evaluations:problemsizes). Une accélération supérieure
+à 1 signifie que notre version est plus rapide que Polly appliqué au code C. Le
+noyau `deriche` est absent de la comparaison, car Polly s'arrête sur une erreur
+lors de sa compilation. Les deux versions sont compilées en `-O3` avec les mêmes
+options de Polly.
+
+#figure(
+  image(fig.evaluation-polybench-eugene-polly-vanilla, width: 100%),
+  placement: auto,
+  caption: [Accélération de Kokkos + Polly (usePolyOpt) par rapport à Polly
+    appliqué à PolyBench, avec l'ordonnanceur ISL sur processeur Intel Core
+    Ultra 7 265 (20 threads sans hyperthreading, 32 Go DDR5, taille de tuile :
+    32).],
+) <fig:evaluations:vanilla>
+
+Sur les 26 noyaux mesurés, la moyenne géométrique de accélérations est de
+1.08$times$, et 14 noyaux restent à moins de 10 % de Polly appliqué au code C.
+Pour plus de la moitié des noyaux, notre chaîne de compilation obtient donc des
+performances proches de celles de Polly sur le code d'origine. Les écarts
+restent toutefois importants sur quelques noyaux, dans les deux sens.
+
+*Noyaux plus rapides avec notre version.* `symm` (9.52$times$), `adi`
+(3.86$times$), `seidel-2d` (2.93$times$) et avec une accélération moins
+importante, `gramschmidt` (1.18$times$) et `bicg` (1.15$times$). Sur les trois
+premiers, les optimisations que LLVM applique avant Polly remplacent, dans le
+code C, certaines lectures de tableaux par des valeurs scalaires, transmises
+d'une itération ou d'une instruction à l'autre. Comme pour `deriche`
+(@sec:evaluations:cpu:regressions), ces scalaires créent de fausses dépendances,
+qui empêchent Polly de tuiler et de paralléliser le nid principal de `symm` et
+deux des quatre phases d'`adi`, et de tuiler celui de `seidel-2d`. Dans notre
+chaîne de compilation, la passe `ArrayReg2MemPass`
+(@sec:kokkosvisibility:array_canonicalization), absente de Polly d'origine,
+rétablit ces accès aux tableaux. Polly tuile et parallélise alors `symm` et
+`adi`, et tuile `seidel-2d`, qui ne gagne que par la localité des données.
+
+*Noyaux plus lents avec notre version.* `jacobi-1d` (0.24$times$), `2mm`
+(0.73$times$), `syrk` (0.79$times$), `jacobi-2d` (0.80$times$), `doitgen`
+(0.83$times$), `gemm` (0.85$times$) et `ludcmp` (0.89$times$). Sur tous ces
+noyaux, comme sur `gramschmidt` et `bicg`, les deux versions appliquent les
+mêmes transformations et parallélisent les mêmes boucles. Les tailles du
+problème sont toutefois connues à la compilation dans le code C et passées en
+paramètres dans notre version. L'écart ne provient donc pas des transformations
+polyédriques elles-mêmes, mais du code généré ensuite par Polly et LLVM.
+
+Sur `jacobi-1d`, l'écart vient d'une vectorisation défavorable. Dans notre
+version, le vectoriseur SLP de LLVM lit en une seule fois deux éléments,
+`B(i-2)` et `B(i-1)`, écrits séparément aux deux itérations précédentes. Le
+processeur ne sait pas transmettre directement à une telle lecture des valeurs
+venant de deux écritures distinctes. Chaque itération doit donc attendre que ces
+écritures atteignent le cache. En désactivant ce vectoriseur
+(`-fno-slp-vectorize`), notre version devient 1.10$times$ plus rapide que Polly
+sur le code C, et atteint 0.99$times$ de la référence Kokkos, contre 0.20$times$
+avec la vectorisation (@sec:evaluations:cpu:regressions).
+
+Sur `gemm`, `syrk` et le premier produit de `2mm`, la boucle la plus interne
+accumule un produit multiplié par `alpha` dans un élément du tableau résultat.
+Dans la version C, LLVM garde `alpha` et cet accumulateur dans des registres.
+Dans notre version, `alpha` est relu en mémoire et l'accumulateur y est écrit à
+chaque itération. Le second produit de `2mm`, qui ne fait pas intervenir
+`alpha`, garde au contraire son accumulateur dans un registre dans les deux
+versions. Dans le code Kokkos, `alpha` est un membre de la lambda, lu au travers
+d'un pointeur. LLVM ne parvient pas à prouver l'absence d'aliasing, ce qui
+l'empêche à la fois de sortir sa lecture de la boucle et de garder
+l'accumulateur dans un registre.
+
+Sur `doitgen` et `jacobi-2d`, l'écart tient aux tailles du problème, connues à
+la compilation dans le code C. Sur `doitgen`, LLVM peut alors dérouler et
+vectoriser la boucle la plus interne, qui reste scalaire dans notre version. Sur
+`jacobi-2d`, les adresses des lignes voisines se calculent par des décalages
+constants dans le code C, alors que notre version doit les garder dans des
+registres supplémentaires. Sa boucle la plus interne manque alors de registres
+et exécute environ 50 % d'instructions en plus.
+
+Enfin, sur `ludcmp`, la boucle la plus coûteuse est identique dans les deux
+versions. L'écart vient de la taille $N = 2048$, une puissance de deux. En
+parcourant une colonne de `A`, la boucle provoque alors de nombreux conflits
+dans le cache. Les deux versions sont environ deux fois plus lentes qu'avec
+$N = 2040$ ou $N = 2056$, tailles pour lesquelles l'écart entre elles disparaît
+(0.96$times$ et 1.00$times$). Ces conflits dépendent de la position des tableaux
+en mémoire, car l'adresse d'un élément détermine l'emplacement du cache où il
+est rangé. Or cette position diffère entre les deux versions. Dans le code C,
+PolyBench aligne chaque tableau sur le début d'une page mémoire. Dans notre
+version, les données d'une vue Kokkos sont précédées d'un en-tête d'allocation,
+qui les décale de quelques lignes de cache. Les éléments lus par la boucle ne se
+répartissent donc pas de la même façon dans le cache, ce qui explique l'écart
+restant pour $N = 2048$.
+
+En résumé, l'abstraction Kokkos n'empêche pas Polly d'optimiser les noyaux.
+Notre chaîne de compilation obtient en moyenne des performances légèrement
+supérieures à celles de Polly sur le code C d'origine. Sur les noyaux où elle
+l'emporte nettement, la passe `ArrayReg2MemPass` permet à Polly d'appliquer des
+transformations qu'il ne peut pas appliquer au code C. Sur les noyaux où elle
+est plus lente, les deux versions appliquent les mêmes transformations, et
+l'écart vient du code que LLVM génère ensuite ou du placement des données en
+mémoire, et non de la visibilité des noyaux Kokkos.
