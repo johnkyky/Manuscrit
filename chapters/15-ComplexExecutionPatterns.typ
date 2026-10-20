@@ -310,7 +310,7 @@ de donner plusieurs noyaux ainsi qu'un pipeline spécifique de traitement de l'I
 pour reconstruire un seul et unique SCoP.
 
 
-=== Nouveau `parallel_for` variadique
+=== Nouveau `parallel_for` variadique <sec:complexexecutionpatterns:variadicparallelfor>
 
 Dans l'intégration de Polly avec Kokkos, la granularité de détection des SCoPs
 se limite au périmètre d'un appel unique à la fonction `parallel_for`. Pour
