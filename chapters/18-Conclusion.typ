@@ -66,13 +66,16 @@ d'optimiser le code. L'intégration de l'outil PPCG a également été réalisé
 en profondeur dans le pipeline de compilation afin de permettre l'application de
 transformations polyédriques ciblant des noyaux GPU.
 
-Nos évaluations expérimentales ont validé l'efficacité de cette chaîne d'outils
-complète de manière probante. Nos résultats démontrent des accélérations
-significatives par rapport aux implémentations Kokkos standards, tant sur CPU
-que sur GPU. Ces résultats prouvent que l'approche hybride Kokkos, couplée aux
-optimisations polyédriques, permet non seulement de surpasser les performances
-des approches standards, mais aussi d'exploiter pleinement le potentiel des
-architectures hétérogènes, tout en conservant la portabilité du code.
+Nos évaluations expérimentales ont validé l'efficacité de cette chaîne d'outils.
+Nos résultats démontrent des accélérations significatives par rapport aux
+implémentations Kokkos standards, tant sur CPU que sur GPU. Ces résultats
+prouvent que l'approche hybride Kokkos, couplée aux optimisations polyédriques,
+permet non seulement de surpasser les performances de l'approche Kokkos
+standards, mais aussi d'exploiter pleinement le potentiel des architectures
+hétérogènes, tout en conservant la portabilité du code. Comparée à Polly
+appliqué aux versions C d'origine des noyaux, notre chaîne de compilation ne
+dégrade pas les performances, et les améliore même en moyenne, ce qui montre que
+l'abstraction Kokkos ne fait pas obstacle à l'optimisation polyédrique.
 
 == Discussion et Limites
 
