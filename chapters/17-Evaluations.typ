@@ -2,9 +2,9 @@
 
 = Évaluations <sec:evaluations>
 
-Ce chapitre quantifie et d'analyse l'impact des contributions présentées dans
-les chapitres précédents. L'enjeu principal est de démontrer que la restauration
-de la visibilité sémantique et structurelle au niveau du compilateur permet de
+Ce chapitre quantifie et analyse l'impact des contributions présentées dans les
+chapitres précédents. L'enjeu principal est de démontrer que la restauration de
+la visibilité sémantique et structurelle au niveau du compilateur permet de
 débloquer des optimisations polyédriques. À travers une évaluation sur la suite
 de benchmarks PolyBench~@polybench, nous mettons à l'épreuve notre chaîne de
 compilation sur des architectures hétérogènes (CPU multicoeurs et accélérateurs
@@ -17,7 +17,7 @@ architectures et ordonnanceurs.
 *Version de référence.* Les performances sont mesurées par rapport à une
 implémentation idiomatique des noyaux de PolyBench en #box[C++] avec Kokkos,
 telle que l'écrirait un utilisateur standard de la bibliothèque. Les nids de
-boucles sont exprimés par des `parallel_for` et utilisant les structures Kokkos
+boucles sont exprimés par des `parallel_for` et utilisent les structures Kokkos
 comme les vues `Kokkos::View`, sans optimisation spécifique à l'architecture,
 comme la fusion ou la fission de boucles, la réécriture du calcul pour exposer
 davantage de parallélisme ou l'usage explicite de la mémoire rapide
@@ -102,7 +102,7 @@ contrôle dépend de valeurs calculées pendant l'exécution, ce qui produit dan
 l'IR LLVM des structures non affines que Polly ne peut pas représenter. Les jeux
 de données ont été agrandis afin d'obtenir des temps d'exécution significatifs.
 Le @table:evaluations:problemsizes donne, pour chaque noyau de la suite
-PolyBench la taille utilisée.
+PolyBench, la taille utilisée.
 
 #[
   #show figure: set block(breakable: true)
@@ -446,7 +446,7 @@ tuilage n'a aucune localité à exploiter.
 
 *Les fausses dépendances dues aux scalaires.* Le noyau `deriche` régresse sur
 les deux machines avec les deux ordonnanceurs (de #box[0.35$times$] à
-#box[0.50$times$]). Ce noyaux parcourt une image ligne par ligne, puis colonne
+#box[0.50$times$]). Ce noyau parcourt une image ligne par ligne, puis colonne
 par colonne. Le long d'une ligne, chaque pixel dépend des pixels déjà traités,
 dont les valeurs sont transmises d'une itération à l'autre par des variables
 scalaires remises à zéro au début de chaque ligne. Les lignes, comme les
@@ -493,11 +493,11 @@ s'effondre sur `heat-3d` (0.01$times$ et 0.02$times$) et dégrade `jacobi-1d`
 dépend du précédent, ce qui interdit de paralléliser directement les boucles
 externes. ISL parvient pourtant à tuiler le nid, y compris la dimension
 temporelle, grâce à une torsion des boucles (@code:evaluations:heat3d-isl). Mais
-il n'exécute pas en parallèle les tuiles indépendantes. La seule boucle
-parallèle qu'il identifie comme parallèle est la plus interne mais Polly ne
-génère pas de parallélisation pour une boucle interne. Le code généré s'exécute
-sur un seul coeur, alors que la version de référence parallélise chaque pas de
-temps. Le même phénomène se produit sur `jacobi-1d`, `jacobi-2d` et `fdtd-2d`.
+il n'exécute pas en parallèle les tuiles indépendantes. La seule boucle qu'il
+identifie comme parallèle est la plus interne mais Polly ne génère pas de
+parallélisation pour une boucle interne. Le code généré s'exécute sur un seul
+coeur, alors que la version de référence parallélise chaque pas de temps. Le
+même phénomène se produit sur `jacobi-1d`, `jacobi-2d` et `fdtd-2d`.
 
 #figure(
   ```cpp
@@ -546,12 +546,12 @@ Sur `ludcmp`, ISL conserve la structure d'origine du nid, sans tuilage, et
 reproduit la parallélisation de la version de référence, là où Pluto parallélise
 l'ensemble de la factorisation par fronts d'onde. Faute de gain de localité, le
 code généré ne peut au mieux qu'égaler la référence et les surcoûts des calculs
-d'indices polyédriques créés un léger ralentissement.
+d'indices polyédriques créent un léger ralentissement.
 
 Le noyau `durbin` régresse sur la machine AMD (#box[0.51$times$]) mais
 s'accélère légèrement sur la machine Intel (#box[1.28$times$] et
 #box[1.32$times$]). Ce noyau comporte une boucle externe intrinsèquement
-séquentielle, dont chaque itération ne contient que des petites boucles. La
+séquentielle, dont chaque itération ne contient que de petites boucles. La
 version de référence parallélise ces petites boucles, au prix de trois
 synchronisations par itération, tandis que le code généré par ISL comme par
 Pluto est entièrement séquentiel, Polly ne parallélisant ni la réduction ni les
@@ -622,19 +622,20 @@ ligne est calculée en parallèle. Sur la machine AMD, un profilage avec `perf`
 montre que cette moitié séquentielle détermine à elle seule la durée de
 l'exécution. Les 63 threads secondaires passent l'essentiel de leur temps à
 attendre le thread principal, la référence s'exécute donc pratiquement à la
-vitesse que d'un seul coeur. Or ce coeur est nettement plus lent que celui de la
-machine Intel. La référence est donc nettement moins éfficace sur la machine AMD
+vitesse d'un seul coeur. Or ce coeur est nettement plus lent que celui de la
+machine Intel. La référence est donc nettement moins efficace sur la machine AMD
 que sur la machine Intel.
 
 Le second effet tient à la manière dont chaque code généré exploite la machine.
 Le code ISL parallélise en une succession d'étapes propice au grand nombre de
-coeurs de la machine AMD. Sur la machine Intel, les étapes sont réparties sur
-les coeurs P et E moins rapide qui déterminent la durée du calcul. Pluto
-parcourt au contraire le calcul par fronts d'onde. Il réutilise mieux les
-données, mais chaque front de charges inégales compte un nombre limité de tuiles
-qui ne suffisent pas à occuper les 64 coeurs de la machine AMD. Le code tire
-davantage parti de la fréquence élevée des coeurs Intel que du nombre de coeurs
-de la machine AMD.
+coeurs de la machine AMD. Sur la machine Intel, les étapes sont réparties en
+blocs égaux entre les coeurs P (performance) et E (efficacité énergétique). Les
+coeurs E, moins rapides, terminent leur bloc en dernier et déterminent ainsi la
+durée du calcul.. Pluto parcourt au contraire le calcul par fronts d'onde. Il
+réutilise mieux les données, mais chaque front de charges inégales compte un
+nombre limité de tuiles qui ne suffisent pas à occuper les 64 coeurs de la
+machine AMD. Le code tire davantage parti de la fréquence élevée des coeurs
+Intel que du nombre de coeurs de la machine AMD.
 
 
 ==== Régressions liées au tuilage fixe
@@ -654,7 +655,7 @@ AMD le tuilage reste bénéfique.
 Cette évaluation montre que la visibilité restaurée par nos contributions permet
 à Polly d'optimiser des codes Kokkos avec des gains en performance non
 négligeables : 24 des 27 noyaux sont accélérés sur chaque machine. Ces gains ont
-deux origines une amélioration de la localité mémoire, des transformations
+deux origines : une amélioration de la localité mémoire, des transformations
 créant des boucles sans dépendance parallèles comme le front d'onde de Pluto.
 
 Les régressions surviennent lorsque le code généré exploite moins de
@@ -686,7 +687,7 @@ contraire chaque noyau en tuiles de 32 itérations fixes par dimension, confiée
 à des blocs de 32 threads pour un noyau à une dimension et de $4 times 32$
 threads pour un noyau à deux dimensions. La promotion des données en mémoire
 partagée (limitée à 16 Ko par bloc) et la privatisation en registres des données
-est activées.
+sont activées.
 
 === Étude des résultats GPU <sec:evaluations:gpu:global>
 
@@ -776,16 +777,16 @@ successives, lancées depuis l'hôte (@code:evaluations:lu-ppcg) : à chaque ét
 la mise à jour de la partie restante de la matrice est confiée à des noyaux
 mobilisant des centaines de milliers de threads et chargeant en mémoire partagée
 les données réutilisées au sein d'un bloc. Pour `seidel-2d`, il applique un
-front d'onde qui pour chaque lancement successifs de blocks, traite en parallèle
-tous les points d'un même front. Pour `trisolv` et `durbin`, le calcul reste
-organisé en étapes, mais chaque étape enchaîne plusieurs noyaux sur le GPU sans
-retour vers l'hôte, même lorsque, comme pour `durbin`, une réduction reste
-calculée par un seul thread. La version de référence effectue au contraire, à
-chaque étape, une réduction parallèle dont le résultat est rapatrié sur l'hôte,
-engendrant énormément de synchronisations, ce qui explique l'écart de la
-performance. Enfin, l'accélération plus faible de `ludcmp` que de `lu`, dont la
-factorisation est identique, tient à la dernière substitution triangulaire, que
-le code généré exécute sur l'hôte au moyen d'une boucle inefficace.
+front d'onde qui à chaque lancement successif de blocs, traite en parallèle tous
+les points d'un même front. Pour `trisolv` et `durbin`, le calcul reste organisé
+en étapes, mais chaque étape enchaîne plusieurs noyaux sur le GPU sans retour
+vers l'hôte, même lorsque, comme pour `durbin`, une réduction reste calculée par
+un seul thread. La version de référence effectue au contraire, à chaque étape,
+une réduction parallèle dont le résultat est rapatrié sur l'hôte, engendrant
+énormément de synchronisations, ce qui explique l'écart de la performance.
+Enfin, l'accélération plus faible de `ludcmp` que de `lu`, dont la factorisation
+est identique, tient à la dernière substitution triangulaire, que le code généré
+exécute sur l'hôte au moyen d'une boucle inefficace.
 
 #figure(
   ```cpp
@@ -809,8 +810,8 @@ parallèle, ce qui limite le gain.
 
 Ces ratios extrêmes doivent être interprétés avec précaution. Ils traduisent
 l'écart entre une version de référence et un ordonnancement fait pour extraire
-le parallélisme. Il permet d'illustrent l'intérêt principal de l'approche, les
-gains de parallélisme sont obtenus automatiquement à partir d'un code source
+le parallélisme. Ils permettent d'illustrer l'intérêt principal de l'approche,
+les gains de parallélisme sont obtenus automatiquement à partir d'un code source
 portable et non modifié.
 
 === Exploitation de la hiérarchie mémoire <sec:evaluations:gpu:memory>
@@ -864,7 +865,7 @@ gain léger en performance.
 
 Cette évaluation met également en évidence les limites actuelles de la
 génération de code GPU. Lorsque l'ordonnanceur ne parvient pas à trouver
-d'avantage de parallélisme, le surcoût de contrôle rend le code généré moins
+davantage de parallélisme, le surcoût de contrôle rend le code généré moins
 performant que celui du backend CUDA de Kokkos.
 
 
@@ -962,9 +963,9 @@ s'établissent à #box[1.05$times$] pour ISL, #box[1.16$times$] pour Pluto et
 #box[1.2$times$] le temps de référence avec ISL. Ce résultat s'explique en
 partie par l'isolation des noyaux (#chref(<sec:kokkosvisibility>)). Polly
 n'analyse que les fonctions marquées par l'option `usePolyOpt`, et non
-l'ensemble du module mais aussi par la réduction de l'usage intensif de
+l'ensemble du module, mais aussi par la réduction de l'usage intensif de
 templates dans les backends modifiés. Le surcoût légèrement plus élevé de Pluto
-provient de l'étapes d'ordonnancement et des étapes d'export et d'import au
+provient de l'étape d'ordonnancement et des étapes d'export et d'import au
 format OpenScop (@sec:schedulingheterogeneous:pluto).
 
 Quelques noyaux font exception. Le plus marquant est `3mm`, dont la compilation
