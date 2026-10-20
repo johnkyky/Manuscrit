@@ -2,32 +2,32 @@
 
 = Évaluations <sec:evaluations>
 
-Ce chapitre quantifie et analyse l'impact des contributions présentées dans les
-chapitres précédents. L'enjeu principal est de démontrer que la restauration de
-la visibilité sémantique et structurelle au niveau du compilateur permet de
-débloquer des optimisations polyédriques. À travers une évaluation sur la suite
-de benchmarks PolyBench~@polybench, nous mettons à l'épreuve notre chaîne de
-compilation sur des architectures hétérogènes (CPU multicoeurs et accélérateurs
-GPU). Nous détaillons les accélérations obtenues par rapport à une
-implémentation Kokkos idiomatique et étudions l'impact des différentes
-architectures et ordonnanceurs.
+Ce chapitre quantifie et analyse l'impact des contributions précédents
+présentées. Le but principal est de démontrer que la restauration de la
+visibilité sémantique et structurelle au niveau du compilateur permet de
+débloquer des optimisations de boucles agressives grâce au modèle polyédrique. À
+travers une évaluation sur la suite de benchmarks PolyBench~@polybench, nous
+mettons à l'épreuve notre chaîne de compilation sur des architectures
+hétérogènes (CPU multicoeurs et accélérateurs GPU). Nous détaillons les
+accélérations obtenues par rapport à une implémentation Kokkos idiomatique et
+étudions l'impact des différentes architectures et ordonnanceurs.
 
 == Protocole expérimental <sec:evaluations:setup>
 
 *Version de référence.* Les performances sont mesurées par rapport à une
-implémentation idiomatique des noyaux de PolyBench en #box[C++] avec Kokkos,
-telle que l'écrirait un utilisateur standard de la bibliothèque. Les nids de
-boucles sont exprimés par des `parallel_for` et utilisent les structures Kokkos
-comme les vues `Kokkos::View`, sans optimisation spécifique à l'architecture,
-comme la fusion ou la fission de boucles, la réécriture du calcul pour exposer
-davantage de parallélisme ou l'usage explicite de la mémoire rapide
-(`Kokkos::ScratchSpace`). Cette version est compilée avec la même chaîne de
-compilation Clang, sans Polly, sur les backends standards de Kokkos : OpenMP
-pour les CPU et CUDA pour les GPU.
+implémentation idiomatique des noyaux de la suite de benchmarks PolyBench en
+#box[C++] avec Kokkos, telle que l'écrirait un utilisateur standard de la
+bibliothèque. Les nids de boucles sont exprimés par des `parallel_for` et
+utilisent les structures Kokkos comme les vues `Kokkos::View`, sans optimisation
+spécifique à l'architecture, comme la fusion ou la fission de boucles, la
+réécriture du calcul pour exposer davantage de parallélisme ou l'usage explicite
+de la mémoire rapide (`Kokkos::ScratchSpace`). Cette version est compilée avec
+la même chaîne de compilation Clang, sans et avec Polly d'activé, sur les
+backends standards de Kokkos : OpenMP pour les CPU et CUDA pour les GPU.
 
 *Version optimisée.* La version évaluée exprime les mêmes calculs, sous la forme
-attendue par notre chaîne de compilation : chaque noyau est écrit en entier dans
-un `parallel_for` (ou `parallel_for` variadique
+attendue par notre chaîne de compilation. Chaque noyau est écrit en entier dans
+un `parallel_for` (ou `parallel_for` variadique, voir
 @sec:complexexecutionpatterns:variadicparallelfor) annoté par l'option
 `usePolyOpt`, y compris ses boucles externes non parallèles. La politique
 d'exécution ne décrit plus le parallélisme à exploiter mais elle délimite
@@ -39,9 +39,7 @@ d'exécution de la politique changeant.
 *Plateformes.* Les expérimentations sont menées sur deux machines, décrites dans
 le @table:evaluations:hardware : une machine bi-socket équipée de deux
 processeurs AMD EPYC 7502, et une machine combinant un processeur Intel Core
-Ultra 7 265 et une carte graphique NVIDIA RTX 5090. Disposer de deux
-architectures CPU permet de distinguer les gains propres aux transformations de
-ceux qui dépendent d'une machine particulière.
+Ultra 7 265 et une carte graphique NVIDIA RTX 5090.
 
 #figure(
   table(
@@ -76,6 +74,7 @@ ceux qui dépendent d'une machine particulière.
     [Mémoire GPU], [--], [32 Go GDDR7],
     [Mémoire partagée par SM], [--], [128 Ko],
     [Registres par SM], [--], [256 Ko],
+    [Pilote NVIDIA], [--], [595.99],
     table.hline(stroke: 1pt),
   ),
   caption: [Caractéristiques des deux plateformes d'évaluation.],
@@ -84,8 +83,8 @@ ceux qui dépendent d'une machine particulière.
 *Chaîne de compilation.* Les deux machines utilisent une version de
 développement de LLVM/Clang 23.0.0 intégrant nos contributions, la version
 4.6.99 de Kokkos, modifiée comme décrit dans les chapitres précédents, et PPCG
-0.09.3 pour la génération de code GPU, avec les pilotes NVIDIA 595.99. Tous les
-codes sont compilés en mode `Release` (`CMAKE_BUILD_TYPE=Release`).
+0.09.3 pour la génération de code GPU. Tous les codes sont compilés en mode
+`Release` (`CMAKE_BUILD_TYPE=Release`).
 
 *Mesures.* Chaque temps est la moyenne de 5 exécutions consécutives, dont la
 dispersion relative reste inférieure à 5%. Sur CPU, chaque thread OpenMP est
@@ -97,12 +96,12 @@ avec une tolérance absolue de $10^(-8)$.
 
 *Noyaux évalués.* L'évaluation porte sur 27 des 30 noyaux de la suite
 PolyBench/C~@polybench. Les trois noyaux écartés, `correlation`, `nussinov` et
-`floyd-warshall`, sortent du cadre du modèle polyédrique statique : leur flot de
-contrôle dépend de valeurs calculées pendant l'exécution, ce qui produit dans
+`floyd-warshall`, sortent du cadre du modèle polyédrique statique, car leur flot
+de contrôle dépend de valeurs calculées pendant l'exécution, ce qui produit dans
 l'IR LLVM des structures non affines que Polly ne peut pas représenter. Les jeux
 de données ont été agrandis afin d'obtenir des temps d'exécution significatifs.
 Le @table:evaluations:problemsizes donne, pour chaque noyau de la suite
-PolyBench, la taille utilisée.
+PolyBench la taille utilisée.
 
 #[
   #show figure: set block(breakable: true)
@@ -250,31 +249,31 @@ famille de noyaux et globalement.
     speedup-cell("3.74", "23/26"), speedup-cell("1.88", "16/27"),
     table.hline(stroke: 1pt),
   ),
-  caption: [Moyennes des accélérations sur CPU par catégorie de benchmark et par
-    ordonnanceur. Entre parenthèses figure le nombre de noyaux accélérés sur
-    nombre de noyaux évalués.],
+  caption: [Moyennes géométriques des accélérations sur CPU par catégorie de
+    benchmark et par ordonnanceur. Entre parenthèses figure le nombre de noyaux
+    accélérés sur nombre de noyaux évalués.],
 ) <table:evaluations:cpu-geomean>
 
 Le premier constat est que les transformations débloquées par nos contributions
-profitent à la grande majorité des noyaux : sur chacune des deux machines, 24
-des 27 noyaux sont accélérés par au moins l'un des deux ordonnanceurs. En
-retenant pour chaque noyau le meilleur des deux ordonnanceurs, la moyenne
-géométrique des accélérations atteint 5.32$times$ sur la machine AMD et
-4.36$times$ sur la machine Intel. L'accélération maximale, 118.26$times$, est
-obtenue sur `lu` avec l'ordonnanceur ISL sur la machine AMD. Ces résultats
-confirment qu'une fois la structure des boucles rendue visible à Polly, les
-transformations polyédriques exploitent efficacement la localité et le
-parallélisme laissés inexploités par une écriture Kokkos idiomatique des noyaux.
+profitent à la grande majorité des noyaux. Sur chacune des deux machines, 24 des
+27 noyaux sont accélérés par au moins l'un des deux ordonnanceurs. En retenant
+pour chaque noyau le meilleur des deux ordonnanceurs, la moyenne géométrique des
+accélérations atteint 5.32$times$ sur la machine AMD et 4.36$times$ sur la
+machine Intel. L'accélération maximale, 118.26$times$, est obtenue sur `lu` avec
+l'ordonnanceur ISL sur la machine AMD. Ces résultats confirment qu'une fois la
+structure des boucles rendue visible à Polly, les transformations polyédriques
+exploitent efficacement la localité et le parallélisme laissés inexploités par
+une écriture Kokkos idiomatique des noyaux.
 
 Ces gains dépendent avant tout de la manière dont la version de référence est
 écrite, et proviennent de deux sources : la localité, lorsque la référence est
 déjà parallèle mais réutilise mal ses données, et le parallélisme, lorsqu'elle
 exécute une partie du calcul séquentiellement. Le choix de l'ordonnanceur compte
-surtout dans ce second cas : seul Pluto expose un parallélisme en front d'onde,
-ce qui explique son avantage moyen (4.44$times$ contre 2.21$times$ sur AMD,
-3.74$times$ contre 1.88$times$ sur Intel), concentré sur les _stencils_ et les
-_solvers_. Les sections suivantes examinent ces deux sources de gain, puis les
-noyaux pour lesquels le code généré reste moins performant que la référence.
+surtout dans ce second cas, car seul Pluto expose un parallélisme en front
+d'onde, ce qui explique son avantage moyen (4.44$times$ contre 2.21$times$ sur
+AMD, 3.74$times$ contre 1.88$times$ sur Intel), concentré sur les _stencils_ et
+les _solvers_. Les sections suivantes examinent ces deux sources de gain, puis
+les noyaux pour lesquels le code généré reste moins performant que la référence.
 
 Sur les 54 variantes compilées (27 noyaux $times$ 2 ordonnanceurs), 53
 produisent des résultats conformes à la référence. Seul le noyau `atax` avec
@@ -297,13 +296,12 @@ n'exploite pas. Dans ces versions de référence, la boucle la plus interne,
 écrite dans le corps de la lambda, parcourt une colonne d'au moins un tableau
 stocké par lignes, avec un grand pas entre deux accès successifs. Or Kokkos ne
 tuile que les dimensions d'une `MDRangePolicy`, jamais les boucles écrites dans
-la lambda : la plupart de ces versions reposent sur une `RangePolicy` et ne sont
+la lambda. La plupart de ces versions reposent sur une `RangePolicy` et ne sont
 pas tuilées du tout, et seules celles de `2mm` et `3mm` découpent l'espace
 `(i, j)` en tuiles de $32 times 32$, sans toucher à la boucle de réduction. Le
 tuilage polyédrique porte au contraire sur l'ensemble du nid, boucle de
-réduction comprise, comme l'illustrent `symm` ci-dessous et `covariance`
-(@sec:evaluations:cpu:sensitivity) : les accès à grand pas sont confinés à des
-blocs de petite taille, réutilisés depuis les caches.
+réduction comprise, comme l'illustrent `symm` dans le paragraphe suivant et
+`covariance` (@sec:evaluations:cpu:sensitivity).
 
 Le cas de `symm` illustre la combinaison de transformations à l'origine de ces
 gains. Pour chaque élément `(i, j)`, ce noyau accumule une somme partielle
@@ -311,9 +309,9 @@ gains. Pour chaque élément `(i, j)`, ce noyau accumule une somme partielle
 (@code:evaluations:symm-kokkos). Ces mises à jour relient entre elles toutes les
 itérations de `i`, si bien que seule la boucle `j` est parallèle dans le nid
 d'origine. ISL sépare le corps du nid en plusieurs nids de boucles distincts,
-chacun parallèle et tuilé par blocs de 32 (@code:evaluations:symm-isl) :
-l'accumulation de `tmp` et la mise à jour finale de `C(i, j)` sont parallélisées
-sur `i`, et les mises à jour de `C(k, j)` sur `j`.
+chacun parallèle et tuilé par blocs de 32 (@code:evaluations:symm-isl).
+L'accumulation de `tmp` et la mise à jour finale de `C(i, j)` sont parallélisées
+sur~`i`, et les mises à jour de `C(k, j)` sur `j`.
 
 L'ampleur du gain tient à la version de référence. Celle-ci exécute la boucle
 `i` séquentiellement sur l'hôte et lance, à chacune des itérations, un
@@ -380,18 +378,17 @@ Pluto), `cholesky` (14.52$times$ et 7.31$times$), `ludcmp` (14.20$times$ et
 8.75$times$) et `trisolv` (2.30$times$ et 3.67$times$), ainsi que `lu`, discuté
 dans la @sec:evaluations:cpu:sensitivity. Ces noyaux présentent des dépendances
 portées par toutes les dimensions du nid de boucles, de sorte qu'aucune boucle
-n'est directement parallélisable sans transformation préalable : leur version de
+n'est directement parallélisable sans transformation préalable. Leur version de
 référence exécute donc tout ou partie du calcul séquentiellement. En appliquant
 des transformations de torsion de boucle, Pluto rend le nid tuilable et expose
 un parallélisme en front d'onde entre les tuiles.
 
 Le code généré par Pluto pour `seidel-2d` illustre ce mécanisme
 (@code:evaluations:seidel-pluto). Chaque instance d'instruction $(t, i, j)$ est
-ordonnancée en $(t, t + i, 2t + i + j)$ : cette torsion rend les trois
-dimensions tuilables. Les tuiles sont ensuite parcourues par fronts d'onde : les
-fronts sont traités l'un après l'autre, et les tuiles d'un même front,
-indépendantes, s'exécutent en parallèle. Pluto applique le même mécanisme à
-`ludcmp`.
+ordonnancée en $(t, t + i, 2t + i + j)$. Cette torsion rend les trois dimensions
+tuilables. Les tuiles sont ensuite parcourues par fronts d'onde. Les fronts sont
+traités l'un après l'autre, et les tuiles d'un même front, indépendantes,
+s'exécutent en parallèle. Pluto applique le même mécanisme à `ludcmp`.
 
 L'écriture des versions de référence explique l'ampleur de ces gains. La version
 de `seidel-2d` est entièrement séquentielle, la mise à jour en place du tableau
@@ -399,7 +396,7 @@ interdisant toute parallélisation directe. La version de `cholesky` est
 également entièrement séquentielle. Les accélérations de Pluto (18.56$times$ et
 15.66$times$) mesurent donc à la fois le parallélisme par front d'onde et le
 gain de localité apporté par le tuilage des boucles. La version de référence de
-`ludcmp` n'est que partiellement parallèle : la boucle externe de la
+`ludcmp` n'est que partiellement parallèle. La boucle externe de la
 factorisation s'exécute séquentiellement, et à chacune de ses itérations seule
 la partie supérieure de la ligne est parallélisée, la partie inférieure restant
 séquentielle. En transformant l'ensemble de la factorisation par fronts d'onde,
@@ -441,7 +438,7 @@ exploite moins de parallélisme que la version de référence.
 soient l'ordonnanceur et la machine (entre #box[0.91$times$] et
 #box[0.99$times$]), et `doitgen` comme `mvt` n'obtiennent que des gains
 modestes. Ces noyaux de type matrice-vecteur lisent chaque élément de matrice
-une seule fois : leur performance est bornée par la bande passante mémoire et le
+une seule fois. Leur performance est bornée par la bande passante mémoire et le
 tuilage n'a aucune localité à exploiter.
 
 *Les fausses dépendances dues aux scalaires.* Le noyau `deriche` régresse sur
@@ -454,7 +451,7 @@ colonnes, restent donc indépendantes les unes des autres, et la version de
 référence les traite en parallèle.
 
 Le modèle polyédrique ne voit pas cette indépendance. Polly représente chaque
-scalaire par un emplacement mémoire unique, partagé par toutes les lignes : du
+scalaire par un emplacement mémoire unique, partagé par toutes les lignes. Du
 point de vue du modèle, chaque ligne réécrit les valeurs laissées par la
 précédente, ce qui crée de fausses dépendances entre les lignes. Les deux
 ordonnanceurs exécutent alors séquentiellement les quatre passes récursives
@@ -536,11 +533,11 @@ par fronts d'onde, et accélère ces mêmes noyaux, par exemple `jacobi-2d`
 ISL échoue également sur les solveurs triangulaires `ludcmp` (0.76$times$ et
 0.95$times$) et `trisolv` (0.96$times$ et 0.92$times$). Sur `trisolv`, il
 échange les deux boucles du nid, mais la seule boucle parallèle obtenue est à
-nouveau la plus interne : comme pour les stencils, le code généré est
-entièrement séquentiel. La version de référence n'est pas efficace, elle lance
-une réduction parallèle pour chacune des lignes de la matrice, dont le coût de
-lancement pèse lourdement face au peu de travail confié à chaque thread. Ces
-deux inefficacités se compensent, d'où des performances proches de la référence.
+nouveau la plus interne. Comme pour les stencils, le code généré est entièrement
+séquentiel. La version de référence n'est pas efficace, elle lance une réduction
+parallèle pour chacune des lignes de la matrice, dont le coût de lancement pèse
+lourdement face au peu de travail confié à chaque thread. Ces deux inefficacités
+se compensent, d'où des performances proches de la référence.
 
 Sur `ludcmp`, ISL conserve la structure d'origine du nid, sans tuilage, et
 reproduit la parallélisation de la version de référence, là où Pluto parallélise
@@ -554,8 +551,7 @@ s'accélère légèrement sur la machine Intel (#box[1.28$times$] et
 séquentielle, dont chaque itération ne contient que de petites boucles. La
 version de référence parallélise ces petites boucles, au prix de trois
 synchronisations par itération, tandis que le code généré par ISL comme par
-Pluto est entièrement séquentiel, Polly ne parallélisant ni la réduction ni les
-boucles les plus internes. Le résultat dépend donc du matériel : le code
+Pluto est entièrement séquentiel. Le résultat dépend donc du matériel. Le code
 séquentiel profite de la fréquence élevée d'un coeur Intel, mais ne rivalise
 pas, sur la machine AMD et ses coeurs plus lents, avec une version parallèle
 répartie sur 64 coeurs.
@@ -580,22 +576,25 @@ référence.
   // Remontée en colonnes et descente en lignes, fusionnées
   #pragma minimal dependence distance: 1
   for (int c3 = 0; c3 < 2 * N - 5; c3 += 1) {  // anti-diagonales
+    if (c3 < N - 2)
       #pragma minimal dependence distance: 1
       for (int c8 = 0; c8 < N - 2; c8 += 1)
-      Stmt4(...);   // remontée en colonnes : séquentielle
+        Stmt4(...);   // remontée en colonnes : séquentielle
     #pragma omp parallel for
     for (int c8 = ...; c8 <= ...; c8 += 1)
       #pragma simd
       for (int c9 = ...; c9 <= ...; c9 += 1)
         Stmt8b(...);  // descente en lignes, 1re partie : parallèle
+    if (c3 < N - 2)
       #pragma minimal dependence distance: 1
       for (int c8 = 0; c8 < N - 2; c8 += 1)
-      Stmt8(...);   // descente en lignes, 2e partie : séquentielle
+        Stmt8(...);   // descente en lignes, 2e partie : séquentielle
   }
   ```,
-  caption: [Extrait de l'AST généré par Polly avec l'ordonnanceur Pluto pour
-    `adi` sur CPU, à l'intérieur de la boucle temporelle. Les bornes, les
-    indices et les gardes sont omis, et le paramètre `p_0` a été renommé `N`.],
+  caption: [Extrait simplifié de l'AST généré par Polly avec l'ordonnanceur
+    Pluto pour `adi` sur CPU : le nid fusionné, à l'intérieur de la boucle
+    temporelle. Les bornes et les indices sont omis, et le paramètre `p_0` a été
+    renommé `N`.],
 ) <code:evaluations:adi-pluto>
 
 Ces régressions se reproduisent à l'identique sur les deux machines. Aucun des
@@ -654,17 +653,17 @@ AMD le tuilage reste bénéfique.
 
 Cette évaluation montre que la visibilité restaurée par nos contributions permet
 à Polly d'optimiser des codes Kokkos avec des gains en performance non
-négligeables : 24 des 27 noyaux sont accélérés sur chaque machine. Ces gains ont
-deux origines : une amélioration de la localité mémoire, des transformations
-créant des boucles sans dépendance parallèles comme le front d'onde de Pluto.
+négligeables, puisque 24 des 27 noyaux sont accélérés sur chaque machine. Ces
+gains ont deux origines : une amélioration de la localité mémoire, des
+transformations créant des boucles sans dépendance parallèles comme le front
+d'onde de Pluto.
 
 Les régressions surviennent lorsque le code généré exploite moins de
 parallélisme que la référence (fausses dépendances dues aux scalaires,
 parallélisme limité à la boucle la plus interne ou fusion défavorable). S'y
 ajoute une sensibilité au matériel avec la taille de tuile fixe et l'absence de
 modèle de coût prenant en compte la hiérarchie de caches provoquant des
-régressions sur certaines architectures, comme pour les noyaux `cholesky` et
-`adi` sur la machine Intel.
+régressions sur certaines architectures.
 
 La section suivante étend cette évaluation aux accélérateurs GPU, où la
 génération de code repose sur PPCG.
@@ -693,9 +692,9 @@ sont activées.
 
 Sur les 27 noyaux évalués, 24 sont compilés et produisent des résultats corrects
 avec PPCG. Les trois noyaux restants, `adi`, `fdtd-2d` et `heat-3d`, n'ont pas
-pu être compilés : l'ordonnancement calculé par PPCG ne termine pas en un temps
-raisonnable, en raison du nombre considérable de contraintes générées pour ces
-nids de boucles.
+pu être compilés, car l'ordonnancement calculé par PPCG ne termine pas en un
+temps raisonnable, en raison du nombre considérable de contraintes générées pour
+ces nids de boucles.
 
 La @fig:evaluations:gpu présente les accélérations obtenues sur les 24 noyaux
 restants, et le @table:evaluations:gpu-geomean en résume les moyennes
@@ -736,10 +735,10 @@ géométriques par catégorie.
 
     [Medley], [1], speedup-cell("0.20", "0/1"),
 
-    [Stencils], [6], speedup-cell("5.08", "1/3"),
+    [Stencils], [3], speedup-cell("5.08", "1/3"),
 
     table.hline(stroke: 0.5pt),
-    [*Ensemble*], [27], speedup-cell("7.25", "16/24"),
+    [*Ensemble*], [24], speedup-cell("7.25", "16/24"),
     table.hline(stroke: 1pt),
   ),
   caption: [Moyennes géométriques des accélérations sur GPU par catégorie de
@@ -748,14 +747,14 @@ géométriques par catégorie.
 ) <table:evaluations:gpu-geomean>
 
 Les accélérations s'étendent sur plus de quatre ordres de grandeur, de
-0.12$times$ sur `jacobi-1d` à 3581.16$times$ sur `lu`. Seize noyaux sont
-accélérés, dont `gemver` de façon marginale (1.01$times$), quatre restent
-pratiquement neutres (`gesummv`, `atax`, `bicg` et `mvt`, à 0.99$times$) et
-quatre régressent (`doitgen`, `deriche`, `jacobi-1d` et `jacobi-2d`). La moyenne
-géométrique globale de 7.25$times$ est tirée vers le haut par les six noyaux
-dont la version de référence est limitée par une boucle externe séquentielle.
-Sans eux, l'accélération moyenne est de 1.65$times$. Les résultats se
-répartissent ainsi en trois groupes, détaillés ci-dessous.
+0.12$times$ sur `jacobi-1d` à 3581.16$times$ sur `lu`. Quinze noyaux sont
+accélérés, cinq restent pratiquement neutres (`gemver` à 1.01$times$, `gesummv`,
+`atax`, `bicg` et `mvt` à 0.99$times$) et quatre régressent (`doitgen`,
+`deriche`, `jacobi-1d` et `jacobi-2d`). La moyenne géométrique globale de
+7.25$times$ est tirée vers le haut par les six noyaux dont la version de
+référence est limitée par une boucle externe séquentielle. Sans eux,
+l'accélération moyenne est de 1.65$times$. Les résultats se répartissent ainsi
+en trois groupes, détaillés ci-dessous.
 
 === Parallélisation des noyaux à dépendances <sec:evaluations:gpu:dependences>
 
@@ -773,7 +772,7 @@ sont même entièrement séquentielles.
 
 PPCG réorganise au contraire ces calculs pour en extraire le parallélisme. Pour
 les factorisations `lu`, `ludcmp` et `cholesky`, il découpe le calcul en étapes
-successives, lancées depuis l'hôte (@code:evaluations:lu-ppcg) : à chaque étape,
+successives, lancées depuis l'hôte (@code:evaluations:lu-ppcg). À chaque étape,
 la mise à jour de la partie restante de la matrice est confiée à des noyaux
 mobilisant des centaines de milliers de threads et chargeant en mémoire partagée
 les données réutilisées au sein d'un bloc. Pour `seidel-2d`, il applique un
@@ -804,15 +803,10 @@ exécute sur l'hôte au moyen d'une boucle inefficace.
 Le noyau `gramschmidt` n'obtient qu'un gain modeste (#box[1.58$times$]). Son
 calcul se déroule en étapes successives, et sa version de référence parallélise
 déjà l'essentiel du travail. PPCG parallélise plus largement l'opération
-principale, la mise à jour de la matrice, mais il calcule sur un seul thread la
-norme dont chaque étape a besoin, là où la référence l'obtient par une réduction
-parallèle, ce qui limite le gain.
+principale de la mise à jour de la matrice, mais il calcule sur un seul thread
+la norme dont chaque étape a besoin, là où la référence l'obtient par une
+réduction parallèle, ce qui limite le gain.
 
-Ces ratios extrêmes doivent être interprétés avec précaution. Ils traduisent
-l'écart entre une version de référence et un ordonnancement fait pour extraire
-le parallélisme. Ils permettent d'illustrer l'intérêt principal de l'approche,
-les gains de parallélisme sont obtenus automatiquement à partir d'un code source
-portable et non modifié.
 
 === Exploitation de la hiérarchie mémoire <sec:evaluations:gpu:memory>
 
@@ -830,14 +824,14 @@ parallélisation que la référence, avec un thread par colonne, et le gain
 provient essentiellement de la mémoire partagée. Enfin, `gemm`
 (#box[1.90$times$]), `2mm` (#box[1.41$times$]) et `3mm` (#box[1.09$times$])
 n'obtiennent que des gains modérés grâce à la mémoire partagée et la
-privatisation des variables (les versions de référence utilisent déjà un
-parallélisme efficace).
+privatisation des variables, les versions de référence utilisant déjà un
+parallélisme efficace.
 
 À l'inverse, `gemver` (#box[1.01$times$]), `gesummv`, `atax`, `bicg` et `mvt`
 (#box[0.99$times$]) restent neutres. Comme sur CPU, ces produits matrice-vecteur
-lisent chaque élément de matrice une seule fois : leur performance est bornée
-par la bande passante de la mémoire globale. PPCG reproduit la parallélisation
-faite dans la version de référence.
+lisent chaque élément de matrice une seule fois. Leur performance est bornée par
+la bande passante de la mémoire globale. PPCG reproduit la parallélisation faite
+dans la version de référence.
 
 === Contre-performances <sec:evaluations:gpu:slowdowns>
 
@@ -957,7 +951,7 @@ la cible GPU.
   ) <table:evaluations:compiletime>
 ]
 
-Pour la grande majorité des noyaux, le surcoût reste faible : les médianes
+Pour la grande majorité des noyaux, le surcoût reste faible. Les médianes
 s'établissent à #box[1.05$times$] pour ISL, #box[1.16$times$] pour Pluto et
 #box[1.00$times$] pour PPCG, et 25 des 27 noyaux se compilent en moins de
 #box[1.2$times$] le temps de référence avec ISL. Ce résultat s'explique en
