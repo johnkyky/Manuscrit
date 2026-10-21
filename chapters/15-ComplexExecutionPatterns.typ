@@ -562,7 +562,7 @@ ultérieurs sont systématiquement remplacées par le pointeur originel capturé
 lors de la première occurrence du tableau. Cette unification des variables SSA
 permet non seulement d'éliminer les redondances dans l'IR, mais aussi
 d'éradiquer les faux positifs liés à l'aliasing. Polly dispose ainsi d'une
-vision globale et parfaitement cohérente des différents accès mémoire, pour
+vision globale et parfaitement cohérente des différents accès mémoire, pour une
 analyse correcte du SCoP fusionné.
 
 

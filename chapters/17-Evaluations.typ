@@ -749,8 +749,8 @@ géométriques par catégorie.
     table.hline(stroke: 1pt),
   ),
   caption: [Moyennes géométriques des accélérations sur GPU par catégorie de
-    benchmark. Entre parenthèses figure le nombre de noyaux accélérés sur nombre
-    de noyaux évalués.],
+    benchmark. Entre parenthèses figure le nombre de noyaux accélérés sur le
+    nombre de noyaux évalués.],
 ) <table:evaluations:gpu-geomean>
 
 Les accélérations s'étendent sur plus de quatre ordres de grandeur, de

@@ -436,7 +436,7 @@
     optimizations offered by the polyhedral model to Kokkos, a performance
     portability framework. While this type of framework allows developers to
     write a single codebase for both CPUs and GPUs while guaranteeing
-    architecture independent performance, it does not allow taking advantage of
+    architecture-independent performance, it does not allow taking advantage of
     the optimizations offered by the polyhedral model. Indeed, polyhedral
     optimizers, such as LLVM's Polly, fail to apply their optimization models.
     To overcome this obstacle, we propose a tight integration between Kokkos and
@@ -452,7 +452,7 @@
   english-keywords: (
     "High-performance computing",
     "Compilation",
-    "Loops optimization",
+    "Loop optimization",
     "Intermediate representation",
     "Kokkos",
   ),

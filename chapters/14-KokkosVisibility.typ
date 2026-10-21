@@ -121,7 +121,7 @@ modifications apportées à Kokkos.
 
 == Modifications de Kokkos <sec:kokkosvisibility:kokkos_modifications>
 
-Le co-design entre Kokkos et Polly implique d'instrumenter Kokkos afin qu'elle
+Le co-design entre Kokkos et Polly implique d'instrumenter Kokkos afin qu'il
 injecte des informations sémantiques supplémentaires (telles que les bornes de
 boucles, des informations sur les tableaux ou encore le backend utilisé) lors de
 la génération du code. Ces informations, préservées sous forme d'annotations
@@ -711,7 +711,7 @@ une forme unique, simplifiée et analysable par Polly.
 
 Par ailleurs, Polly insère automatiquement un mécanisme de garde dynamique afin
 de vérifier à l'exécution la validité des hypothèses formulées lors de l'analyse
-statique. Ce contrôle s'assure notamment de cohérence entre le domaine
+statique. Ce contrôle s'assure notamment de la cohérence entre le domaine
 d'itération et les paramètres utilisés. Ces vérifications conditionnent le
 lancement du code transformé : si les contraintes du modèle polyédrique ne sont
 pas respectées, l'exécution bascule vers la version originelle du code,
@@ -1037,8 +1037,8 @@ réguliers et isolés, le traitement d'algorithmes plus complexes soulève de
 nouveaux défis pour l'optimisation polyédrique. D'une part, Polly doit être
 capable de traiter les nids de boucles triangulaires. D'autre part, lorsque les
 calculs sont fragmentés en de multiples appels consécutifs à la fonction
-`parallel_for`, le compilateur conserve qu'une vision locale de chaque portion
-du noyau, ce qui entrave l'application de transformations inter-noyaux. Nous
-détaillons au chapitre suivant (@sec:complexexecutionpatterns) les extensions
-conçues pour surmonter ces verrous et étendre notre approche à ces motifs
-d'exécution complexes.
+`parallel_for`, le compilateur ne conserve qu'une vision locale de chaque
+portion du noyau, ce qui entrave l'application de transformations inter-noyaux.
+Nous détaillons au chapitre suivant (@sec:complexexecutionpatterns) les
+extensions conçues pour surmonter ces verrous et étendre notre approche à ces
+motifs d'exécution complexes.
