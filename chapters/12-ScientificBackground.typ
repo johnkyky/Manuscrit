@@ -678,11 +678,11 @@ L'application du modèle polyédrique repose fortement sur des bibliothèques
 mathématiques capables de résoudre des systèmes complexes d'inégalités affines
 en nombres entiers.
 
-==== Integer Set Library (isl) <sec:scientificbackground:isl>
+==== Integer Set Library (ISL) <sec:scientificbackground:isl>
 
-Pour manipuler les polyèdres, la bibliothèque _Integer Set Library_ (isl),
+Pour manipuler les polyèdres, la bibliothèque _Integer Set Library_ (ISL),
 développée par Sven Verdoolaege~@ISL, est largement utilisée dans la communauté
-polyédrique. isl est une bibliothèque en C conçue pour manipuler des ensembles
+polyédrique. ISL est une bibliothèque en C conçue pour manipuler des ensembles
 et des relations de points entiers bornés par des contraintes affines. Elle
 manipule deux structures principales :
 
@@ -694,16 +694,16 @@ manipule deux structures principales :
 polyédriques essentielles, y compris l'intersection, l'union, la différence
 d'ensembles et le calcul de minimums ou maximums lexicographiques.
 
-Au-delà des opérations d'ensembles de base, l'une des fonctionnalités d'isl est
+Au-delà des opérations d'ensembles de base, l'une des fonctionnalités d'ISL est
 son *moteur d'ordonnancement* intégré. Basé sur une variante de l'algorithme du
-compilateur polyédrique Pluto~@pluto2, isl peut calculer automatiquement des
+compilateur polyédrique Pluto~@pluto2, ISL peut calculer automatiquement des
 ordonnancements affines qui respectent toutes les dépendances de données tout en
 améliorant la localité des données et en exposant du parallélisme.
 
-Enfin, une fois qu'un ordonnancement a été calculé, isl dispose d'un générateur
+Enfin, une fois qu'un ordonnancement a été calculé, ISL dispose d'un générateur
 d'AST. Ce composant traduit la représentation polyédrique transformée en une
 structure classique de nids de boucles. Parce qu'elle encapsule la totalité de
-la chaîne de compilation mathématique, isl sert de moteur fondamental pour la
+la chaîne de compilation mathématique, ISL sert de moteur fondamental pour la
 quasi-totalité des compilateurs polyédriques modernes. La
 @fig:scientificbackground:isl_syntax_example illustre comment un nid de boucles
 C standard est modélisé mathématiquement à l'aide de la syntaxe des Sets et des
@@ -727,7 +727,7 @@ Maps d'#gls("isl").
     ],
     [
       #figure(
-        ```text
+        ```isl
         // Domaine de l'ensemble d'itération
         [N, M] -> { S1[i, j] : 0 <= i < N and 0 <= j < M }
 
@@ -739,13 +739,13 @@ Maps d'#gls("isl").
         [N, M] -> { S1[i, j] -> B[i] }    // Lecture
         [N, M] -> { S1[i, j] -> C[j] }    // Lecture
         ```,
-        caption: [Représentation isl du domaine d'itérations, de
+        caption: [Représentation ISL du domaine d'itérations, de
           l'ordonnancement et des fonctions d'accès pour le code donné en
           exemple.],
       )
     ],
   ),
-  caption: [Exemple d'un nid de boucles simple et de sa représentation isl
+  caption: [Exemple d'un nid de boucles simple et de sa représentation ISL
     correspondante.],
   label: <fig:scientificbackground:isl_syntax_example>,
 )
@@ -934,7 +934,7 @@ stricte de passes LLVM séquentielles, comme illustré par la
 - *`ScopInfo` :* Extrait les instructions de l'#gls("ir") des régions valides et
   les traduit en représentations mathématiques #gls("isl") (domaines, accès,
   dépendances de données, et ordonnancement original).
-- *`ScheduleOptimizer` :* Invoque le moteur d'ordonnancement intégré d'isl pour
+- *`ScheduleOptimizer` :* Invoque le moteur d'ordonnancement intégré d'ISL pour
   calculer des transformations affines qui améliorent la localité des données et
   exposent du parallélisme.
 - *`IslAst` :* Génère un nouvel #gls("ast") #gls("isl") représentant la
@@ -989,8 +989,8 @@ structures de code en objets #gls("isl").
 Pour chaque bloc de base au sein de la région, `ScopInfo` définit une
 instruction mathématique. Ensuite, il construit le *domaine d'itération* exact
 en traduisant les contraintes affines des boucles englobantes obtenues grâce à
-la passe SCEV (_Scalar Evolution_) en structure isl. De même, les instructions
-mémoire (telles que `load` et `store`) sont converties en relations d'accès isl,
+la passe SCEV (_Scalar Evolution_) en structure ISL. De même, les instructions
+mémoire (telles que `load` et `store`) sont converties en relations d'accès ISL,
 mappant l'exécution logique d'une instruction à des adresses mémoire
 spécifiques.
 

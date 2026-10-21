@@ -8,7 +8,13 @@
 
 /* Codly initialization and configuration */
 #show: codly-init.with()
-#codly(languages: codly-languages.codly-languages)
+#codly(
+  languages: codly-languages.codly-languages
+    + (
+      isl: (name: "ISL", icon: none, color: gray),
+      openscop: (name: "OpenScop", icon: none, color: gray),
+    ),
+)
 
 /* Glossary initialization and configuration */
 #show: make-glossary
@@ -297,7 +303,7 @@
   "PPCG",
   "OpenScop library",
   "OpenScop",
-  regex("\b(isl)\b"),
+  regex("\b(ISL)\b"),
   "Integer Set Library",
   "PET",
   "Graphite",

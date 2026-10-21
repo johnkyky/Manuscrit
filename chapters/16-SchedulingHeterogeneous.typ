@@ -16,7 +16,7 @@ Kokkos tire une part essentielle de ses performances d'exécution sur
 accélérateurs graphiques et machines multi-processeurs généralistes à mémoire
 partagée (GPU), tandis que le flot standard de Polly cible exclusivement les
 processeurs multi-coeurs (CPU). D'autre part, Polly se limite aux heuristiques
-d'un unique ordonnanceur, celui d'isl, restreignant l'espace des transformations
+d'un unique ordonnanceur, celui d'ISL, restreignant l'espace des transformations
 de code explorées.
 
 Afin de pallier ces limitations, nous avons étendu le compilateur en y intégrant

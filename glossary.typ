@@ -60,7 +60,7 @@
   ),
   (
     key: "isl",
-    short: "isl",
+    short: "ISL",
     long: "Integer Set Library",
   ),
   (
