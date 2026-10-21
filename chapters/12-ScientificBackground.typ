@@ -9,13 +9,13 @@ haut niveau et les transformations mathématiques de boucles de bas niveau, une
 solide compréhension de ces deux domaines est requise.
 
 Ce chapitre fournit les bases théoriques nécessaires pour la suite du manuscrit.
-Tout d'abord, le @sec:scientificbackground:loopnests présente le concept de nid
-de boucles. Le @sec:scientificbackground:kokkos introduit le modèle de
+Tout d'abord, la @sec:scientificbackground:loopnests présente le concept de nid
+de boucles. La @sec:scientificbackground:kokkos introduit le modèle de
 programmation Kokkos, en détaillant ses abstractions de mémoire et d'exécution.
-Le @sec:scientificbackground:polyhedral explore la représentation polyédrique et
-le @sec:scientificbackground:polyhedralecosystem décrit les outils et
+La @sec:scientificbackground:polyhedral explore la représentation polyédrique et
+la @sec:scientificbackground:polyhedralecosystem décrit les outils et
 compilateurs de l'écosystème polyédrique, avec une attention particulière portée
-dans le @sec:scientificbackground:polly à l'outil Polly qui constitue le point
+dans la @sec:scientificbackground:polly à l'outil Polly qui constitue le point
 de départ de notre implémentation.
 
 
@@ -66,7 +66,7 @@ sous forme de boucles parfaitement imbriquées. Nous généralisons le concept a
 *boucles imparfaitement imbriquées*, qui se produisent lorsque des instructions
 de calcul existent à différents niveaux d'imbrication. En d'autres termes, les
 instructions sont intercalées entre les boucles. De plus, plusieurs boucles de
-mêmes profondeurs peuvent apparaitre dans le nid.
+mêmes profondeurs peuvent apparaître dans le nid.
 
 La @code:scientificbackground:imperfectnest présente un nid de boucles imparfait
 où une instruction d'initialisation `S1` est exécutée à l'intérieur de la boucle
@@ -93,7 +93,7 @@ parallélisation comme Kokkos, présentés dans le
 de la localité des données dans ces nids imparfaits nécessitent des
 transformations de code complexes. Cette complexité mathématique est précisément
 ce que le modèle polyédrique, présenté à la @sec:scientificbackground:polyhedral
-suivant, vise à résoudre.
+suivante, vise à résoudre.
 
 
 
@@ -1095,7 +1095,7 @@ Grâce à cette méthode itérative, Polly réussit à séparer les tailles des
 différentes dimensions et à extraire les indices d'accès ($i$, $j$, $k$). Cette
 étape de reconstruction est primordiale car elle restaure la vue
 multidimensionnelle et affine des tableaux, indispensable au modèle polyédrique.
-Toutefois, nous montrons au @sec:kokkosvisibility:delinearization qu'une telle
+Toutefois, nous montrons à la @sec:kokkosvisibility:delinearization qu'une telle
 délinéarisation échoue (ou est insuffisante) lorsque l'accès s'effectue avec un
 indice constant nul (0).
 

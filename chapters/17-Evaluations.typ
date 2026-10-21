@@ -637,7 +637,7 @@ Le code ISL parallélise en une succession d'étapes propice au grand nombre de
 coeurs de la machine AMD. Sur la machine Intel, les étapes sont réparties en
 blocs égaux entre les coeurs P (performance) et E (efficacité énergétique). Les
 coeurs E, moins rapides, terminent leur bloc en dernier et déterminent ainsi la
-durée du calcul.. Pluto parcourt au contraire le calcul par fronts d'onde. Il
+durée du calcul. Pluto parcourt au contraire le calcul par fronts d'onde. Il
 réutilise mieux les données, mais chaque front de charges inégales compte un
 nombre limité de tuiles qui ne suffisent pas à occuper les 64 coeurs de la
 machine AMD. Le code tire davantage parti de la fréquence élevée des coeurs

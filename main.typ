@@ -122,7 +122,7 @@
       firstname: "Corinne",
       lastname: "ANCOURT",
       position: "Directrice de recherche",
-      affiliation: "Ecole des Mines de Paris",
+      affiliation: "École des Mines de Paris",
     ),
     (
       civility: "M.",
@@ -134,7 +134,7 @@
   ),
   jury-members: (
     (
-      civility: "Mme.",
+      civility: "Mme",
       firstname: "Elisabeth",
       lastname: "BRUNET",
       position: "Maîtresse de conférences",

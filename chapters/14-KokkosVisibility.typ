@@ -581,7 +581,7 @@ sont détaillées ci-dessous.
   pointeurs distincts. Cette étape est cruciale lorsque ces pointeurs sont
   capturés par des fonctions _lambda_ différentes dans le cadre d'une fusion
   inter-noyaux (@sec:complexexecutionpatterns:globalloopvision);
-- Les *contraintes d'assomption * : formulation textuelle de relations
+- Les *contraintes d'assomption* : formulation textuelle de relations
   algébriques (égalités, inégalités) entre paramètres de boucles, injectées sous
   forme d'hypothèses dans le domaine polyédrique
   (@sec:complexexecutionpatterns:assumptions).
