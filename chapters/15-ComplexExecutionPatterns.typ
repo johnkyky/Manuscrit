@@ -174,7 +174,7 @@ traiter et d'éliminer de façon ciblée les itérations non exécutées du corp
 principal.
 
 
-==== Épluchage de boucles
+==== Application de l'épluchage de boucle
 L'étape d'analyse précédente permet de recenser toutes les boucles triangulaires
 et de déterminer le nombre d'itérations à éplucher requis pour chacune d'entre
 elles. Néanmoins, un noyau de calcul peut encapsuler plusieurs boucles internes

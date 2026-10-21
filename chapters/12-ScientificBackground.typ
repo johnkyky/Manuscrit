@@ -695,7 +695,7 @@ polyédriques essentielles, y compris l'intersection, l'union, la différence
 d'ensembles et le calcul de minimums ou maximums lexicographiques.
 
 Au-delà des opérations d'ensembles de base, l'une des fonctionnalités d'ISL est
-son *moteur d'ordonnancement* intégré. Basé sur une variante de l'algorithme du
+son *moteur d'ordonnancement* intégré. Basée sur une variante de l'algorithme du
 compilateur polyédrique Pluto~@pluto2, ISL peut calculer automatiquement des
 ordonnancements affines qui respectent toutes les dépendances de données tout en
 améliorant la localité des données et en exposant du parallélisme.

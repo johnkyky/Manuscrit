@@ -105,7 +105,7 @@
 #front-cover(
   title: title-fr,
   author: "Ugo BATTISTON",
-  defense-date: datetime(day: 18, month: 12, year: 2025),
+  defense-date: datetime(day: 10, month: 12, year: 2026),
   supervisors: (
     (
       civility: "M.",
