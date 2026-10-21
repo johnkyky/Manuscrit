@@ -564,7 +564,7 @@ Concernant les bornes de boucles, un mécanisme analogue est employé afin de
 relier les bornes (inférieure et supérieure) de la politique d'exécution
 utilisée à la profondeur de la boucle au sein du nid de boucle.
 
-La @sec:complexexecutionpatterns détaillera l'utilisation de ces annotations
+Le @sec:complexexecutionpatterns détaillera l'utilisation de ces annotations
 pour étendre les capacités de détection de Polly. Au-delà des métadonnées
 relatives aux tableaux et aux bornes de boucles, des annotations additionnelles
 s'avèrent indispensables pour garantir une utilisation transparente de Polly

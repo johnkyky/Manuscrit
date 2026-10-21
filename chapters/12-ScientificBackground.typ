@@ -88,7 +88,7 @@ instruction `S2`.
 
 Bien que les nids de boucles imparfaits soient naturels à écrire pour les
 développeurs, ils posent un défi important pour les frameworks de
-parallélisation comme Kokkos, présentés dans le
+parallélisation comme Kokkos, présentés dans la
 @sec:scientificbackground:kokkos. L'extraction du parallélisme et l'optimisation
 de la localité des données dans ces nids imparfaits nécessitent des
 transformations de code complexes. Cette complexité mathématique est précisément
@@ -1014,7 +1014,7 @@ effectuer les transformations polyédriques associées.
 
 En effet, lors de la génération de l'#gls("ir"), les accès aux tableaux
 multidimensionnels sont linéarisés en une arithmétique de pointeurs
-unidimensionnelle. Le @code:scientificbackground:delinearization montre un
+unidimensionnelle. La @code:scientificbackground:delinearization montre un
 exemple où l'accès au tableau tridimensionnel `A[i][j][k]` est compilé avec un
 décalage mémoire calculé par l'expression mathématique
 $i times M times P + j times P + k$.
