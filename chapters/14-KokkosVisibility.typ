@@ -1,7 +1,7 @@
 #import "../src/common.typ": *
 
 
-= Rendre les noyaux de calculs de Kokkos visibles <sec:kokkosvisibility>
+= Rendre les noyaux de calcul de Kokkos visibles <sec:kokkosvisibility>
 
 Dans ce chapitre, nous présentons la première contribution majeure de cette
 thèse : une chaîne de compilation qui comble le fossé sémantique entre la
@@ -562,7 +562,7 @@ annotée par une chaîne de caractères définissant le type d'accès (ex. `"dim
 tout en précisant le niveau d'imbrication correspondant (ex. `"dim 1"`).
 Concernant les bornes de boucles, un mécanisme analogue est employé afin de
 relier les bornes (inférieure et supérieure) de la politique d'exécution
-utilisée à la profondeur de la boucle au sein du nid de boucle.
+utilisée à la profondeur de la boucle au sein du nid de boucles.
 
 Le @sec:complexexecutionpatterns détaillera l'utilisation de ces annotations
 pour étendre les capacités de détection de Polly. Au-delà des métadonnées
@@ -1020,7 +1020,7 @@ chaque noyau Kokkos qui informe explicitement le compilateur de son architecture
 matérielle cible et qui définit si le SCoP correspondant doit être exécuté en
 parallèle. Notre implémentation permet actuellement de cibler trois
 environnements d'exécution distincts : *Serial* (exécution séquentielle),
-*OpenMP* et *Cuda*. La génération de code pour l'architecture Cuda, qui n'existe
+*OpenMP* et *CUDA*. La génération de code pour l'architecture CUDA, qui n'existe
 pas nativement au sein de Polly, a nécessité une intégration spécifique qui est
 détaillée à la @sec:schedulingheterogeneous:ppcg.
 

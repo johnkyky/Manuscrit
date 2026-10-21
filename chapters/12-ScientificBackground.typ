@@ -127,7 +127,7 @@ l'endroit où résident les données :
 - *Les Espaces Mémoire* définissent où les données sont physiquement allouées.
   Ils abstraient la hiérarchie de la mémoire de la machine cible. Des exemples
   courants incluent `Kokkos::HostSpace` pour la mémoire principale de la machine
-  hôte, `Kokkos::CudaSpace` pour la mémoire du périphérique GPU Cuda, ou
+  hôte, `Kokkos::CudaSpace` pour la mémoire du périphérique GPU CUDA, ou
   `Kokkos::CudaUVMSpace` pour la mémoire virtuelle unifiée (UVM).
 
 Ce concept d'espaces est étroitement lié aux abstractions de données et aux
@@ -227,10 +227,10 @@ d'exécution cible.
 `Kokkos::RangePolicy` et `Kokkos::MDRangePolicy` décrivent les espaces
 d'itérations pour les boucles unidimensionnelles et les boucles parfaitement
 imbriquées à $n$ dimensions. Sous le capot, `MDRangePolicy` applique
-automatiquement un pavage spécifique à l'architecture pour maximiser la localité
-du cache ou la coalescence des accès mémoire. Nous verrons au
-@sec:kokkosvisibility que ce pavage doit être annihilé pour laisser libre cours
-au pavage automatique du modèle polyédrique
+automatiquement un tuilage spécifique à l'architecture pour maximiser la
+localité du cache ou la coalescence des accès mémoire. Nous verrons au
+@sec:kokkosvisibility que ce tuilage doit être annihilé pour laisser libre cours
+au tuilage automatique du modèle polyédrique.
 
 ===== TeamPolicy
 Pour des algorithmes plus complexes, les espaces d'itérations unidimensionnels
@@ -363,8 +363,8 @@ sont modélisées comme des relations affines entre les vecteurs d'itération de
 instructions source et cible. Par conséquent, optimiser un segment de code
 équivaut à appliquer des transformations affines à ces espaces d'itérations pour
 exposer le parallélisme ou améliorer la localité des données. De telles
-transformations incluent la réorganisation d'instructions, le pavage de boucles,
-la torsion, et la fusion ou fission de boucles.
+transformations incluent la réorganisation d'instructions, le tuilage de
+boucles, la torsion, et la fusion ou fission de boucles.
 
 Pour illustrer ces concepts tout au long de cette section, la
 @fig:scientificbackground:scopexample présente un exemple simple d'un #gls(
@@ -722,7 +722,7 @@ Maps d'#gls("isl").
           for (int j = 0; j < M; j++)
             A[i][j] = B[i] + C[j]; // S1
         ```,
-        caption: [Code source en entrée],
+        caption: [Code source en entrée.],
       )
     ],
     [
@@ -776,7 +776,7 @@ simple, tandis que sa représentation OpenScop correspondante est détaillée à
           for (int j = 0; j < M; j++)
             A[i][j] = 0;               // Instruction S1
         ```,
-        caption: [Code source en entrée],
+        caption: [Code source en entrée.],
       ) <code:scientificbackground:openscopexample_source>
     ],
     [
@@ -1049,7 +1049,7 @@ interne $k$ ($8$ correspondant à la taille en octets d'un type `double`).
   {{{ %A, +, (8*%m*%p)}<%for.i>, +, (8*%p)}<%for.j>, +, 8}<%for.k>
   ```,
   caption: [Représentation de l'évolution scalaire de l'adresse mémoire de
-    `A[i][j][k]` issue de la @code:scientificbackground:delinearization],
+    `A[i][j][k]` issue de la @code:scientificbackground:delinearization.],
 )<code:scientificbackground:delinearization_scev>
 
 Comme l'illustre la @code:scientificbackground:delinearization_scev, cette
@@ -1106,7 +1106,7 @@ Avec la représentation mathématique entièrement construite, la passe
 `ScheduleOptimizer` délègue la charge principale de l'optimisation au moteur
 d'ordonnancement intégré d'ISL. L'objectif premier du solveur est de calculer un
 nouvel ordonnancement qui redéfinit l'ordre d'exécution des instances
-d'instructions. Le planificateur recherche des transformations qui minimisent la
+d'instructions. L'ordonnanceur recherche des transformations qui minimisent la
 distance de réutilisation des accès mémoire et exposent du parallélisme. Le
 moteur garantit mathématiquement l'équivalence sémantique du programme : tout
 ordonnancement calculé doit strictement respecter les dépendances de données

@@ -109,7 +109,7 @@ de notre approche hybride.
 
 Premièrement, l'implémentation logicielle pourrait être améliorée. À l'heure
 actuelle, notre prototype prend en charge les espaces d'exécution fondamentaux
-de Kokkos, à savoir `Serial`, `OpenMP` et `CUDA`. Une évolution naturelle
+de Kokkos, à savoir `Serial`, `OpenMP` et `Cuda`. Une évolution naturelle
 consisterait à intégrer d'autres backends d'exécution, tels que HIP pour cibler
 les accélérateurs matériels d'AMD, ou SYCL pour les architectures Intel. Cette
 extension garantirait une portabilité des performances sur un spectre matériel

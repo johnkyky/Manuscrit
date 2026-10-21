@@ -13,9 +13,9 @@ Cependant, cette infrastructure standard présente des limitations vis-à-vis de
 objectifs de notre chaîne de compilation, tant en matière de support matériel
 que de diversité des optimisations. D'une part, l'abstraction de programmation
 Kokkos tire une part essentielle de ses performances d'exécution sur
-accélérateurs graphiques et machines multi-processeurs généralistes à mémoire
+accélérateurs graphiques et machines multiprocesseurs généralistes à mémoire
 partagée (GPU), tandis que le flot standard de Polly cible exclusivement les
-processeurs multi-coeurs (CPU). D'autre part, Polly se limite aux heuristiques
+processeurs multicoeurs (CPU). D'autre part, Polly se limite aux heuristiques
 d'un unique ordonnanceur, celui d'ISL, restreignant l'espace des transformations
 de code explorées.
 
@@ -44,7 +44,7 @@ minimiser les distances de dépendance, ISL compose l'ordonnancement par
 sous-graphes et intègre l'algorithme de Feautrier comme solution de repli.
 
 De plus, Pluto supporte nativement des transformations géométriques avancées, à
-l'instar du tuilage en losange (_diamond tiling_) @diamond, non réalisables
+l'instar du tuilage en diamant (_diamond tiling_) @diamond, non réalisables
 directement via ISL. Ces dernières permettent de maximiser la localité et
 l'exécution concurrente, particulièrement au sein des schémas de calcul de type
 _stencil_. Comme le souligne l'étude dans @surveypolyedric, Pluto démontre
@@ -102,13 +102,12 @@ Lors de la conversion, cette représentation géométrique est abaissée sous fo
 de matrices d'entiers, dont le résultat est détaillé dans la
 @fig:schedulingheterogeneous:openscop_mat. Concernant le domaine d'itération,
 chaque ligne de la matrice correspond à une contrainte affine. Les colonnes
-décrivent successivement : le type de contrainte (1 pour une inégalité $\geq 0$,
-0 pour une égalité), les coefficients associés aux variables d'itération
-($i, j$), les coefficients rattachés aux paramètres globaux ($N$), et enfin la
-constante de la fonction affine. L'ordonnancement fait l'objet d'une
-transformation analogue, traduite au sein d'une matrice d'ordonnancement. Les
-colonnes additionnelles y représentent les nouvelles dimensions temporelles ou
-spatiales.
+décrivent successivement : le type de contrainte (1 pour une inégalité $>= 0$, 0
+pour une égalité), les coefficients associés aux variables d'itération ($i, j$),
+les coefficients rattachés aux paramètres globaux ($N$), et enfin la constante
+de la fonction affine. L'ordonnancement fait l'objet d'une transformation
+analogue, traduite au sein d'une matrice d'ordonnancement. Les colonnes
+additionnelles y représentent les nouvelles dimensions temporelles ou spatiales.
 
 #figure(
   ```openscop
@@ -158,7 +157,7 @@ domaine d'itération originel, tout en préservant scrupuleusement l'ordre
 d'exécution lexicographique défini par Pluto.
 
 La séquence de figures suivante illustre les différentes étapes de cette
-transformation géométrique pour un statement extrait du noyau `syr2k` de la
+transformation géométrique pour un _statement_ extrait du noyau `syr2k` de la
 suite PolyBench :
 - La @fig:schedulingheterogeneous:polly_orig expose le domaine d'itérations et
   l'ordonnancement identité extraits initialement par Polly.
@@ -240,7 +239,7 @@ subsistait entre les modèles d'exécution de Kokkos et les capacités de Polly 
 matière d'architectures hétérogènes. Tandis que l'abstraction de Kokkos s'appuie
 structurellement sur une compilation CPU/GPU visant la portabilité des
 performances, Polly s'est historiquement restreint à l'optimisation pour
-architectures multi-coeurs et multi-processeurs CPU. Or, un ordonnancement
+architectures multicoeurs et multiprocesseurs CPU. Or, un ordonnancement
 polyédrique taillé pour un processeur classique s'avère profondément inadapté au
 modèle d'exécution massivement parallèle d'un GPU. Ce dernier requiert une
 projection spatiale très contrainte des itérations sur une hiérarchie matérielle

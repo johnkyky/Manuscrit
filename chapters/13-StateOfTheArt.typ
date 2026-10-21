@@ -4,7 +4,7 @@
 
 L'évolution de la complexité matérielle des supercalculateurs modernes a conduit
 à une augmentation massive à la fois du nombre de coeurs disponibles et de leur
-puissance de calcul. Ces architectures multi-coeurs sont fréquemment couplées à
+puissance de calcul. Ces architectures multicoeurs sont fréquemment couplées à
 des accélérateurs matériels spécialisés, faisant du développement de codes
 scientifiques un véritable défi. Pour répondre à cette problématique, les
 développeurs ont inventé différentes approches de programmation. Dans cette
@@ -135,8 +135,8 @@ matrice-vecteur) en utilisant ces différents frameworks.
 
 Bien que l'objectif principal de ces environnements soit la portabilité, ils
 offrent tout de même certaines capacités d'optimisation structurelle. Par
-exemple, le pavage de boucles est disponible dans Kokkos, RAJA et SYCL. Cela
-permet aux développeurs d'appliquer un pavage statique sur les nids de boucles,
+exemple, le tuilage de boucles est disponible dans Kokkos, RAJA et SYCL. Cela
+permet aux développeurs d'appliquer un tuilage statique sur les nids de boucles,
 ce qui améliore la localité des données dans les caches de l'architecture cible.
 Kokkos dispose d'un algorithme pour choisir automatiquement des tailles de
 tuiles efficaces en fonction de l'architecture, mais celui-ci est très limité en
@@ -171,7 +171,7 @@ modèle polyédrique. Historiquement, ces outils s'appuyaient sur des approches
 source-à-source et étaient limités à l'analyse d'un sous-ensemble du langage C.
 L'un des compilateurs les plus renommés pour la qualité de son ordonnanceur est
 Pluto~@plutoscheduler. Il permet la compilation source-à-source de code C en
-explorant un vaste espace de transformations comme le pavage en diamant. Un
+explorant un vaste espace de transformations comme le tuilage en diamant. Un
 autre outil de référence est PPCG (_Polyhedral Parallel Code Generator_)~@ppcg,
 un compilateur source-à-source conçu pour générer du code GPU optimisé à partir
 de code C séquentiel. Ces approches purement textuelles, représentées à la
@@ -241,7 +241,7 @@ de compilation moderne au niveau de l'IR est représentée à la
       node-corner-radius: 4pt,
       node((0, 1), [Code Source \ (C/C++)]),
       edge((0, 1), (1, 1), "-|>"),
-      node((1, 1), [Front-End \ (Clang/GCC)]),
+      node((1, 1), [Frontend \ (Clang/GCC)]),
       edge((1, 1), (2, 1), "-|>"),
       node(
         (2, 1),
@@ -250,7 +250,7 @@ de compilation moderne au niveau de l'IR est représentée à la
         stroke: color-blue-stroke,
       ),
       edge((2, 1), (3, 1), "-|>"),
-      node((3, 1), [Back-End]),
+      node((3, 1), [Backend]),
     ),
     caption: [Chaîne de compilation polyédrique au niveau de l'IR.],
   ) <fig:stateoftheart:polyhedral_ir>
@@ -356,7 +356,7 @@ infrastructure logicielle C++ fonctionnant, dans sa conception, comme un langage
 dédié pour le calcul haute performance, comme illustré en
 @fig:stateoftheart:tiramisu_syntax. L'utilisateur déclare formellement les
 calculs, les tailles des données, le domaine d'itération, ainsi que les
-transformations mathématiques à appliquer (pavage, déroulage, parallélisation).
+transformations mathématiques à appliquer (tuilage, déroulage, parallélisation).
 En imposant cette déclaration explicite, l'outil peut appliquer des
 transformations polyédriques et générer un code C++ hautement optimisé sans que
 le compilateur n'ait à deviner la structure du programme.

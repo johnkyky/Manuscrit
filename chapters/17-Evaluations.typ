@@ -88,7 +88,7 @@ développement de LLVM/Clang 23.0.0 intégrant nos contributions, la version
 `Release` (`CMAKE_BUILD_TYPE=Release`).
 
 *Mesures.* Chaque temps est la moyenne de 5 exécutions consécutives, dont la
-dispersion relative reste inférieure à 5%. Sur CPU, chaque thread OpenMP est
+dispersion relative reste inférieure à 5 %. Sur CPU, chaque thread OpenMP est
 fixé sur un coeur et les threads sont répartis uniformément sur l'ensemble des
 coeurs, et donc sur les deux sockets de la machine AMD (`OMP_PROC_BIND=spread`,
 `OMP_PLACES=threads`). Chaque exécution est validée en comparant les résultats
@@ -710,7 +710,7 @@ géométriques par catégorie.
 #figure(
   image(fig.evaluation-polybench-eugene-gpu),
   caption: [Accélération de Kokkos + Polly (usePolyOpt) par rapport à Kokkos
-    (backend Cuda) avec l'ordonnanceur PPCG sur accélérateur NVIDIA RTX 5090 (32
+    (backend CUDA) avec l'ordonnanceur PPCG sur accélérateur NVIDIA RTX 5090 (32
     Go VRAM, hôte Intel Core Ultra 7 265, 20 threads sans hyperthreading, taille
     de bloc : auto).],
 ) <fig:evaluations:gpu>

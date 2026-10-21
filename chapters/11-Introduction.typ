@@ -17,7 +17,7 @@ multiples paradigmes de programmation, rendant le développement de codes
 scientifiques de haute performance de plus en plus complexe. Bien que des
 efforts aient été déployés pour déléguer cette complexité aux compilateurs et
 autres outils automatisés, l'obtention d'une optimisation et d'une
-parallélisation purement automatiques sur les systèmes modernes multi-coeurs et
+parallélisation purement automatiques sur les systèmes modernes multicoeurs et
 basés sur des accélérateurs reste un défi majeur.
 
 Bien que les compilateurs modernes intègrent de nombreuses passes
@@ -26,7 +26,7 @@ parallélisations avancées et des transformations de boucles. Cette limitation
 provient principalement du fossé sémantique entre l'intention de haut niveau du
 programmeur et la représentation intermédiaire de bas niveau comprise par la
 machine. Pour réduire les coûts de développement, la communauté HPC a conçu des
-_frameworks_ de portabilité des performances. Ces bibliothèques fournissent des
+frameworks de portabilité des performances. Ces bibliothèques fournissent des
 abstractions de haut niveau permettant aux développeurs d'exprimer explicitement
 des motifs de calcul optimisés, des stratégies de parallélisation et la gestion
 de la mémoire, avec la promesse de hautes performances sur diverses

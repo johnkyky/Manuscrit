@@ -12,7 +12,7 @@
   languages: codly-languages.codly-languages
     + (
       isl: (name: "ISL", icon: none, color: gray),
-      openscop: (name: "OpenScop", icon: none, color: gray),
+      openscop: (name: "OpenSCoP", icon: none, color: gray),
     ),
 )
 

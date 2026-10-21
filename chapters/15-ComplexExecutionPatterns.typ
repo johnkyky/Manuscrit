@@ -232,13 +232,13 @@ les analyses et transformations polyédriques de Polly.
     [
       #figure(
         image(fig.complexexecutionpatterns-trisolvbefore, width: 80%),
-        caption: [Avant l'épluchage de boucle],
+        caption: [Avant l'épluchage de boucle.],
       ) <fig:complexexecutionpatterns:trisolvbefore>
     ],
     [
       #figure(
         image(fig.complexexecutionpatterns-trisolvafter, width: 80%),
-        caption: [Après l'épluchage de boucle],
+        caption: [Après l'épluchage de boucle.],
       ) <fig:complexexecutionpatterns:trisolvafter>
     ],
   ),
@@ -678,7 +678,7 @@ boucle interne à l'analyse.
       });
   }
   ```,
-  caption: [Exemple de code avec des contraintes injectées],
+  caption: [Exemple de code avec des contraintes injectées.],
 ) <fig:complexexecutionpatterns:constraintinjection>
 
 *Référence aux bornes de politique.* Pour faire référence à une borne de boucle
