@@ -2,39 +2,40 @@
 
 = Évaluations <sec:evaluations>
 
-Ce chapitre quantifie et analyse l'impact des contributions précédents
-présentées. Le but principal est de démontrer que la restauration de la
-visibilité sémantique et structurelle au niveau du compilateur permet de
-débloquer des optimisations de boucles agressives grâce au modèle polyédrique. À
-travers une évaluation sur la suite de benchmarks PolyBench~@polybench, nous
-mettons à l'épreuve notre chaîne de compilation sur des architectures
-hétérogènes (CPU multicoeurs et accélérateurs GPU). Nous détaillons les
-accélérations obtenues par rapport à une implémentation Kokkos idiomatique et
-étudions l'impact des différentes architectures et ordonnanceurs.
+Ce chapitre quantifie et analyse l'impact des contributions présentées. Le but
+principal est de démontrer que la restauration de la visibilité sémantique et
+structurelle au niveau du compilateur permet de débloquer des optimisations de
+boucles agressives grâce au modèle polyédrique. À travers une évaluation sur la
+suite de benchmarks PolyBench~@polybench, nous mettons à l'épreuve notre chaîne
+de compilation sur des architectures hétérogènes (CPU multicoeurs et
+accélérateurs GPU). Nous détaillons les accélérations obtenues par rapport à une
+implémentation Kokkos idiomatique et étudions l'impact avec différentes
+architectures et ordonnanceurs.
 
 == Protocole expérimental <sec:evaluations:setup>
 
 *Version de référence.* Les performances sont mesurées par rapport à une
-implémentation idiomatique des noyaux de la suite de benchmarks PolyBench en
-#box[C++] avec Kokkos, telle que l'écrirait un utilisateur standard de la
-bibliothèque. Les nids de boucles sont exprimés par des `parallel_for` et
-utilisent les structures Kokkos comme les vues `Kokkos::View`, sans optimisation
-spécifique à l'architecture, comme la fusion ou la fission de boucles, la
-réécriture du calcul pour exposer davantage de parallélisme ou l'usage explicite
-de la mémoire rapide (`Kokkos::ScratchSpace`). Cette version est compilée avec
-la même chaîne de compilation Clang, sans et avec Polly d'activé, sur les
-backends standards de Kokkos : OpenMP pour les CPU et CUDA pour les GPU.
+implémentation idiomatique (parallèle lorsque cela est possible) des noyaux de
+la suite de benchmarks PolyBench en #box[C++] avec Kokkos, telle que l'écrirait
+un utilisateur standard de la bibliothèque. Les nids de boucles sont exprimés à
+l'aide de `parallel_for` et utilisent les structures Kokkos comme les vues
+`Kokkos::View`, sans optimisation spécifique, comme par exemple la fusion ou la
+fission de boucles, la réécriture du calcul pour exposer davantage de
+parallélisme ou l'usage explicite de la mémoire rapide (`Kokkos::ScratchSpace`).
+Cette version est compilée avec la même chaîne de compilation Clang, mais en
+activant ou en désactivant l'utilisation de Polly, sur les backends standards de
+Kokkos : OpenMP pour les CPU et CUDA pour les GPU.
 
-*Version optimisée.* La version évaluée exprime les mêmes calculs, sous la forme
-attendue par notre chaîne de compilation. Chaque noyau est écrit en entier dans
-un `parallel_for` (ou `parallel_for` variadique, voir
+*Version optimisée.* La version évaluée exprime les mêmes calculs, mais sous la
+forme attendue par notre chaîne de compilation. Chaque noyau est écrit en entier
+dans un `parallel_for` (ou `parallel_for` variadique, voir
 @sec:complexexecutionpatterns:variadicparallelfor) annoté par l'option
 `usePolyOpt`, y compris ses boucles externes non parallèles. La politique
 d'exécution ne décrit plus le parallélisme à exploiter mais elle délimite
 l'espace d'itération du noyau et désigne le backend ciblé. Polly analyse
 l'ensemble comme un seul noyau puis décide lui-même des boucles à paralléliser.
-Le même code sert ainsi pour les deux cibles (CPU, GPU), seul l'espace
-d'exécution de la politique changeant.
+Le même code sert ainsi pour les deux cibles (CPU, GPU), seul change l'espace
+d'exécution de la politique.
 
 *Plateformes.* Les expérimentations sont menées sur deux machines, décrites dans
 le @table:evaluations:hardware : une machine bi-socket équipée de deux
@@ -91,17 +92,17 @@ dispersion relative reste inférieure à 5%. Sur CPU, chaque thread OpenMP est
 fixé sur un coeur et les threads sont répartis uniformément sur l'ensemble des
 coeurs, et donc sur les deux sockets de la machine AMD (`OMP_PROC_BIND=spread`,
 `OMP_PLACES=threads`). Chaque exécution est validée en comparant les résultats
-de la version optimisée élément par élément à ceux de la version de référence,
-avec une tolérance absolue de $10^(-8)$.
+des calculs de la version optimisée élément par élément à ceux de la version de
+référence, avec une tolérance absolue de $10^(-8)$.
 
-*Noyaux évalués.* L'évaluation porte sur 27 des 30 noyaux de la suite
-PolyBench~@polybench. Les trois noyaux écartés, `correlation`, `nussinov` et
-`floyd-warshall`, sortent du cadre du modèle polyédrique statique, car leur flot
-de contrôle dépend de valeurs calculées pendant l'exécution, ce qui produit dans
-l'IR LLVM des structures non affines que Polly ne peut pas représenter. Les jeux
-de données ont été agrandis afin d'obtenir des temps d'exécution significatifs.
-Le @table:evaluations:problemsizes donne, pour chaque noyau de la suite
-PolyBench la taille utilisée.
+*Noyaux évalués.* L'évaluation porte sur 27 des 30 noyaux de la suite PolyBench.
+Les trois noyaux écartés, `correlation`, `nussinov` et `floyd-warshall`, sortent
+du cadre du modèle polyédrique statique, car leur flot de contrôle dépend de
+valeurs calculées pendant l'exécution par le biais d'opération ternaires, ce qui
+produit dans l'IR LLVM des accès non affines que Polly ne peut pas représenter.
+Les jeux de données ont été agrandis afin d'obtenir des temps d'exécution
+significatifs. Le @table:evaluations:problemsizes donne, pour chaque noyau de la
+suite PolyBench, la taille utilisée.
 
 #[
   #show figure: set block(breakable: true)
@@ -172,7 +173,9 @@ ordonnanceurs polyédriques sont confrontés, l'ordonnanceur natif de Polly,
 reposant sur ISL, et l'ordonnanceur Pluto (@sec:schedulingheterogeneous:pluto).
 Dans les deux cas, le tuilage est appliqué avec une taille de tuile fixe de 32
 sur chaque dimension, et Polly parallélise le code généré au moyen du support
-d'exécution OpenMP.
+d'exécution OpenMP. Notons que l'utilisateur peut choisir d'autres tailles de
+tuiles en utilisant le flag de compilation `--polly-tile-size`
+(@sec:conclusion:perspectives).
 
 === Étude des résultats CPU <sec:evaluations:cpu:global>
 
@@ -184,16 +187,16 @@ famille de noyaux et globalement.
 #figure(
   image(fig.evaluation-polybench-trahrhe-cpu, width: 95%),
   caption: [Accélération de Kokkos + Polly (usePolyOpt) par rapport à Kokkos
-    avec les ordonnanceurs ISL et Pluto sur processeur Dual AMD EPYC 7502
-    ($2 times 32$ coeurs, 64 threads sans hyperthreading, 756 Go DDR4, taille de
+    (backend OpenMP) avec les ordonnanceurs ISL et Pluto sur processeur Dual AMD
+    EPYC 7502 ($2 times 32$ coeurs, 64 threads sans hyperthreading, taille de
     tuile : 32).],
 ) <fig:evaluations:cpu-amd>
 
 #figure(
   image(fig.evaluation-polybench-eugene-cpu, width: 95%),
   caption: [Accélération de Kokkos + Polly (usePolyOpt) par rapport à Kokkos
-    avec les ordonnanceurs ISL et Pluto sur processeur Intel Core Ultra 7 265
-    (20 threads sans hyperthreading, 32 Go DDR5, taille de tuile : 32).],
+    (backend OpenMP) avec les ordonnanceurs ISL et Pluto sur processeur Intel
+    Core Ultra 7 265 (20 threads sans hyperthreading, taille de tuile : 32).],
 ) <fig:evaluations:cpu-intel>
 
 #let speedup-cell(value, count) = [#value$times$ #text(size: 0.8em)[(#count)]]
@@ -251,10 +254,10 @@ famille de noyaux et globalement.
   ),
   caption: [Moyennes géométriques des accélérations sur CPU par catégorie de
     benchmark et par ordonnanceur. Entre parenthèses figure le nombre de noyaux
-    accélérés sur nombre de noyaux évalués.],
+    accélérés sur le nombre de noyaux évalués.],
 ) <table:evaluations:cpu-geomean>
 
-Le premier constat est que les transformations débloquées par nos contributions
+Le premier constat est que les transformations permises par nos contributions
 profitent à la grande majorité des noyaux. Sur chacune des deux machines, 24 des
 27 noyaux sont accélérés par au moins l'un des deux ordonnanceurs. En retenant
 pour chaque noyau le meilleur des deux ordonnanceurs, la moyenne géométrique des
@@ -294,14 +297,14 @@ Ces noyaux partagent une forte réutilisation des données, avec un volume de
 calcul en $O(n^3)$ pour des données en $O(n^2)$, que la version de référence
 n'exploite pas. Dans ces versions de référence, la boucle la plus interne,
 écrite dans le corps de la lambda, parcourt une colonne d'au moins un tableau
-stocké par lignes, avec un grand pas entre deux accès successifs. Or Kokkos ne
-tuile que les dimensions d'une `MDRangePolicy`, jamais les boucles écrites dans
-la lambda. La plupart de ces versions reposent sur une `RangePolicy` et ne sont
-pas tuilées du tout, et seules celles de `2mm` et `3mm` découpent l'espace
-`(i, j)` en tuiles de $32 times 32$, sans toucher à la boucle de réduction. Le
-tuilage polyédrique porte au contraire sur l'ensemble du nid, boucle de
-réduction comprise, comme l'illustrent `symm` dans le paragraphe suivant et
-`covariance` (@sec:evaluations:cpu:sensitivity).
+stocké par lignes, avec un grand pas mémoire entre deux accès successifs. Or
+Kokkos ne tuile que les dimensions d'une `MDRangePolicy`, jamais les boucles
+écrites dans la lambda. La plupart de ces versions reposent sur une
+`RangePolicy` et ne sont pas tuilées du tout, et seules celles de `2mm` et `3mm`
+découpent l'espace `(i, j)` en tuiles de $32 times 32$, sans toucher à la boucle
+de réduction. Le tuilage polyédrique porte au contraire sur l'ensemble du nid,
+boucle de réduction comprise, comme l'illustrent `symm` dans le paragraphe
+suivant et `covariance` (@sec:evaluations:cpu:sensitivity).
 
 Le cas de `symm` illustre la combinaison de transformations à l'origine de ces
 gains. Pour chaque élément `(i, j)`, ce noyau accumule une somme partielle
@@ -397,7 +400,7 @@ interdisant toute parallélisation directe. La version de `cholesky` est
 15.66$times$) mesurent donc à la fois le parallélisme par front d'onde et le
 gain de localité apporté par le tuilage des boucles. La version de référence de
 `ludcmp` n'est que partiellement parallèle. La boucle externe de la
-factorisation s'exécute séquentiellement, et à chacune de ses itérations seule
+factorisation s'exécute séquentiellement, et à chacune de ses itérations, seule
 la partie supérieure de la ligne est parallélisée, la partie inférieure restant
 séquentielle. En transformant l'ensemble de la factorisation par fronts d'onde,
 Pluto lève cette limitation de parallélisation.
@@ -492,14 +495,14 @@ externes. ISL parvient pourtant à tuiler le nid, y compris la dimension
 temporelle, grâce à une torsion des boucles (@code:evaluations:heat3d-isl). Mais
 il n'exécute pas en parallèle les tuiles indépendantes. La seule boucle qu'il
 identifie comme parallèle est la plus interne mais Polly ne génère pas de
-parallélisation pour une boucle interne. Le code généré s'exécute sur un seul
-coeur, alors que la version de référence parallélise chaque pas de temps. Le
-même phénomène se produit sur `jacobi-1d`, `jacobi-2d` et `fdtd-2d`. Sur
-`jacobi-1d`, cette explication n'est toutefois que partielle, car l'essentiel de
-la régression vient d'une vectorisation défavorable du code généré, détaillée
-dans la @sec:evaluations:vanilla. Sans cette vectorisation, le code séquentiel
-produit par ISL atteint 0.99$times$ de la version de référence parallèle sur la
-machine Intel.
+parallélisation de threads pour une boucle interne. Le code généré s'exécute sur
+un seul coeur, alors que la version de référence parallélise chaque pas de
+temps. Le même phénomène se produit sur `jacobi-1d`, `jacobi-2d` et `fdtd-2d`.
+Sur `jacobi-1d`, cette explication n'est toutefois que partielle, car
+l'essentiel de la régression vient d'une vectorisation défavorable du code
+généré, détaillée dans la @sec:evaluations:vanilla. Sans cette vectorisation, le
+code séquentiel produit par ISL atteint 0.99$times$ de la version de référence
+parallèle sur la machine Intel.
 
 #figure(
   ```cpp
@@ -550,16 +553,15 @@ l'ensemble de la factorisation par fronts d'onde. Faute de gain de localité, le
 code généré ne peut au mieux qu'égaler la référence et les surcoûts des calculs
 d'indices polyédriques créent un léger ralentissement.
 
-Le noyau `durbin` régresse sur la machine AMD (#box[0.51$times$]) mais
-s'accélère légèrement sur la machine Intel (#box[1.28$times$] et
-#box[1.32$times$]). Ce noyau comporte une boucle externe intrinsèquement
-séquentielle, dont chaque itération ne contient que de petites boucles. La
-version de référence parallélise ces petites boucles, au prix de trois
-synchronisations par itération, tandis que le code généré par ISL comme par
-Pluto est entièrement séquentiel. Le résultat dépend donc du matériel. Le code
-séquentiel profite de la fréquence élevée d'un coeur Intel, mais ne rivalise
-pas, sur la machine AMD et ses coeurs plus lents, avec une version parallèle
-répartie sur 64 coeurs.
+Le noyau `durbin` régresse sur la machine AMD (#box[0.51$times$]) mais accélère
+légèrement sur la machine Intel (#box[1.28$times$] et #box[1.32$times$]). Ce
+noyau comporte une boucle externe intrinsèquement séquentielle, dont chaque
+itération ne contient que de petites boucles. La version de référence
+parallélise ces petites boucles, au prix de trois synchronisations par
+itération, tandis que le code généré par ISL comme par Pluto est entièrement
+séquentiel. Le résultat dépend donc du matériel. Le code séquentiel profite de
+la fréquence élevée d'un coeur Intel, mais ne rivalise pas, sur la machine AMD
+et ses coeurs plus lents, avec une version parallèle répartie sur 64 coeurs.
 
 *Une fusion défavorable.* Avec Pluto, le code généré régresse fortement sur
 `adi` sur les deux machines (0.12$times$ et 0.03$times$), alors qu'ISL
@@ -613,7 +615,7 @@ Au-delà de ces comportements stables, plusieurs noyaux présentent des écarts
 importants entre les deux machines, qui révèlent la sensibilité des
 transformations aux caractéristiques matérielles.
 
-==== Le cas de la factorisation `lu`
+==== Le cas de la factorisation #text(0.75em, font: "FiraCode Nerd Font Mono")[lu]
 
 Le noyau `lu` présente un écart important d'exécution sur la machine AMD, ISL
 atteint #box[118.26$times$] et Pluto #box[18.45$times$] contre #box[5.27$times$]
@@ -708,8 +710,8 @@ géométriques par catégorie.
 #figure(
   image(fig.evaluation-polybench-eugene-gpu),
   caption: [Accélération de Kokkos + Polly (usePolyOpt) par rapport à Kokkos
-    avec l'ordonnanceur PPCG sur accélérateur NVIDIA RTX 5090 (32 Go VRAM, hôte
-    Intel Core Ultra 7 265, 20 threads sans hyperthreading, 32 Go DDR5, taille
+    (backend Cuda) avec l'ordonnanceur PPCG sur accélérateur NVIDIA RTX 5090 (32
+    Go VRAM, hôte Intel Core Ultra 7 265, 20 threads sans hyperthreading, taille
     de bloc : auto).],
 ) <fig:evaluations:gpu>
 
@@ -997,9 +999,8 @@ options de Polly.
   image(fig.evaluation-polybench-eugene-polly-vanilla, width: 100%),
   placement: auto,
   caption: [Accélération de Kokkos + Polly (usePolyOpt) par rapport à Polly
-    appliqué à PolyBench, avec l'ordonnanceur ISL sur processeur Intel Core
-    Ultra 7 265 (20 threads sans hyperthreading, 32 Go DDR5, taille de tuile :
-    32).],
+    appliqué à PolyBench/C, avec l'ordonnanceur ISL sur processeur Intel Core
+    Ultra 7 265 (20 threads sans hyperthreading, taille de tuile : 32).],
 ) <fig:evaluations:vanilla>
 
 Sur les 26 noyaux mesurés, la moyenne géométrique de accélérations est de
@@ -1070,8 +1071,8 @@ en mémoire, car l'adresse d'un élément détermine l'emplacement du cache où 
 est rangé. Or cette position diffère entre les deux versions. Dans le code C,
 PolyBench aligne chaque tableau sur le début d'une page mémoire. Dans notre
 version, les données d'une vue Kokkos sont précédées d'un en-tête d'allocation,
-qui les décale de quelques lignes de cache. Les éléments lus par la boucle ne se
-répartissent donc pas de la même façon dans le cache, ce qui explique l'écart
+ce qui les décale de quelques lignes de cache. Les éléments lus par la boucle ne
+se répartissent donc pas de la même façon dans le cache, ce qui explique l'écart
 restant pour $N = 2048$.
 
 En résumé, l'abstraction Kokkos n'empêche pas Polly d'optimiser les noyaux.

@@ -71,7 +71,7 @@ Nos résultats démontrent des accélérations significatives par rapport aux
 implémentations Kokkos standards, tant sur CPU que sur GPU. Ces résultats
 prouvent que l'approche hybride Kokkos, couplée aux optimisations polyédriques,
 permet non seulement de surpasser les performances de l'approche Kokkos
-standards, mais aussi d'exploiter pleinement le potentiel des architectures
+standard, mais aussi d'exploiter pleinement le potentiel des architectures
 hétérogènes, tout en conservant la portabilité du code. Comparée à Polly
 appliqué aux versions C d'origine des noyaux, notre chaîne de compilation ne
 dégrade pas les performances, et les améliore même en moyenne, ce qui montre que
@@ -101,7 +101,7 @@ sémantiques fournies par le développeur (noms statiques, suppositions
 mathématiques), ce qui constitue un point de fragilité pouvant mener à des
 erreurs silencieuses en cas de spécification erronée.
 
-== Perspectives
+== Perspectives <sec:conclusion:perspectives>
 
 Les travaux présentés dans ce manuscrit ouvrent plusieurs pistes, allant de
 l'amélioration de l'implémentation actuelle à des extensions plus fondamentales
@@ -125,8 +125,8 @@ valider la cohérence de ces informations. Cela permettrait de fournir une
 gestion des erreurs robuste, avec des retours pertinents lors de la compilation.
 
 Dans cette même dynamique d'intégration à l'écosystème Kokkos, une autre
-évolution visera à contrôler les paramètres d'optimisation, comme la taille des
-tuiles, directement au travers des abstractions de la bibliothèque. Cela
+évolution viserait à contrôler les paramètres d'optimisation, comme la taille
+des tuiles, directement au travers des abstractions de la bibliothèque. Cela
 offrirait au développeur la possibilité de piloter finement l'application du
 modèle polyédrique depuis son code source, en respectant la philosophie de
 conception de Kokkos.
