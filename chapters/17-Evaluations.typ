@@ -98,11 +98,11 @@ référence, avec une tolérance absolue de $10^(-8)$.
 *Noyaux évalués.* L'évaluation porte sur 27 des 30 noyaux de la suite PolyBench.
 Les trois noyaux écartés, `correlation`, `nussinov` et `floyd-warshall`, sortent
 du cadre du modèle polyédrique statique, car leur flot de contrôle dépend de
-valeurs calculées pendant l'exécution par le biais d'opérations ternaires, ce qui
-produit dans l'IR LLVM des accès non affines que Polly ne peut pas représenter.
-Les jeux de données ont été agrandis afin d'obtenir des temps d'exécution
-significatifs. Le @table:evaluations:problemsizes donne, pour chaque noyau de la
-suite PolyBench, la taille utilisée.
+valeurs calculées pendant l'exécution par le biais d'opérations ternaires, ce
+qui produit dans l'IR LLVM des accès non affines que Polly ne peut pas
+représenter. Les jeux de données ont été agrandis afin d'obtenir des temps
+d'exécution significatifs. Le @table:evaluations:problemsizes donne, pour chaque
+noyau de la suite PolyBench, la taille utilisée.
 
 #[
   #show figure: set block(breakable: true)

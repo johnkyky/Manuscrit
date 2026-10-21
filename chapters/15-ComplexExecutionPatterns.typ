@@ -251,11 +251,11 @@ les analyses et transformations polyédriques de Polly.
 == Vision Globale des Boucles <sec:complexexecutionpatterns:globalloopvision>
 
 Pour optimiser les performances des noyaux de calculs comportant plusieurs nids
-de boucles, le modèle polyédrique peut appliquer des transformations inter-noyaux.
-L'une d'elles est la fusion de boucles, généralement appliquée lorsque des noyaux
-successifs accèdent aux mêmes données avec des dépendances de données
-inter-noyaux. Pour y parvenir, l'optimiseur doit être en mesure de capturer
-l'intégralité du contexte de calcul au sein d'un SCoP.
+de boucles, le modèle polyédrique peut appliquer des transformations
+inter-noyaux. L'une d'elles est la fusion de boucles, généralement appliquée
+lorsque des noyaux successifs accèdent aux mêmes données avec des dépendances de
+données inter-noyaux. Pour y parvenir, l'optimiseur doit être en mesure de
+capturer l'intégralité du contexte de calcul au sein d'un SCoP.
 
 Cependant, l'application du modèle polyédrique sur des codes Kokkos se heurte à
 une incompatibilité fondamentale de conception. Alors que le modèle polyédrique
@@ -752,7 +752,7 @@ bien identiques et que les bornes de boucles respectent les contraintes
 définies.
 
 Ces extensions permettent ainsi à Polly de modéliser une part bien plus large
-des noyaux Kokkos. Toutefois, leur optimisation reste dépendante du flot standard
-de Polly, limité à l'ordonnanceur d'ISL et aux architectures CPU. Le
+des noyaux Kokkos. Toutefois, leur optimisation reste dépendante du flot
+standard de Polly, limité à l'ordonnanceur d'ISL et aux architectures CPU. Le
 @sec:schedulingheterogeneous présente l'intégration de l'ordonnanceur Pluto
 ainsi que celle de PPCG pour cibler les accélérateurs GPU.

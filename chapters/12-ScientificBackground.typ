@@ -952,8 +952,8 @@ les sous-sections suivantes.
 Avant d'identifier les régions polyédriques, Polly exécute une étape
 préparatoire via la passe `CodePreparation`. Dans son fonctionnement natif, son
 rôle est de scinder le bloc d'entrée de la fonction afin d'isoler les
-allocations mémoire locales (`alloca`) des opérations arithmétiques et des
-accès aux données. Cette séparation structurelle évite que les instructions
+allocations mémoire locales (`alloca`) des opérations arithmétiques et des accès
+aux données. Cette séparation structurelle évite que les instructions
 d'allocation de pile ne polluent les blocs de calcul et réserve l'espace
 nécessaire à l'insertion de nouvelles allocations lors de la phase de
 régénération du code.
@@ -988,8 +988,8 @@ structures de code en objets #gls("isl").
 
 Pour chaque bloc de base au sein de la région, `ScopInfo` définit une
 instruction mathématique. Ensuite, il construit le *domaine d'itération* exact
-en traduisant les contraintes affines des boucles englobantes obtenues grâce à la
-passe SCEV (_Scalar Evolution_) en structure isl. De même, les instructions
+en traduisant les contraintes affines des boucles englobantes obtenues grâce à
+la passe SCEV (_Scalar Evolution_) en structure isl. De même, les instructions
 mémoire (telles que `load` et `store`) sont converties en relations d'accès isl,
 mappant l'exécution logique d'une instruction à des adresses mémoire
 spécifiques.

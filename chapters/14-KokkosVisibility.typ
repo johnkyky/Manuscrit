@@ -561,8 +561,8 @@ granularité. Ainsi, chaque dimension des tableaux utilisés dans le noyau est
 annotée par une chaîne de caractères définissant le type d'accès (ex. `"dim"`),
 tout en précisant le niveau d'imbrication correspondant (ex. `"dim 1"`).
 Concernant les bornes de boucles, un mécanisme analogue est employé afin de
-relier les bornes (inférieure et supérieure) de la politique d'exécution utilisée
-à la profondeur de la boucle au sein du nid de boucle.
+relier les bornes (inférieure et supérieure) de la politique d'exécution
+utilisée à la profondeur de la boucle au sein du nid de boucle.
 
 La @sec:complexexecutionpatterns détaillera l'utilisation de ces annotations
 pour étendre les capacités de détection de Polly. Au-delà des métadonnées
@@ -607,9 +607,9 @@ LLVM, les boucles sont réorganisées (via des passes comme `loop-rotate`) afin
 d'adopter une structure de type `do-while` facilitant les optimisations. Cette
 transformation canonique impose l'insertion de branchements conditionnels en
 amont, visant à vérifier dynamiquement si une boucle possède au minimum une
-itération avant d'autoriser l'entrée dans le corps de la boucle. Cette vérification
-est redondante à celle déjà présente dans les _backends_ modifiés pour
-l'application du modèle polyédrique
+itération avant d'autoriser l'entrée dans le corps de la boucle. Cette
+vérification est redondante à celle déjà présente dans les _backends_ modifiés
+pour l'application du modèle polyédrique
 
 Ainsi, au niveau de la représentation intermédiaire, deux constructions
 idiomatiques entravent particulièrement la détection des SCoPs : les
