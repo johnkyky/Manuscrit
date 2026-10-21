@@ -430,7 +430,7 @@ exemple de cette syntaxe de haut niveau est fourni en
         y[i] = sum_val
 
     def matvec_mult_pykokkos(N: int, M: int, A: pk.View2D, x: pk.View1D, y: pk.View1D):
-        pk.parallel_for(N, matvec_kernel, M=M, A=A, x=x, y=y)
+        pk.parallel_for(N, matVecMult_kernel, M=M, A=A, x=x, y=y)
     ```,
     caption: [Exemple de multiplication matrice-vecteur utilisant l'interface
       Python de haut niveau PyKokkos.],

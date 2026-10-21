@@ -335,7 +335,7 @@ fonctions lambda sont ensuite invoquées séquentiellement.
     (funcs(), ...);
   }
 
-  template <bool Polly,
+  template <bool usePolyOpt,
             class... Args,
             std::size_t... Is>
   inline void parallel_for_impl(const std::string& str,
@@ -347,10 +347,10 @@ fonctions lambda sont ensuite invoquées séquentiellement.
                  std::tuple_element_t<2 * Is + 1, std::tuple<Args...>>,
                  std::tuple_element_t<2 * Is, std::tuple<Args...>>>>(
              std::get<2 * Is + 1>(args_tuple), std::get<2 * Is>(args_tuple))
-             .template getExecute<Polly>())...);
+             .template getExecute<usePolyOpt>())...);
   }
 
-  template <bool Polly = false,
+  template <bool usePolyOpt = false,
             class... Args,
             class Enable = std::enable_if_t<(sizeof...(Args) > 0 &&
                                              sizeof...(Args) % 2 == 0)>
@@ -362,7 +362,7 @@ fonctions lambda sont ensuite invoquées séquentiellement.
                   "parallel_for requires an even number of arguments "
                   "(policy/functor pairs).");
 
-    Impl::parallel_for_impl<Polly, StrAssumption>(
+    Impl::parallel_for_impl<usePolyOpt>(
         str, std::make_tuple(args...),
         std::make_index_sequence<sizeof...(Args) / 2>{});
   }
@@ -608,7 +608,7 @@ ces contraintes, en se basant sur la structure `StringAssumption`.
   inline void parallel_for(const std::string& str, const ExecPolicy& policy,
                            const FunctorType& functor);
 
-  template <bool Polly = false,
+  template <bool usePolyOpt = false,
             StringAssumption StrAssumption = "",
             class... Args,
             class Enable = std::enable_if_t<(sizeof...(Args) > 0 &&
@@ -661,9 +661,12 @@ boucle interne à l'analyse.
 
 #figure(
   ```cpp
-  void function(Kokkos::View<"x", float *> &x,
-                Kokkos::View<"b", float *> &b,
-                Kokkos::View<"L", float **> &L, size_t n) {
+  void function(Kokkos::View<"A", float **> &A,
+                Kokkos::View<"B", float **> &B,
+                Kokkos::View<"x", float *> &x,
+                Kokkos::View<"y", float *> &y,
+                Kokkos::View<"tmp", float *> &tmp,
+                float alpha, float beta, size_t n) {
     auto policy = Kokkos::RangePolicy<OpenMP>(0, n);
 
     Kokkos::parallel_for<usePolyOpt, "p0.u0 == n">(

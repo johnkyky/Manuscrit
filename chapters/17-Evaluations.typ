@@ -303,8 +303,8 @@ Kokkos ne tuile que les dimensions d'une `MDRangePolicy`, jamais les boucles
 `RangePolicy` et ne sont pas tuilées du tout, et seules celles de `2mm` et `3mm`
 découpent l'espace `(i, j)` en tuiles de $32 times 32$, sans toucher à la boucle
 de réduction. Le tuilage polyédrique porte au contraire sur l'ensemble du nid,
-boucle de réduction comprise, comme l'illustrent `symm` dans le paragraphe
-suivant et `covariance` (@sec:evaluations:cpu:sensitivity).
+boucle de réduction comprise, comme l'illustre `symm` dans le paragraphe
+suivant.
 
 Le cas de `symm` illustre la combinaison de transformations à l'origine de ces
 gains. Pour chaque élément `(i, j)`, ce noyau accumule une somme partielle
@@ -396,10 +396,11 @@ s'exécutent en parallèle. Pluto applique le même mécanisme à `ludcmp`.
 L'écriture des versions de référence explique l'ampleur de ces gains. La version
 de `seidel-2d` est entièrement séquentielle, la mise à jour en place du tableau
 interdisant toute parallélisation directe. La version de `cholesky` est
-également entièrement séquentielle. Les accélérations de Pluto (18.56$times$ et
-15.66$times$) mesurent donc à la fois le parallélisme par front d'onde et le
-gain de localité apporté par le tuilage des boucles. La version de référence de
-`ludcmp` n'est que partiellement parallèle. La boucle externe de la
+également entièrement séquentielle. Les accélérations de Pluto sur ces deux
+noyaux (18.56$times$ et 15.66$times$ pour `seidel-2d`, 14.52$times$ et
+7.31$times$ pour `cholesky`) mesurent donc à la fois le parallélisme par front
+d'onde et le gain de localité apporté par le tuilage des boucles. La version de
+référence de `ludcmp` n'est que partiellement parallèle. La boucle externe de la
 factorisation s'exécute séquentiellement, et à chacune de ses itérations, seule
 la partie supérieure de la ligne est parallélisée, la partie inférieure restant
 séquentielle. En transformant l'ensemble de la factorisation par fronts d'onde,
@@ -754,14 +755,14 @@ géométriques par catégorie.
 ) <table:evaluations:gpu-geomean>
 
 Les accélérations s'étendent sur plus de quatre ordres de grandeur, de
-0.12$times$ sur `jacobi-1d` à 3581.16$times$ sur `lu`. Quinze noyaux sont
-accélérés, cinq restent pratiquement neutres (`gemver` à 1.01$times$, `gesummv`,
-`atax`, `bicg` et `mvt` à 0.99$times$) et quatre régressent (`doitgen`,
-`deriche`, `jacobi-1d` et `jacobi-2d`). La moyenne géométrique globale de
-7.25$times$ est tirée vers le haut par les six noyaux dont la version de
-référence est limitée par une boucle externe séquentielle. Sans eux,
-l'accélération moyenne est de 1.65$times$. Les résultats se répartissent ainsi
-en trois groupes, détaillés ci-dessous.
+0.12$times$ sur `jacobi-1d` à 3581.16$times$ sur `lu`. Seize noyaux sont
+accélérés, dont `gemver` de façon négligeable (1.01$times$), quatre restent
+pratiquement neutres (`gesummv`, `atax`, `bicg` et `mvt` à 0.99$times$) et
+quatre régressent (`doitgen`, `deriche`, `jacobi-1d` et `jacobi-2d`). La moyenne
+géométrique globale de 7.25$times$ est tirée vers le haut par les six noyaux
+dont la version de référence est limitée par une boucle externe séquentielle.
+Sans eux, l'accélération moyenne est de 1.65$times$. Les résultats se
+répartissent ainsi en trois groupes, détaillés ci-dessous.
 
 === Parallélisation des noyaux à dépendances <sec:evaluations:gpu:dependences>
 
@@ -861,8 +862,8 @@ noyaux à dépendances, dont PPCG réorganise le calcul en étapes ou en fronts
 d'onde massivement parallèles, là où la version de référence exécute une partie
 du calcul sur un seul thread. Sur les noyaux d'algèbre linéaire dont la
 référence ne parallélise qu'une dimension, la projection du calcul sur
-l'architecture GPU et l'utilisation de la mémoire partagée n'apportent qu'un
-gain léger en performance.
+l'architecture GPU et l'utilisation de la mémoire partagée apportent des gains,
+jusqu'à 42.99$times$ sur `syrk`.
 
 Cette évaluation met également en évidence les limites actuelles de la
 génération de code GPU. Lorsque l'ordonnanceur ne parvient pas à trouver
@@ -962,8 +963,8 @@ Pour la grande majorité des noyaux, le surcoût reste faible. Les médianes
 s'établissent à #box[1.05$times$] pour ISL, #box[1.16$times$] pour Pluto et
 #box[1.00$times$] pour PPCG, et 25 des 27 noyaux se compilent en moins de
 #box[1.2$times$] le temps de référence avec ISL. Ce résultat s'explique en
-partie par l'isolation des noyaux (#chref(<sec:kokkosvisibility>)). Polly
-n'analyse que les fonctions marquées par l'option `usePolyOpt`, et non
+partie par l'isolation des noyaux (#chref(<sec:kokkosvisibility>)), Polly
+n'analysant que les fonctions marquées par l'option `usePolyOpt` et non
 l'ensemble du module, mais aussi par la réduction de l'usage intensif de
 templates dans les backends modifiés. Le surcoût légèrement plus élevé de Pluto
 provient de l'étape d'ordonnancement et des étapes d'export et d'import au

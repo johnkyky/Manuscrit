@@ -485,7 +485,7 @@ instruction.
   $
   où $arrow(p)$ est un vecteur de $N$ paramètres, $arrow(x)$ est un vecteur
   d'itération de dimension $k$, et $A$ est une matrice d'entiers de taille
-  $m times (k times N + 1)$ qui encode les $m$ contraintes du polytope.
+  $m times (k + N + 1)$ qui encode les $m$ contraintes du polytope.
 ]
 
 La @fig:scientificbackground:iterationdomain illustre le domaine d'itération de

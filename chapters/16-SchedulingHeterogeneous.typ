@@ -13,8 +13,8 @@ Cependant, cette infrastructure standard présente des limitations vis-à-vis de
 objectifs de notre chaîne de compilation, tant en matière de support matériel
 que de diversité des optimisations. D'une part, l'abstraction de programmation
 Kokkos tire une part essentielle de ses performances d'exécution sur
-accélérateurs graphiques et machines multiprocesseurs généralistes à mémoire
-partagée (GPU), tandis que le flot standard de Polly cible exclusivement les
+accélérateurs graphiques (GPU) et machines multiprocesseurs généralistes à
+mémoire partagée, tandis que le flot standard de Polly cible exclusivement les
 processeurs multicoeurs (CPU). D'autre part, Polly se limite aux heuristiques
 d'un unique ordonnanceur, celui d'ISL, restreignant l'espace des transformations
 de code explorées.
@@ -271,11 +271,11 @@ code source incompatible avec les versions modernes du compilateur.
 Dans le cadre de cette thèse, un travail d'ingénierie conséquent a été mené pour
 moderniser et réintégrer l'architecture conceptuelle de Polly-ACC au sein d'une
 version récente de LLVM. L'un des principaux défis d'intégration inhérents à
-PPCG réside dans sa conception originelle. Pensé comme un outil opérant
-exclusivement sur du code source C, ses structures de représentation interne
-faites pour gérer du code source ne prévoient nativement aucun mécanisme pour
-sauvegarder la sémantique et les métadonnées requises par un IR bas niveau comme
-celui de LLVM.
+PPCG réside dans sa conception originelle. PPCG ayant été pensé comme un outil
+opérant exclusivement sur du code source C, ses structures de représentation
+interne faites pour gérer du code source ne prévoient nativement aucun mécanisme
+pour sauvegarder la sémantique et les métadonnées requises par un IR bas niveau
+comme celui de LLVM.
 
 Pour surmonter ces obstacles structurels, une démarche minutieuse de
 rétro-ingénierie a été entreprise : identifier, isoler puis transposer les

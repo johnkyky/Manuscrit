@@ -372,8 +372,8 @@ depuis l'utilisation de la borne dérivée jusqu'à la variable annotée initial
 
 #figure(
   ```cpp
-  auto policy = kokkos::RangePolicy(0, n);
-  Kokkos::parallel_for<Kokkos::usePolyOpt, "p0.u0="=" n">(
+  auto policy = Kokkos::RangePolicy(0, n);
+  Kokkos::parallel_for<Kokkos::usePolyOpt, "p0.u0 == n">(
     policy,
     KOKKOS_LAMBDA(int i) {
       for(int j = 1; j < KOKKOS_LOOP_BOUND(n) - 1; j++) {
