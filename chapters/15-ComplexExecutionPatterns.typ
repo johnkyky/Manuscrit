@@ -108,9 +108,9 @@ compilation, Polly est dans l'incapacité de déduire que `%gap_L` constitue en
 réalité une combinaison linéaire de la taille de la dimension interne du tableau
 $L$ (une propriété qui ne sera démontrée que lors de l'étape ultérieure
 `ScopInfo`) et de l'itérateur `%i`. Afin de garantir la validité et la sûreté de
-ses transformations, Polly adopte une approche conservatrice et rejette cet accès
-qu'il classifie comme non affine. Cette décision entraîne inéluctablement le
-rejet de la région entière, empêchant de fait l'application de toute
+ses transformations, Polly adopte une approche conservatrice et rejette cet
+accès qu'il classifie comme non affine. Cette décision entraîne inéluctablement
+le rejet de la région entière, empêchant de fait l'application de toute
 optimisation polyédrique.
 
 Afin de pallier cette limitation inhérente sans nécessiter de modification
@@ -267,7 +267,7 @@ structurelle limite Polly à une vision locale de chaque noyau, empêchant de fa
 toute optimisation inter-noyaux.
 
 La @code:complexexecutionpatterns:kokkosgemver illustre ce problème de
-conception à travers l'implémentation du noyau `gemver` de la suite Polybench
+conception à travers l'implémentation du noyau `gemver` de la suite PolyBench
 réécrit avec Kokkos. On constate que la logique algorithmique globale est
 nécessairement fragmentée en quatre sous-noyaux distincts.
 

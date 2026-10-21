@@ -609,7 +609,7 @@ transformation canonique impose l'insertion de branchements conditionnels en
 amont, visant à vérifier dynamiquement si une boucle possède au minimum une
 itération avant d'autoriser l'entrée dans le corps de la boucle. Cette
 vérification est redondante à celle déjà présente dans les _backends_ modifiés
-pour l'application du modèle polyédrique
+pour l'application du modèle polyédrique.
 
 Ainsi, au niveau de la représentation intermédiaire, deux constructions
 idiomatiques entravent particulièrement la détection des SCoPs : les
@@ -854,10 +854,10 @@ brisant ainsi la dépendance.
 Néanmoins, la portée de la passe `ForwardOpTree` demeure limitée. En effet, les
 transformations LLVM sont soumises à des contraintes très strictes afin de
 préserver absolument la sémantique d'origine du programme. Ces analyses
-conservatrices brident l'application de la passe, principalement pour des raisons
-de risques d'aliasing mémoire ou de dépendances cycliques inter-itérations.
-Cette prudence entrave, dans certains cas complexes, la capacité de
-l'ordonnanceur à optimiser les boucles efficacement.
+conservatrices brident l'application de la passe, principalement pour des
+raisons de risques d'aliasing mémoire ou de dépendances cycliques
+inter-itérations. Cette prudence entrave, dans certains cas complexes, la
+capacité de l'ordonnanceur à optimiser les boucles efficacement.
 
 Afin de pallier ces limitations, nous avons conçu et implémenté la passe
 `ArrayReg2MemPass`. Son objectif est de rétrograder les registres optimisés sous
@@ -1015,10 +1015,10 @@ Kokkos.
 Afin de s'affranchir de cette contrainte globale, l'indicateur `-polly-parallel`
 étant désormais ignoré par notre chaîne de compilation, un nouveau mécanisme de
 contrôle à grain fin a été introduit. Par l'intermédiaire du système
-d'annotations décrit à la section @sec:kokkosvisibility:annotations, c'est
-désormais chaque noyau Kokkos qui informe explicitement le compilateur de son
-architecture matérielle cible et qui définit si le SCoP correspondant doit être
-exécuté en parallèle. Notre implémentation permet actuellement de cibler trois
+d'annotations décrit à la @sec:kokkosvisibility:annotations, c'est désormais
+chaque noyau Kokkos qui informe explicitement le compilateur de son architecture
+matérielle cible et qui définit si le SCoP correspondant doit être exécuté en
+parallèle. Notre implémentation permet actuellement de cibler trois
 environnements d'exécution distincts : *Serial* (exécution séquentielle),
 *OpenMP* et *Cuda*. La génération de code pour l'architecture Cuda, qui n'existe
 pas nativement au sein de Polly, a nécessité une intégration spécifique qui est

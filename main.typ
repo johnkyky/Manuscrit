@@ -144,7 +144,7 @@
       civility: "M.",
       firstname: "Christophe",
       lastname: "Alias",
-      position: "Chargé de Recherche",
+      position: "Chargé de recherche",
       affiliation: "ENS Lyon",
     ),
   ),

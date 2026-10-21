@@ -159,7 +159,7 @@ d'exécution lexicographique défini par Pluto.
 
 La séquence de figures suivante illustre les différentes étapes de cette
 transformation géométrique pour un statement extrait du noyau `syr2k` de la
-suite Polybench:
+suite PolyBench :
 - La @fig:schedulingheterogeneous:polly_orig expose le domaine d'itérations et
   l'ordonnancement identité extraits initialement par Polly.
 - La @fig:schedulingheterogeneous:pluto_tiled détaille l'ordonnancement optimisé
@@ -228,7 +228,7 @@ suite Polybench:
   ```,
   caption: [Ordonnancement converti pour Polly : le domaine initial est restauré
     et les contraintes de tuilage sont déléguées à la relation
-    d'ordonnancement],
+    d'ordonnancement.],
 ) <fig:schedulingheterogeneous:polly_converted>
 
 == Intégration de PPCG et Réhabilitation de Polly-ACC <sec:schedulingheterogeneous:ppcg>
