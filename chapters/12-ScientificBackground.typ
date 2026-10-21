@@ -750,9 +750,9 @@ Maps d'#gls("isl").
   label: <fig:scientificbackground:isl_syntax_example>,
 )
 
-==== Représentation Standardisée OpenScop
+==== Représentation Standardisée OpenSCoP
 
-OpenScop~@openscop est une spécification ouverte conçue pour garantir
+OpenSCoP~@openscop est une spécification ouverte conçue pour garantir
 l'interopérabilité en permettant à différents outils polyédriques d'échanger une
 représentation standardisée d'un #gls("scop"). Elle modélise les systèmes
 mathématiques d'inégalités affines (domaines, fonctions d'accès et
@@ -760,7 +760,7 @@ ordonnancements) à l'aide d'un format matriciel structuré, où les colonnes
 correspondent aux itérateurs de boucles, aux paramètres globaux et aux termes
 constants, et où les lignes représentent les contraintes affines. La
 @code:scientificbackground:openscopexample_source montre un nid de boucles
-simple, tandis que sa représentation OpenScop correspondante est détaillée à la
+simple, tandis que sa représentation OpenSCoP correspondante est détaillée à la
 @code:scientificbackground:openscopexample_representation.
 
 
@@ -812,20 +812,20 @@ simple, tandis que sa représentation OpenScop correspondante est détaillée à
         ...
         </OpenScop>
         ```,
-        caption: [Représentation OpenScop du domaine d'itérations, de
+        caption: [Représentation OpenSCoP du domaine d'itérations, de
           l'ordonnancement (scattering) et des fonctions d'accès pour le code
           donné en exemple.],
       ) <code:scientificbackground:openscopexample_representation>
     ],
   ),
-  caption: [Exemple d'un nid de boucles simple et de sa représentation OpenScop
+  caption: [Exemple d'un nid de boucles simple et de sa représentation OpenSCoP
     correspondante.],
   label: <fig:scientificbackground:openscop>,
 )
 
 Pour faciliter l'intégration, elle est accompagnée de l'#gls("osl"), une API C
 utilisée pour générer, lire et manipuler facilement cette représentation. De
-plus, l'architecture extensible d'OpenScop prend en charge diverses extensions
+plus, l'architecture extensible d'OpenSCoP prend en charge diverses extensions
 spécifiques aux outils, permettant aux compilateurs d'intégrer des métadonnées
 personnalisées sans rompre la compatibilité.
 

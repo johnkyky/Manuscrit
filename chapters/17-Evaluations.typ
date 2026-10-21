@@ -967,7 +967,7 @@ n'analyse que les fonctions marquées par l'option `usePolyOpt`, et non
 l'ensemble du module, mais aussi par la réduction de l'usage intensif de
 templates dans les backends modifiés. Le surcoût légèrement plus élevé de Pluto
 provient de l'étape d'ordonnancement et des étapes d'export et d'import au
-format OpenScop (@sec:schedulingheterogeneous:pluto).
+format OpenSCoP (@sec:schedulingheterogeneous:pluto).
 
 Quelques noyaux font exception. Le plus marquant est `3mm`, dont la compilation
 est #box[28.82$times$] plus longue avec ISL et #box[17.36$times$] avec PPCG.
