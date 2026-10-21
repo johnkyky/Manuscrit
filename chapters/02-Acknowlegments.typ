@@ -1,4 +1,4 @@
-= Acknowlegments
+= Acknowledgments
 
 #lorem(150)
 

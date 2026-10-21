@@ -229,7 +229,7 @@ d'itérations pour les boucles unidimensionnelles et les boucles parfaitement
 imbriquées à $n$ dimensions. Sous le capot, `MDRangePolicy` applique
 automatiquement un pavage spécifique à l'architecture pour maximiser la localité
 du cache ou la coalescence des accès mémoire. Nous verrons au
-@sec:kokkosvisibility que ce pavage doit être anhihiler pour laisser libre court
+@sec:kokkosvisibility que ce pavage doit être annihilé pour laisser libre cours
 au pavage automatique du modèle polyédrique
 
 ===== TeamPolicy
@@ -343,7 +343,7 @@ l'inverse, les représentations traditionnelles en #gls("ast") ou en #gls(
 d'abstraction mathématique limite drastiquement l'application d'optimisations
 structurelles avancées sur les boucles. Cette rigueur formelle restreint
 néanmoins le domaine d'application de l'approche polyédrique : elle ne peut
-cibler que les nids de boucles dont les bornes et les accès mémoires sont
+cibler que les nids de boucles dont les bornes et les accès mémoire sont
 affines, formellement regroupés sous l'appellation de _Static Control Parts_
 (SCoPs).
 
@@ -925,7 +925,7 @@ stricte de passes LLVM séquentielles, comme illustré par la
 @fig:scientificbackground:pollypipeline :
 
 - *`CodePreparation` :* Prépare l'#gls("ir") en scindant le bloc d'entrée afin
-  d'isoler les allocations mémoires locales (`alloca`) des opérations
+  d'isoler les allocations mémoire locales (`alloca`) des opérations
   arithmétiques et des accès aux données, préparant ainsi le code à l'analyse et
   à la future génération de code.
 - *`ScopDetect` :* Analyse le graphe de flot de contrôle pour identifier les
@@ -952,11 +952,11 @@ les sous-sections suivantes.
 Avant d'identifier les régions polyédriques, Polly exécute une étape
 préparatoire via la passe `CodePreparation`. Dans son fonctionnement natif, son
 rôle est de scinder le bloc d'entrée de la fonction afin d'isoler les
-allocations mémoires locales (`alloca`) des opérations arithmétiques et des
+allocations mémoire locales (`alloca`) des opérations arithmétiques et des
 accès aux données. Cette séparation structurelle évite que les instructions
 d'allocation de pile ne polluent les blocs de calcul et réserve l'espace
 nécessaire à l'insertion de nouvelles allocations lors de la phase de
-regénération du code.
+régénération du code.
 
 ==== Détection des SCoPs (`SCoP Detection`)
 
@@ -988,7 +988,7 @@ structures de code en objets #gls("isl").
 
 Pour chaque bloc de base au sein de la région, `ScopInfo` définit une
 instruction mathématique. Ensuite, il construit le *domaine d'itération* exact
-en traduisant les contraintes affines des boucles englobantes obtenu grâce à la
+en traduisant les contraintes affines des boucles englobantes obtenues grâce à la
 passe SCEV (_Scalar Evolution_) en structure isl. De même, les instructions
 mémoire (telles que `load` et `store`) sont converties en relations d'accès isl,
 mappant l'exécution logique d'une instruction à des adresses mémoire
@@ -1158,7 +1158,7 @@ fonctions d'accès affines et les nouvelles variables d'induction de boucle.
 Enfin, pour garantir une correction sémantique absolue, Polly emploie un
 mécanisme de versioning de boucle. Étant donné que l'analyse statique ne peut
 pas toujours prouver définitivement l'absence d'aliasing de pointeurs ou d'accès
-hors limites à la compilation, le générateur de code constuit si nécessaire un
+hors limites à la compilation, le générateur de code construit si nécessaire un
 bloc de vérifications de sécurité à l'exécution. Le nid de boucles original et
 non modifié est préservé dans l'#gls("ir") en tant que chemin de secours. À
 l'exécution, si ces vérifications de sécurité échouent, l'exécution bifurque

@@ -98,7 +98,7 @@ référence, avec une tolérance absolue de $10^(-8)$.
 *Noyaux évalués.* L'évaluation porte sur 27 des 30 noyaux de la suite PolyBench.
 Les trois noyaux écartés, `correlation`, `nussinov` et `floyd-warshall`, sortent
 du cadre du modèle polyédrique statique, car leur flot de contrôle dépend de
-valeurs calculées pendant l'exécution par le biais d'opération ternaires, ce qui
+valeurs calculées pendant l'exécution par le biais d'opérations ternaires, ce qui
 produit dans l'IR LLVM des accès non affines que Polly ne peut pas représenter.
 Les jeux de données ont été agrandis afin d'obtenir des temps d'exécution
 significatifs. Le @table:evaluations:problemsizes donne, pour chaque noyau de la
@@ -1003,7 +1003,7 @@ options de Polly.
     Ultra 7 265 (20 threads sans hyperthreading, taille de tuile : 32).],
 ) <fig:evaluations:vanilla>
 
-Sur les 26 noyaux mesurés, la moyenne géométrique de accélérations est de
+Sur les 26 noyaux mesurés, la moyenne géométrique des accélérations est de
 1.08$times$, et 14 noyaux restent à moins de 10 % de Polly appliqué au code C.
 Pour plus de la moitié des noyaux, notre chaîne de compilation obtient donc des
 performances proches de celles de Polly sur le code d'origine. Les écarts

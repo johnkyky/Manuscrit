@@ -194,7 +194,7 @@ la passe `peelLoop` native de LLVM. Une étape supplémentaire est toutefois
 nécessaire pour l'épluchage en fin de boucle. En effet, lors de l'extraction par
 LLVM, les instructions du bloc épluché conservent leurs liens avec la variable
 d'induction d'origine (par exemple via un noeud `%i.peeled = phi [%i, %for.end]`
-ou l'on utilise `%i` de la boucle originale comme valeur de départ de la
+où l'on utilise `%i` de la boucle originale comme valeur de départ de la
 nouvelle boucle épluchée). Pour isoler totalement ce bloc, notre passe remplace
 manuellement toutes les utilisations de l'ancien itérateur de la boucle
 originale par une constante dépendante de la borne de la boucle (par exemple
@@ -251,8 +251,8 @@ les analyses et transformations polyédriques de Polly.
 == Vision Globale des Boucles <sec:complexexecutionpatterns:globalloopvision>
 
 Pour optimiser les performances des noyaux de calculs comportant plusieurs nids
-de boucles, le modèle polyédrique peut appliquer des tranformation inter-noyaux.
-L'un d'elle est la fusion de boucles, généralement appliquée lorsque des noyaux
+de boucles, le modèle polyédrique peut appliquer des transformations inter-noyaux.
+L'une d'elles est la fusion de boucles, généralement appliquée lorsque des noyaux
 successifs accèdent aux mêmes données avec des dépendances de données
 inter-noyaux. Pour y parvenir, l'optimiseur doit être en mesure de capturer
 l'intégralité du contexte de calcul au sein d'un SCoP.
@@ -433,9 +433,9 @@ associée. Chaque noyau s'accompagne alors de ses propres chargements mémoire
 (bornes de boucles, pointeurs de tableaux, paramètres, etc.), des instructions
 qui s'intercalent entre les régions de calcul et brisent l'analyse polyédrique
 de Polly. La @code:complexexecutionpatterns:cfglinearizationbefore expose le
-graphe de flot de contrôle de l'IR pour deux noyaux de calcul exécutées via le
+graphe de flot de contrôle de l'IR pour deux noyaux de calcul exécutés via le
 `parallel_for` variadique. On y observe que les boucles sont séparées par le
-block `Preheader B`.
+bloc `Preheader B`.
 
 Dans un flot de compilation standard, le regroupement des noyaux n'apporte pas
 de gain de performance direct, par conséquent, le compilateur ne réalise aucune
@@ -445,7 +445,7 @@ structurelles. Grâce aux annotations, à la régularité imposée par l'appel
 variadique, et à l'impossibilité pour l'utilisateur d'insérer des instructions
 entre les noyaux, nous sommes en mesure d'opérer une véritable fusion des noyaux
 Kokkos directement au niveau de la représentation intermédiaire en remontant les
-blocs d'instructions problématiques au dessus du SCoP global.
+blocs d'instructions problématiques au-dessus du SCoP global.
 
 La @code:complexexecutionpatterns:cfglinearizationafter présente l'IR après
 l'application de cette passe de transformation. Le bloc `Preheader B` a été
@@ -481,7 +481,7 @@ noyaux fusionnés comme un seul et unique SCoP. Toutefois, le modèle
 d'abstraction de Kokkos pose une dernière difficulté : il empêche Polly
 d'identifier correctement les paramètres du modèle (bornes de boucles, tableaux,
 etc.). En effet, chaque valeur du code source fait l'objet d'un chargement
-mémoire distinct pour chaque noyau du à la capture par lambda des noyaux,
+mémoire distinct pour chaque noyau dû à la capture par lambda des noyaux,
 conduisant à la création de multiples variables SSA différentes pour une même
 variable logique. Les sections suivantes exposent les méthodes déployées pour
 résoudre ce problème.
@@ -562,7 +562,7 @@ ultérieurs sont systématiquement remplacées par le pointeur originel capturé
 lors de la première occurrence du tableau. Cette unification des variables SSA
 permet non seulement d'éliminer les redondances dans l'IR, mais aussi
 d'éradiquer les faux positifs liés à l'aliasing. Polly dispose ainsi d'une
-vision globale et parfaitement cohérente des différents accès mémoires, pour
+vision globale et parfaitement cohérente des différents accès mémoire, pour
 analyse correcte du SCoP fusionné.
 
 
@@ -752,7 +752,7 @@ bien identiques et que les bornes de boucles respectent les contraintes
 définies.
 
 Ces extensions permettent ainsi à Polly de modéliser une part bien plus large
-des noyaux Kokkos. Toutefois, leur optimisation reste dependant du flot standard
+des noyaux Kokkos. Toutefois, leur optimisation reste dépendante du flot standard
 de Polly, limité à l'ordonnanceur d'ISL et aux architectures CPU. Le
 @sec:schedulingheterogeneous présente l'intégration de l'ordonnanceur Pluto
 ainsi que celle de PPCG pour cibler les accélérateurs GPU.

@@ -7,7 +7,7 @@ scientifique à haute performance. Le développement de codes de calcul est en
 effet confronté à la complexité et à l'hétérogénéité des architectures
 matérielles modernes. Si les bibliothèques de portabilité des performances,
 telles que Kokkos, permettent de s'abstraire de l'architecture cible pour le
-déploiement des noyaux de calcul, ils confient largement la charge de
+déploiement des noyaux de calcul, elles confient largement la charge de
 l'optimisation fine aux compilateurs. Or, ces derniers peinent souvent à
 appliquer des transformations agressives face à la complexité des nids de
 boucles rencontrés dans les applications réelles.

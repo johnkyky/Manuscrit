@@ -35,7 +35,7 @@ arithmétique de pointeurs internes) créent un fossé sémantique entre le code
 source et la représentation intermédiaire (IR) de LLVM. Lorsque le code Kokkos
 est abaissé au niveau de l'IR, où opère l'outil d'analyse et d'optimisation
 Polly, la structure originale simple des nids de boucles multidimensionnels est
-délaissé au profit de structures complexes nécessaires au fonctionnement de
+délaissée au profit de structures complexes nécessaires au fonctionnement de
 Kokkos. Le compilateur ne perçoit alors que des pointeurs représentant les
 bornes de boucles et des accès mémoire via des pointeurs unidimensionnels
 complexes. Manquant d'informations et craignant des risques d'_aliasing_, Polly
@@ -219,11 +219,11 @@ l'analyse polyédrique par Polly.
 
 Lors de l'utilisation de `MDRangePolicy` pour itérer sur des espaces
 multidimensionnels, les backends standards de Kokkos appliquent des mécanismes
-statiques de découpage en blocs pour appliquer un tuillage. Bien que ces
+statiques de découpage en blocs pour appliquer un tuilage. Bien que ces
 transformations statiques soient essentielles pour exposer le parallélisme et
 optimiser l'exécution sur les architectures cibles, elles saturent le code
 généré de niveaux de boucles supplémentaires et d'une arithmétique d'indexation
-complexe dans l'IR. Cela rend opaque les SCoP que Polly tente de reconstruire.
+complexe dans l'IR. Cela rend opaques les SCoP que Polly tente de reconstruire.
 
 Or, le modèle polyédrique est conçu pour effectuer lui-même de telles
 transformations. Afin de promouvoir la détection de SCoPs en exposant à Polly
@@ -309,7 +309,7 @@ Au sein de la chaîne de compilation, l'exécution des transformations de
 restructuration nécessite d'établir un point d'ancrage précis dans la séquence
 des passes de Polly. Dans son fonctionnement par défaut, le pipeline de Polly
 débute par une étape préparatoire `CodePreparation` dont le rôle est d'isoler
-les allocations mémoires locales (`alloca`) des opérations arithmétiques et des
+les allocations mémoire locales (`alloca`) des opérations arithmétiques et des
 accès aux données, afin de simplifier les analyses subséquentes. Nous mettons à
 profit cette phase précoce pour ajouter juste après cette passe initiale, notre
 propre suite de passes de prétraitement.
@@ -339,7 +339,7 @@ la modélisation polyédrique :
 
 L'accès à ces informations constitue une condition préalable absolue pour
 permettre au compilateur de construire un domaine d'itérations et de
-délinéariser fidèlement les accès mémoires.
+délinéariser fidèlement les accès mémoire.
 
 *Résilience des métadonnées face aux optimisations de bas niveau.*
 Cette extraction soulève un défi : la *résilience* des métadonnées tout au long
@@ -353,7 +353,7 @@ Lorsqu'une annotation est émise dans l'IR par le frontend Clang, elle est
 systématiquement placée à la suite de l'instruction ciblée. Au cours des passes
 d'optimisation préalables, bien que les appels à l'intrinsèque `llvm.annotate`
 soient ignorés et préservés par le compilateur, ces derniers sont susceptibles
-de référencer des valeurs ayant été altérées ou supprimées principallement pour
+de référencer des valeurs ayant été altérées ou supprimées principalement pour
 le marquage des tableaux constitué de minimum 3 annotations distinctes.
 
 Une considération supplémentaire réside dans le fait que le système
@@ -392,7 +392,7 @@ Le modèle d'exécution de Kokkos s'appuie sur des politiques de parcours
 (`RangePolicy`, `MDRangePolicy`) qui, au lieu de manipuler de simples variables
 scalaires, encapsulent les bornes de boucles dans des structures de données sous
 forme de tableaux. Lors de l'abaissement vers l'IR LLVM, l'évaluation de ces
-bornes se matérialise souvent par des chargements mémoires répétés
+bornes se matérialise souvent par des chargements mémoire répétés
 (`getelementptr` suivi de `load`) qui peuvent se situer à l'intérieur même du
 nid de boucles, bien que les valeurs obtenues soient invariantes.
 
@@ -561,7 +561,7 @@ granularité. Ainsi, chaque dimension des tableaux utilisés dans le noyau est
 annotée par une chaîne de caractères définissant le type d'accès (ex. `"dim"`),
 tout en précisant le niveau d'imbrication correspondant (ex. `"dim 1"`).
 Concernant les bornes de boucles, un mécanisme analogue est employé afin de
-relier les bornes (inférieure et supérieure) de la politique d'exécution utilisé
+relier les bornes (inférieure et supérieure) de la politique d'exécution utilisée
 à la profondeur de la boucle au sein du nid de boucle.
 
 La @sec:complexexecutionpatterns détaillera l'utilisation de ces annotations
@@ -570,7 +570,7 @@ relatives aux tableaux et aux bornes de boucles, des annotations additionnelles
 s'avèrent indispensables pour garantir une utilisation transparente de Polly
 dans Kokkos et pour modéliser des schémas d'exécution plus complexes. Ces
 annotations supplémentaires, ainsi que les sections qui leur sont consacrées
-sont détaillé ci-dessous.
+sont détaillées ci-dessous.
 
 - Le *backend d'exécution cible* : transmission de l'architecture matérielle
   assignée au noyau Kokkos (`Serial`, `OpenMP`, `Cuda`), permettant à Polly de
@@ -607,9 +607,9 @@ LLVM, les boucles sont réorganisées (via des passes comme `loop-rotate`) afin
 d'adopter une structure de type `do-while` facilitant les optimisations. Cette
 transformation canonique impose l'insertion de branchements conditionnels en
 amont, visant à vérifier dynamiquement si une boucle possède au minimum une
-itération avant d'autoriser l'entrée dans le corps de la boucle. Cette verifie
-est redondante à celle déjà présent dans les _backends_ modifiés pour
-l'application du modèle polyhedrique
+itération avant d'autoriser l'entrée dans le corps de la boucle. Cette vérification
+est redondante à celle déjà présente dans les _backends_ modifiés pour
+l'application du modèle polyédrique
 
 Ainsi, au niveau de la représentation intermédiaire, deux constructions
 idiomatiques entravent particulièrement la détection des SCoPs : les
@@ -880,14 +880,14 @@ dépendances ainsi que l'impact de l'application de notre passe sur l'IR.
   #figure(
     fig.kokkosvisibility-arrayreg2mem,
     caption: [Liste de transformations de dépendances scalaires vers des accès
-      mémoires explicites, appliquées par la passe `ArrayReg2MemPass`.],
+      mémoire explicites, appliquées par la passe `ArrayReg2MemPass`.],
   )<ex:array_reg_to_mem>
 ]
 
 
 En définitive, l'application de la passe `ArrayReg2MemPass` s'avère essentielle
 pour lever les verrous structurels induits par les abstractions de Kokkos. En
-substituant ces dépendances scalaires artificielles par des accès mémoires
+substituant ces dépendances scalaires artificielles par des accès mémoire
 explicites, cette transformation affranchit l'ordonnanceur polyédrique de
 contraintes de séquencement superflues. Elle rend ainsi possible l'optimisation
 de codes qui, autrement, auraient été bridés par la présence de fausses
@@ -897,7 +897,7 @@ dépendances.
 
 Afin de construire le domaine d'exécution, le modèle polyédrique doit
 impérativement reconstruire une représentation multidimensionnelle exacte des
-accès mémoires, exprimée sous forme de fonctions affines des itérateurs sur
+accès mémoire, exprimée sous forme de fonctions affines des itérateurs sur
 chaque dimension, à partir des calculs de pointeurs linéarisés, présents sous
 forme polynomiale dans l'IR. Polly se base pour cela sur l'analyse d'évolution
 scalaire (*Scalar Evolution*, SCEV) de LLVM, qui modélise l'évolution des
@@ -921,7 +921,7 @@ contenant la taille de la dimension (`%n`) s'annule lors des simplifications
 algébriques opérées par LLVM (voir @fig:kokkosvisibility:scev_failure_partial).
 L'expression SCEV résultante ne contenant plus cette taille intermédiaire, le
 solveur s'avère incapable de la déduire par factorisation. Cette perte
-d'information génère des accès mémoires ambigus : un même pointeur peut alors
+d'information génère des accès mémoire ambigus : un même pointeur peut alors
 être interprété avec un nombre variable de dimensions selon le motif d'accès
 étudié.
 
@@ -966,7 +966,7 @@ compilateur la taille exacte de chaque dimension (par exemple `%m`, `%n` et
 `%o`) sans dépendre de la reconstruction depuis l'IR, nous rendons ce processus
 de délinéarisation entièrement déterministe et fiable. Cette approche présente
 également un second avantage majeur pour le développeur : lors de l'analyse du
-SCoP, les accès mémoires reconstruits correspondent fidèlement à la sémantique
+SCoP, les accès mémoire reconstruits correspondent fidèlement à la sémantique
 multidimensionnelle du code source original, facilitant ainsi la traçabilité.
 
 

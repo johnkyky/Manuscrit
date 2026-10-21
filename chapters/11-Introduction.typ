@@ -76,15 +76,15 @@ performances sur les cibles matérielles choisies.
 Les frameworks de portabilité des performances sont fournis sous forme de
 bibliothèques logicielles que les développeurs peuvent exploiter pour exprimer
 le parallélisme et gérer la mémoire sur diverses architectures matérielles. Dans
-le domaine du HPC, les bibliothèques les plus utilisés sont Kokkos, RAJA, SYCL
+le domaine du HPC, les bibliothèques les plus utilisées sont Kokkos, RAJA, SYCL
 et le standard de parallélisme C++ (`std::par`). Ces outils permettent le
 développement d'un code source unique pouvant être compilé pour différentes
 cibles, avec la promesse de la portabilité des performances.
 
 Cependant, ces bibliothèques n'effectuent pas intrinsèquement d'optimisation
-automatique du code source. Ils s'appuient sur des optimisations structurelles
+automatique du code source. Elles s'appuient sur des optimisations structurelles
 statiques et un parallélisme explicite sans réaliser d'analyse statique profonde
-des noyaux de calcul eux-mêmes. Les performances qu'ils délivrent proviennent
+des noyaux de calcul eux-mêmes. Les performances qu'elles délivrent proviennent
 principalement d'un découpage parallèle robuste et de techniques de placement de
 bas niveau implémentées par les développeurs du framework, plutôt que d'une
 restructuration agressive des boucles. En employant le modèle polyédrique, des
@@ -113,7 +113,7 @@ exactement les mêmes régions de code où les bibliothèques de portabilité de
 performances offrent leur plus grand avantage, en fournissant une syntaxe
 simplifiée pour l'exécution parallèle. Cibler ces régions avec des techniques
 polyédriques permet aux codes HPC d'être significativement améliorés quant aux
-performance à l'exécution.
+performances à l'exécution.
 
 
 == Plan et Contributions

@@ -66,7 +66,7 @@ l'extensibilité du flot de compilation en vue de l'intégration future d'autres
 ordonnanceurs polyédriques. En pratique, une fois le SCoP extrait de l'IR LLVM,
 Polly sérialise ce dernier au format OpenSCoP et délègue l'étape
 d'ordonnancement à Pluto. Ce dernier produit un nouvel ordonnancement optimisé
-qui est réimporté dans Polly, se substituant à d'ordonnancement classiquement
+qui est réimporté dans Polly, se substituant à l'ordonnancement classiquement
 généré par ISL.
 
 === Représentation OpenSCoP
@@ -233,7 +233,7 @@ suite Polybench:
 
 == Intégration de PPCG et Réhabilitation de Polly-ACC <sec:schedulingheterogeneous:ppcg>
 
-L'existance d'un support permettant la génération de code pour accélérateurs
+L'existence d'un support permettant la génération de code pour accélérateurs
 matériels GPU constitue un prérequis incontournable de nos travaux, initialement
 absent de notre flot de compilation. En effet, une divergence fondamentale
 subsistait entre les modèles d'exécution de Kokkos et les capacités de Polly en
@@ -274,7 +274,7 @@ moderniser et réintégrer l'architecture conceptuelle de Polly-ACC au sein d'un
 version récente de LLVM. L'un des principaux défis d'intégration inhérents à
 PPCG réside dans sa conception originelle. Pensé comme un outil opérant
 exclusivement sur du code source C, ses structures de représentation interne
-fait pour gérer du code source ne prévoient nativement aucun mécanisme pour
+faites pour gérer du code source ne prévoient nativement aucun mécanisme pour
 sauvegarder la sémantique et les métadonnées requises par un IR bas niveau comme
 celui de LLVM.
 
