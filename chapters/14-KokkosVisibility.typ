@@ -547,7 +547,7 @@ modélisation polyédrique.
         )<fig:kokkosvisibility:loop_hoisting_after>
       ],
     ),
-    caption: [Élévation du chargement de la borne de boucle dans la pré-en-tête
+    caption: [Élévation du chargement de la borne de boucle dans le pré-en-tête
       du SCoP.],
     label: <fig:kokkosvisibility:loop_hoisting>,
   )

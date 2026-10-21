@@ -12,7 +12,7 @@ représentation intermédiaire LLVM optimisée (@sec:scientificbackground:codege
 Cependant, cette infrastructure standard présente des limitations vis-à-vis des
 objectifs de notre chaîne de compilation, tant en matière de support matériel
 que de diversité des optimisations. D'une part, l'abstraction de programmation
-Kokkos tire une part essentielle de ses performances d'exécutions sur
+Kokkos tire une part essentielle de ses performances d'exécution sur
 accélérateurs graphiques et machines multi-processeurs généralistes à mémoire
 partagée (GPU), tandis que le flot standard de Polly cible exclusivement les
 processeurs multi-coeurs (CPU). D'autre part, Polly se limite aux heuristiques

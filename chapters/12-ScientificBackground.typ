@@ -1140,7 +1140,7 @@ permettant d'activer le multithreading et les instructions SIMD.
 La passe `CodeGeneration` est chargée de reconstruire l'#gls("ir") LLVM finale
 et optimisée à partir du nouvel #gls("ast") #gls("isl") généré. En parcourant
 les noeuds de l'#gls("ast"), cette passe utilise l'`IRBuilder` de LLVM pour
-construire les structures de boucles correspondantes et le graphe flot de
+construire les structures de boucles correspondantes et le graphe de flot de
 contrôle. Si les noeuds de l'#gls("ast") parcourus portent les annotations
 parallèles ou vectorielles intégrées lors de la phase précédente, le générateur
 de code les traduit en appels appropriés de la bibliothèque d'exécution OpenMP

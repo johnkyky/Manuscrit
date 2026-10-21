@@ -250,7 +250,7 @@ les analyses et transformations polyédriques de Polly.
 
 == Vision Globale des Boucles <sec:complexexecutionpatterns:globalloopvision>
 
-Pour optimiser les performances des noyaux de calculs comportant plusieurs nids
+Pour optimiser les performances des noyaux de calcul comportant plusieurs nids
 de boucles, le modèle polyédrique peut appliquer des transformations
 inter-noyaux. L'une d'elles est la fusion de boucles, généralement appliquée
 lorsque des noyaux successifs accèdent aux mêmes données avec des dépendances de
@@ -325,7 +325,7 @@ En exploitant les capacités de métaprogrammation du C++, cette implémentation
 variadique (illustrée par la @code:complexexecutionpatterns:variadicparallelfor)
 permet d'accepter une séquence de paires `(Policy, Functor)`. Lors de la
 compilation, une fonction lambda est instanciée pour chaque paire, et ces
-fonctions lambdas sont ensuite invoquées séquentiellement.
+fonctions lambda sont ensuite invoquées séquentiellement.
 
 #figure(
   ```cpp
