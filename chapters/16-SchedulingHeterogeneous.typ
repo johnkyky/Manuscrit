@@ -53,36 +53,36 @@ parallélisation sur des codes aux accès réguliers. Son intégration constitue
 ainsi une extension particulièrement pertinente pour notre flot de compilation.
 
 Afin d'interfacer Pluto avec l'infrastructure de Polly, nous avons développé une
-passerelle d'exportation et d'importation reposant sur le format *OpenSCoP*
+passerelle d'exportation et d'importation reposant sur le format *OpenScop*
 @openscop. Ce choix de conception est motivé par deux raisons fondamentales.
 Premièrement, Pluto étant conçu comme un compilateur source-à-source opérant sur
 du code C, il est agnostique à la représentation intermédiaire de LLVM.
-L'utilisation d'OpenSCoP permet de franchir cette barrière d'abstraction en
+L'utilisation d'OpenScop permet de franchir cette barrière d'abstraction en
 fournissant un format d'échange formel et standardisé. Secondement, cette
 standardisation induit un découplage fort entre l'infrastructure interne de
 Polly et le moteur d'ordonnancement externe. Une telle architecture garantit non
 seulement une interopérabilité robuste avec Pluto, mais assure également
 l'extensibilité du flot de compilation en vue de l'intégration future d'autres
 ordonnanceurs polyédriques. En pratique, une fois le SCoP extrait de l'IR LLVM,
-Polly sérialise ce dernier au format OpenSCoP et délègue l'étape
+Polly sérialise ce dernier au format OpenScop et délègue l'étape
 d'ordonnancement à Pluto. Ce dernier produit un nouvel ordonnancement optimisé
 qui est réimporté dans Polly, se substituant à l'ordonnancement classiquement
 généré par ISL.
 
-=== Représentation OpenSCoP
+=== Représentation OpenScop
 
 Bien que Polly et Pluto modélisent tous deux les programmes selon le formalisme
 polyédrique, leurs représentations internes en mémoire divergent
 structurellement. La bibliothèque ISL, noyau mathématique de Polly, encode les
 domaines d'itération et les fonctions d'ordonnancement sous forme d'ensembles et
 de relations paramétrés, décrits par des formules algébriques. À l'inverse,
-OpenSCoP repose sur une représentation matricielle de ces contraintes linéaires.
+OpenScop repose sur une représentation matricielle de ces contraintes linéaires.
 
 Afin de concevoir une passerelle fiable entre les structures ISL et le format
-OpenSCoP, nous nous appuyons sur la bibliothèque `libopenscop`. Durant la phase
+OpenScop, nous nous appuyons sur la bibliothèque `libopenscop`. Durant la phase
 d'exportation, notre interface traverse récursivement les structures de données
 d'ISL afin d'en extraire les contraintes géométriques, reformulant ainsi un SCoP
-sémantiquement équivalent sous la forme de matrices OpenSCoP.
+sémantiquement équivalent sous la forme de matrices OpenScop.
 
 À titre d'illustration, considérons le domaine d'itération et l'ordonnancement
 canonique d'une boucle parfaitement imbriquée parcourant un espace
@@ -126,7 +126,7 @@ additionnelles y représentent les nouvelles dimensions temporelles ou spatiales
     0     0    1    0   -1    0    0    # t2 - j == 0
   ```,
   caption: [Traduction matricielle du domaine et de l'ordonnancement au format
-    OpenSCoP.],
+    OpenScop.],
 ) <fig:schedulingheterogeneous:openscop_mat>
 
 ==== Conversion du tuilage
