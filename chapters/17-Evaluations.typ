@@ -169,7 +169,7 @@ noyau de la suite PolyBench, la taille utilisée.
 Cette section évalue l'efficacité de notre chaîne de compilation sur processeurs
 multicoeurs. Pour chacun des 27 noyaux retenus, la version de référence Kokkos
 est comparée à sa version optimisée (@sec:evaluations:setup). Les deux
-ordonnanceurs polyédriques sont confrontés, l'ordonnanceur natif de Polly,
+ordonnanceurs polyédriques sont confrontés : l'ordonnanceur natif de Polly,
 reposant sur ISL, et l'ordonnanceur Pluto (@sec:schedulingheterogeneous:pluto).
 Dans les deux cas, le tuilage est appliqué avec une taille de tuile fixe de 32
 sur chaque dimension, et Polly parallélise le code généré au moyen du support
@@ -617,7 +617,7 @@ transformations aux caractéristiques matérielles.
 
 ==== Le cas de la factorisation #text(0.75em, font: "FiraCode Nerd Font Mono")[lu]
 
-Le noyau `lu` présente un écart important d'exécution sur la machine AMD, ISL
+Le noyau `lu` présente un écart important d'exécution sur la machine AMD : ISL
 atteint #box[118.26$times$] et Pluto #box[18.45$times$] contre #box[5.27$times$]
 et #box[9.21$times$] sur la machine Intel. Deux effets se combinent.
 
@@ -661,7 +661,7 @@ AMD le tuilage reste bénéfique.
 Cette évaluation montre que la visibilité restaurée par nos contributions permet
 à Polly d'optimiser des codes Kokkos avec des gains en performance non
 négligeables, puisque 24 des 27 noyaux sont accélérés sur chaque machine. Ces
-gains ont deux origines : une amélioration de la localité mémoire, des
+gains ont deux origines : une amélioration de la localité mémoire et des
 transformations créant des boucles sans dépendance parallèles comme le front
 d'onde de Pluto.
 
@@ -783,16 +783,16 @@ successives, lancées depuis l'hôte (@code:evaluations:lu-ppcg). À chaque éta
 la mise à jour de la partie restante de la matrice est confiée à des noyaux
 mobilisant des centaines de milliers de threads et chargeant en mémoire partagée
 les données réutilisées au sein d'un bloc. Pour `seidel-2d`, il applique un
-front d'onde qui à chaque lancement successif de blocs, traite en parallèle tous
-les points d'un même front. Pour `trisolv` et `durbin`, le calcul reste organisé
-en étapes, mais chaque étape enchaîne plusieurs noyaux sur le GPU sans retour
-vers l'hôte, même lorsque, comme pour `durbin`, une réduction reste calculée par
-un seul thread. La version de référence effectue au contraire, à chaque étape,
-une réduction parallèle dont le résultat est rapatrié sur l'hôte, engendrant
-énormément de synchronisations, ce qui explique l'écart de la performance.
-Enfin, l'accélération plus faible de `ludcmp` que de `lu`, dont la factorisation
-est identique, tient à la dernière substitution triangulaire, que le code généré
-exécute sur l'hôte au moyen d'une boucle inefficace.
+front d'onde qui, à chaque lancement successif de blocs, traite en parallèle
+tous les points d'un même front. Pour `trisolv` et `durbin`, le calcul reste
+organisé en étapes, mais chaque étape enchaîne plusieurs noyaux sur le GPU sans
+retour vers l'hôte, même lorsque, comme pour `durbin`, une réduction reste
+calculée par un seul thread. La version de référence effectue au contraire, à
+chaque étape, une réduction parallèle dont le résultat est rapatrié sur l'hôte,
+engendrant énormément de synchronisations, ce qui explique l'écart de la
+performance. Enfin, l'accélération plus faible de `ludcmp` que de `lu`, dont la
+factorisation est identique, tient à la dernière substitution triangulaire, que
+le code généré exécute sur l'hôte au moyen d'une boucle inefficace.
 
 #figure(
   ```cpp
@@ -830,7 +830,7 @@ bloc, puis réutilisée depuis cette mémoire rapide. Pour `trmm`
 parallélisation que la référence, avec un thread par colonne, et le gain
 provient essentiellement de la mémoire partagée. Enfin, `gemm`
 (#box[1.90$times$]), `2mm` (#box[1.41$times$]) et `3mm` (#box[1.09$times$])
-n'obtiennent que des gains modérés grâce à la mémoire partagée et la
+n'obtiennent que des gains modérés grâce à la mémoire partagée et à la
 privatisation des variables, les versions de référence utilisant déjà un
 parallélisme efficace.
 
@@ -1010,7 +1010,7 @@ performances proches de celles de Polly sur le code d'origine. Les écarts
 restent toutefois importants sur quelques noyaux, dans les deux sens.
 
 *Noyaux plus rapides avec notre version.* `symm` (9.52$times$), `adi`
-(3.86$times$), `seidel-2d` (2.93$times$) et avec une accélération moins
+(3.86$times$), `seidel-2d` (2.93$times$) et, avec une accélération moins
 importante, `gramschmidt` (1.18$times$) et `bicg` (1.15$times$). Sur les trois
 premiers, les optimisations que LLVM applique avant Polly remplacent, dans le
 code C, certaines lectures de tableaux par des valeurs scalaires, transmises

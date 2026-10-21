@@ -71,7 +71,7 @@ placement des données et le déploiement de ces noyaux pour maximiser les
 performances sur les cibles matérielles choisies.
 
 
-== Bibliothèques de Portabilité des Performances
+== Bibliothèques de portabilité des performances
 
 Les frameworks de portabilité des performances sont fournis sous forme de
 bibliothèques logicielles que les développeurs peuvent exploiter pour exprimer
@@ -93,7 +93,7 @@ ces régions de code critiques et coûteuses en calcul pour maximiser
 l'utilisation du matériel.
 
 
-== Modèle Polyédrique
+== Modèle polyédrique
 
 Le modèle polyédrique est un ensemble de méthodes mathématiques dédié à
 l'optimisation des nids de boucles. Il a prouvé son efficacité dans
@@ -116,11 +116,11 @@ polyédriques permet aux codes HPC d'être significativement améliorés quant a
 performances à l'exécution.
 
 
-== Plan et Contributions
+== Plan et contributions
 
 Cette thèse introduit et implémente une approche hybride combinant le modèle
 polyédrique avec la bibliothèque de portabilité des performances Kokkos~@kokkos.
-L'objectif principal est de permettre dans Kokkos, d'appliquer les capacités
+L'objectif principal est de permettre dans Kokkos d'appliquer les capacités
 avancées d'optimisation de boucles fournies par le modèle polyédrique.
 
 Le #chref(<sec:scientificbackground>) détaille le contexte scientifique et

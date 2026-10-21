@@ -74,7 +74,7 @@ L'implémentation de ces boucles triangulaires pose un défi majeur lors de
 l'abaissement en représentation intermédiaire LLVM vis-à-vis de l'analyse
 polyédrique. La @fig:complexexecutionpatterns:trisolv_ir montre le graphe de
 flot de contrôle et l'IR LLVM simplifiée générés par le compilateur pour le
-noyau trisolv (@fig:complexexecutionpatterns:trisolv).
+noyau *trisolv* (@fig:complexexecutionpatterns:trisolv).
 
 #figure(
   fig.complexexecutionpatterns-trisolvissue,
@@ -116,7 +116,7 @@ optimisation polyédrique.
 Afin de pallier cette limitation inhérente sans nécessiter de modification
 profonde de l'architecture de détection de Polly, et pour neutraliser d'autres
 structures d'IR susceptibles de corrompre l'analyse, nous avons introduit une
-passe d'épluchage de boucle en amont du processus de détection des SCoP.
+passe d'épluchage de boucle en amont du processus de détection des SCoPs.
 
 
 === Épluchage de boucles
@@ -166,7 +166,7 @@ stratégie d'épluchage adéquate et le nombre exact d'itérations à extraire :
   ce qui nécessite un épluchage par l'arrière. Le nombre d'itérations à éplucher
   est déterminé en calculant d'abord le nombre d'itérations où la boucle interne
   s'exécute effectivement. Ce nombre d'itérations effectives est ensuite
-  soustrait au nombre total d'itérations de la boucle englobante pour obtenir
+  soustrait du nombre total d'itérations de la boucle englobante pour obtenir
   exactement le nombre d'itérations à éplucher.
 
 Cette méthode analytique permet de caractériser complètement les boucles à
@@ -248,7 +248,7 @@ les analyses et transformations polyédriques de Polly.
 )
 
 
-== Vision Globale des Boucles <sec:complexexecutionpatterns:globalloopvision>
+== Vision globale des boucles <sec:complexexecutionpatterns:globalloopvision>
 
 Pour optimiser les performances des noyaux de calcul comportant plusieurs nids
 de boucles, le modèle polyédrique peut appliquer des transformations

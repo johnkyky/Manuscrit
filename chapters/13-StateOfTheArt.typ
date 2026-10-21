@@ -1,6 +1,6 @@
 #import "../src/common.typ": *
 
-= État de l'Art <sec:stateoftheart>
+= État de l'art <sec:stateoftheart>
 
 L'évolution de la complexité matérielle des supercalculateurs modernes a conduit
 à une augmentation massive à la fois du nombre de coeurs disponibles et de leur
@@ -30,17 +30,17 @@ l'infrastructure interne nécessaire pour effectuer des analyses statiques
 complexes et des transformations structurelles automatiques de boucles.
 
 Ce chapitre passe en revue la littérature existante autour de ces deux
-écosystèmes. Il explore d'abord à la @sec:stateoftheart:frameworks, comment les
+écosystèmes. Il explore d'abord à la @sec:stateoftheart:frameworks comment les
 bibliothèques de portabilité des performances atteignent des performances
 indépendamment de l'architecture cible. Il analyse ensuite l'évolution des
 compilateurs polyédriques, des outils source-à-source jusqu'aux infrastructures
 IR modernes, en mettant en évidence leurs limitations inhérentes lorsqu'ils sont
-confrontés à de fortes abstractions (@sec:stateoftheart:polyhedral). Enfin la
-@sec:stateoftheart:hybrid, explore les approches hybrides et les langages dédiés
+confrontés à de fortes abstractions (@sec:stateoftheart:polyhedral). Enfin, la
+@sec:stateoftheart:hybrid explore les approches hybrides et les langages dédiés
 qui tentent de combler ce fossé, démontrant la nécessité de la nouvelle approche
 proposée dans cette thèse.
 
-== Bibliothèques de Portabilité des Performances <sec:stateoftheart:frameworks>
+== Bibliothèques de portabilité des performances <sec:stateoftheart:frameworks>
 
 Les développeurs de calcul haute performance en C++ s'appuient sur des
 bibliothèques de portabilité des performances comme Kokkos
@@ -64,7 +64,7 @@ matrice-vecteur) en utilisant ces différents frameworks.
       columns: (auto, 1fr),
       align: (center + horizon, left + horizon),
       stroke: 0.5pt + luma(200),
-      [*Bibliothèque*], [*Exemple de Syntaxe (Multiplication Matrice-Vecteur)*],
+      [*Bibliothèque*], [*Exemple de syntaxe (multiplication matrice-vecteur)*],
       [*`Kokkos`*],
       ```cpp
       void matVecMult_kokkos(int N, int M, View<float**> A,
@@ -215,13 +215,13 @@ structures C++ modernes.
 
 Pour surmonter la complexité liée à l'analyse syntaxique des langages de haut
 niveau, la communauté de la compilation polyédrique a adopté une nouvelle
-approche : abaisser le niveau d'analyse. En s'appuyant sur des Représentations
-Intermédiaires (IR) telles que celle de LLVM, les outils polyédriques
-parviennent à s'abstraire du langage source (C, C++, Fortran) et de contourner
+approche : abaisser le niveau d'analyse. En s'appuyant sur des représentations
+intermédiaires (IR) telles que celle de LLVM, les outils polyédriques
+parviennent à s'abstraire du langage source (C, C++, Fortran) et à contourner
 la complexité de son analyse syntaxique et sémantique.
 
 Graphite~@graphite a été l'un des premiers compilateurs polyédriques largement
-adopté à utiliser cette méthode, s'intégrant directement dans l'IR de GCC
+adoptés à utiliser cette méthode, s'intégrant directement dans l'IR de GCC
 @gccir. Au sein de l'écosystème LLVM, l'outil Polly~@polly1 utilise l'IR LLVM
 pour reconstruire et appliquer le modèle polyédrique. Plus récemment, des outils
 comme Polygeist~@Polygeist s'appuient sur MLIR @mlir, une représentation IR LLVM

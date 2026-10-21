@@ -1,6 +1,6 @@
 #import "../src/common.typ": *
 
-= Conclusion et Perspectives <sec:conclusion>
+= Conclusion et perspectives <sec:conclusion>
 
 L'optimisation des programmes constitue un enjeu majeur pour le calcul
 scientifique à haute performance. Le développement de codes de calcul est en
@@ -77,7 +77,7 @@ appliqué aux versions C d'origine des noyaux, notre chaîne de compilation ne
 dégrade pas les performances, et les améliore même en moyenne, ce qui montre que
 l'abstraction Kokkos ne fait pas obstacle à l'optimisation polyédrique.
 
-== Discussion et Limites
+== Discussion et limites
 
 Bien que notre approche hybride démontre des gains de performance prometteurs
 pour les codes Kokkos, elle reste soumise à certaines limites conceptuelles et

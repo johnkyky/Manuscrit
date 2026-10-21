@@ -186,7 +186,7 @@ portabilité ou les performances.
     l'analyse polyédrique sur un noyau Kokkos spécifique.],
 ) <code:kokkosvisibility:usepolyopt>
 
-=== Réécriture du backend et Isolation
+=== Réécriture du backend et isolation
 
 Pour cibler un backend spécifique, Kokkos s'appuie sur une interface de
 métaprogrammation structurée autour d'une définition générique de la fonction
@@ -223,7 +223,7 @@ statiques de découpage en blocs pour appliquer un tuilage. Bien que ces
 transformations statiques soient essentielles pour exposer le parallélisme et
 optimiser l'exécution sur les architectures cibles, elles saturent le code
 généré de niveaux de boucles supplémentaires et d'une arithmétique d'indexation
-complexe dans l'IR. Cela rend opaques les SCoP que Polly tente de reconstruire.
+complexe dans l'IR. Cela rend opaques les SCoPs que Polly tente de reconstruire.
 
 Or, le modèle polyédrique est conçu pour effectuer lui-même de telles
 transformations. Afin de promouvoir la détection de SCoPs en exposant à Polly
@@ -311,7 +311,7 @@ des passes de Polly. Dans son fonctionnement par défaut, le pipeline de Polly
 débute par une étape préparatoire `CodePreparation` dont le rôle est d'isoler
 les allocations mémoire locales (`alloca`) des opérations arithmétiques et des
 accès aux données, afin de simplifier les analyses subséquentes. Nous mettons à
-profit cette phase précoce pour ajouter juste après cette passe initiale, notre
+profit cette phase précoce pour ajouter, juste après cette passe initiale, notre
 propre suite de passes de prétraitement.
 
 À ce stade du pipeline, l'IR LLVM résultant de l'abaissement des modèles C++ de
@@ -322,7 +322,7 @@ objectif :
   permettant de construire la modélisation polyédrique
   (@sec:kokkosvisibility:annotations) ;
 - D'autre part, assainir la topologie du graphe de flot de contrôle en éliminant
-  les branchements inutiles de la structure de boucle issue de Kokkos.
+  les branchements inutiles de la structure de boucle issue de Kokkos
   (@sec:kokkosvisibility:cfg_simplification).
 
 === Extraction et exploitation des annotations <sec:kokkosvisibility:annotations>
@@ -383,7 +383,7 @@ depuis l'utilisation de la borne dérivée jusqu'à la variable annotée initial
   );
   ```,
   caption: [Exemple d'annotation de borne de boucle impliquant une expression
-    arithmétique `n-1`],
+    arithmétique `n-1`.],
 ) <fig:kokkosvisibility:complexebound>
 
 
@@ -569,7 +569,7 @@ pour étendre les capacités de détection de Polly. Au-delà des métadonnées
 relatives aux tableaux et aux bornes de boucles, des annotations additionnelles
 s'avèrent indispensables pour garantir une utilisation transparente de Polly
 dans Kokkos et pour modéliser des schémas d'exécution plus complexes. Ces
-annotations supplémentaires, ainsi que les sections qui leur sont consacrées
+annotations supplémentaires, ainsi que les sections qui leur sont consacrées,
 sont détaillées ci-dessous.
 
 - Le *backend d'exécution cible* : transmission de l'architecture matérielle

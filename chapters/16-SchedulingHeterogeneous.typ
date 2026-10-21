@@ -1,6 +1,6 @@
 #import "../src/common.typ": *
 
-= Ordonnancement et Génération Hétérogènes <sec:schedulingheterogeneous>
+= Ordonnancement et génération hétérogènes <sec:schedulingheterogeneous>
 
 L'extraction de la représentation polyédrique et la génération de code optimisé
 constituent les deux phases fondamentales du flot de compilation polyédrique.
@@ -159,7 +159,7 @@ d'exécution lexicographique défini par Pluto.
 La séquence de figures suivante illustre les différentes étapes de cette
 transformation géométrique pour un _statement_ extrait du noyau `syr2k` de la
 suite PolyBench :
-- La @fig:schedulingheterogeneous:polly_orig expose le domaine d'itérations et
+- La @fig:schedulingheterogeneous:polly_orig expose le domaine d'itération et
   l'ordonnancement identité extraits initialement par Polly.
 - La @fig:schedulingheterogeneous:pluto_tiled détaille l'ordonnancement optimisé
   restitué par Pluto. On y observe l'altération du domaine d'itération par
@@ -230,7 +230,7 @@ suite PolyBench :
     d'ordonnancement.],
 ) <fig:schedulingheterogeneous:polly_converted>
 
-== Intégration de PPCG et Réhabilitation de Polly-ACC <sec:schedulingheterogeneous:ppcg>
+== Intégration de PPCG et réhabilitation de Polly-ACC <sec:schedulingheterogeneous:ppcg>
 
 L'existence d'un support permettant la génération de code pour accélérateurs
 matériels GPU constitue un prérequis incontournable de nos travaux, initialement
@@ -250,7 +250,7 @@ Afin de combler cette lacune architecturale sans avoir à concevoir un moteur de
 génération de code GPU polyédrique, notre approche s'est portée sur la
 réhabilitation du projet *Polly-ACC* @pollyacc. Cet outil exploitait
 historiquement PPCG, un compilateur source-à-source polyédrique dédié à
-l'optimisation et la génération de code pour accélérateurs. La délégation de
+l'optimisation et à la génération de code pour accélérateurs. La délégation de
 cette étape à PPCG, en substitution de la génération de code intrinsèque au
 backend Kokkos, offre des perspectives d'optimisations supérieures. En effet, la
 mécanique de Kokkos repose essentiellement sur un abaissement direct de
@@ -280,7 +280,7 @@ celui de LLVM.
 Pour surmonter ces obstacles structurels, une démarche minutieuse de
 rétro-ingénierie a été entreprise : identifier, isoler puis transposer les
 modifications effectuées à l'époque dans le PPCG historique de Polly-ACC vers la
-base de code maintenue de PPCG. L'objectif étant de rétablir une chaîne de
+base de code maintenue de PPCG. L'objectif est de rétablir une chaîne de
 compilation hétérogène complète, structurée selon trois axes principaux :
 
 - *Adaptation de PPCG* : Enrichissement des structures de données de PPCG afin
