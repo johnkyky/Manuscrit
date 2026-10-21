@@ -260,7 +260,7 @@ multiples couches d'abstraction, certaines informations explicites dans le code
 source (telles que les bornes de boucles, les dimensions ou encore les fonctions
 d'accès aux tableaux) sont perdues, masquées par des structures complexes ou par
 des calculs d'adresses. Cette perte d'information contraint le compilateur à
-adopter une approche conservative, limitant drastiquement les transformations
+adopter une approche conservatrice, limitant drastiquement les transformations
 applicables.
 
 Afin de pallier ce problème de manière transparente, notre approche exploite la
@@ -400,7 +400,7 @@ Cette situation est hautement pénalisante à deux égards :
 1. *Pénalité de performance :* À chaque itération, le processeur exécute une
   lecture mémoire redondante pour recharger une valeur de borne que le
   programmeur sait invariante sur l'ensemble de la boucle. L'analyse d'alias
-  conservative de LLVM ne parvenant pas à prouver qu'aucune écriture dans le
+  conservatrice de LLVM ne parvenant pas à prouver qu'aucune écriture dans le
   corps de boucle ne modifie la valeur de la borne, la passe standard de
   déplacement de code invariant (*Loop Invariant Code Motion*, LICM) échoue à
   hisser cette instruction hors de la boucle en évitant tout risque d'aliasing.
@@ -854,7 +854,7 @@ brisant ainsi la dépendance.
 Néanmoins, la portée de la passe `ForwardOpTree` demeure limitée. En effet, les
 transformations LLVM sont soumises à des contraintes très strictes afin de
 préserver absolument la sémantique d'origine du programme. Ces analyses
-conservatives brident l'application de la passe, principalement pour des raisons
+conservatrices brident l'application de la passe, principalement pour des raisons
 de risques d'aliasing mémoire ou de dépendances cycliques inter-itérations.
 Cette prudence entrave, dans certains cas complexes, la capacité de
 l'ordonnanceur à optimiser les boucles efficacement.

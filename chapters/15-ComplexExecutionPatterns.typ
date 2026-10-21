@@ -108,7 +108,7 @@ compilation, Polly est dans l'incapacité de déduire que `%gap_L` constitue en
 réalité une combinaison linéaire de la taille de la dimension interne du tableau
 $L$ (une propriété qui ne sera démontrée que lors de l'étape ultérieure
 `ScopInfo`) et de l'itérateur `%i`. Afin de garantir la validité et la sûreté de
-ses transformations, Polly adopte une approche conservative et rejette cet accès
+ses transformations, Polly adopte une approche conservatrice et rejette cet accès
 qu'il classifie comme non affine. Cette décision entraîne inéluctablement le
 rejet de la région entière, empêchant de fait l'application de toute
 optimisation polyédrique.
