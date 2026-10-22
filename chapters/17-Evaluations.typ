@@ -1005,14 +1005,14 @@ options de Polly.
 ) <fig:evaluations:vanilla>
 
 Sur les 26 noyaux mesurés, la moyenne géométrique des accélérations est de
-1.08$times$, et 14 noyaux restent à moins de 10 % de Polly appliqué au code C.
+1.07$times$, et 14 noyaux restent à moins de 10 % de Polly appliqué au code C.
 Pour plus de la moitié des noyaux, notre chaîne de compilation obtient donc des
 performances proches de celles de Polly sur le code d'origine. Les écarts
 restent toutefois importants sur quelques noyaux, dans les deux sens.
 
 *Noyaux plus rapides avec notre version.* `symm` (9.52$times$), `adi`
 (3.86$times$), `seidel-2d` (2.93$times$) et, avec une accélération moins
-importante, `gramschmidt` (1.18$times$) et `bicg` (1.15$times$). Sur les trois
+importante, `lu` (1.17$times$) et `bicg` (1.15$times$). Sur les trois
 premiers, les optimisations que LLVM applique avant Polly remplacent, dans le
 code C, certaines lectures de tableaux par des valeurs scalaires, transmises
 d'une itération ou d'une instruction à l'autre. Comme pour `deriche`
@@ -1027,7 +1027,7 @@ rétablit ces accès aux tableaux. Polly tuile et parallélise alors `symm` et
 *Noyaux plus lents avec notre version.* `jacobi-1d` (0.24$times$), `2mm`
 (0.73$times$), `syrk` (0.79$times$), `jacobi-2d` (0.80$times$), `doitgen`
 (0.83$times$), `gemm` (0.85$times$) et `ludcmp` (0.89$times$). Sur tous ces
-noyaux, comme sur `gramschmidt` et `bicg`, les deux versions appliquent les
+noyaux, comme sur `lu` et `bicg`, les deux versions appliquent les
 mêmes transformations et parallélisent les mêmes boucles. Les tailles du
 problème sont toutefois connues à la compilation dans le code C et passées en
 paramètres dans notre version. L'écart ne provient donc pas des transformations
