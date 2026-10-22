@@ -33,10 +33,10 @@ actuelles de tous les indices des boucles englobantes. À l'intérieur de ces
 boucles, une *instruction* représente l'opération ou l'instruction de calcul
 réelle qui est exécutée à un point d'itération donné.
 
-Ces structures sont largement utilisées dans le calcul haute performance (HPC)
-et les codes scientifiques, car elles fournissent le mécanisme principal pour
-parcourir et manipuler de grandes structures de données multidimensionnelles
-telles que les vecteurs, les matrices et les tenseurs.
+Ces structures sont largement utilisées dans le HPC et les codes scientifiques,
+car elles fournissent le mécanisme principal pour parcourir et manipuler de
+grandes structures de données multidimensionnelles telles que les vecteurs, les
+matrices et les tenseurs.
 
 === Boucles parfaitement imbriquées
 
@@ -87,7 +87,7 @@ instruction `S2`.
 ) <code:scientificbackground:imperfectnest>
 
 Bien que les nids de boucles imparfaits soient naturels à écrire pour les
-développeurs, ils posent un défi important pour les frameworks de
+développeurs, ils posent un défi important pour les bibliothèques de
 parallélisation comme Kokkos, présentés dans la
 @sec:scientificbackground:kokkos. L'extraction du parallélisme et l'optimisation
 de la localité des données dans ces nids imparfaits nécessitent des
@@ -101,25 +101,25 @@ suivante, vise à résoudre.
 
 Initialement développé pour abstraire le parallélisme matériel, le modèle de
 programmation Kokkos s'est imposé comme une bibliothèque de référence dans le
-calcul haute performance (HPC) et la simulation scientifique. Il fournit une
-interface C++ unifiée pour la programmation parallèle hétérogène, avec un accent
-principal sur la portabilité des performances. En offrant des abstractions de
-haut niveau pour la gestion de la mémoire et le contrôle de l'exécution, Kokkos
-simplifie le processus de développement tout en voulant garantir l'obtention de
-performances, quelle que soit l'architecture cible.
+HPC et la simulation scientifique. Il fournit une interface C++ unifiée pour la
+programmation parallèle hétérogène, avec un accent principal sur la portabilité
+des performances. En offrant des abstractions de haut niveau pour la gestion de
+la mémoire et le contrôle de l'exécution, Kokkos simplifie le processus de
+développement tout en voulant garantir l'obtention de performances, quelle que
+soit l'architecture cible.
 
 === Espaces : exécution et mémoire
 
 Pour cibler diverses architectures matérielles, Kokkos introduit le concept
 d'espaces pour abstraire les unités d'exécution complexes et les hiérarchies de
-mémoire des supercalculateurs modernes. Un noeud HPC typique est hétérogène,
+mémoire des supercalculateurs modernes. Un nœud HPC typique est hétérogène,
 couplant souvent un processeur hôte (CPU) avec un ou plusieurs accélérateurs
-(GPU), chacun possédant sa propre mémoire physique distincte. Kokkos gère cette
-hétérogénéité en découplant clairement l'endroit où le code s'exécute de
+(GPU), chacun pouvant posséder sa propre mémoire physique distincte. Kokkos gère
+cette hétérogénéité en découplant clairement l'endroit où le code s'exécute de
 l'endroit où résident les données :
 
 - *Les espaces d'exécution* définissent où les noyaux de calcul sont exécutés.
-  Ils mappent les opérations parallèles vers un matériel spécifique via une
+  Ils associent les opérations parallèles à un matériel spécifique via une
   implémentation dédiée du modèle de programmation. Par exemple,
   `Kokkos::Serial` ou `Kokkos::OpenMP` dictent que le code s'exécutera sur le
   CPU hôte, tandis que `Kokkos::Cuda` ou `Kokkos::HIP` ciblent les accélérateurs
@@ -199,7 +199,7 @@ Dans le modèle de programmation Kokkos, le lancement d'un noyau de calcul
 nécessite de combiner un motif d'exécution, une politique d'exécution et le
 corps du noyau (généralement défini via une fonction lambda C++ ou un foncteur).
 Cette séparation des concepts permet aux développeurs d'exprimer la sémantique
-de leur algorithme indépendamment du mapping matériel.
+de leur algorithme indépendamment de leur placement sur le matériel.
 
 ==== Motifs d'exécution
 
@@ -239,10 +239,10 @@ ou multidimensionnels et l'ordonnancement de base sont souvent insuffisants.
 hiérarchique, ce qui est utile pour exploiter des topologies matérielles
 spécifiques, en particulier sur les GPU. Il divise logiquement l'espace
 d'itérations en un tableau unidimensionnel de _Ligues_, où chaque ligue est
-constituée de plusieurs _Équipes_ de threads. Lors d'un mapping sur un GPU, une
-ligue correspond typiquement à une grille de blocs de threads, tandis qu'une
+constituée de plusieurs _Équipes_ de threads. Lors d'une projection sur un GPU,
+une ligue correspond typiquement à une grille de blocs de threads, tandis qu'une
 équipe correspond à un bloc individuel de threads. Sur un CPU, une ligue peut
-correspondre aux coeurs physiques disponibles, avec des équipes utilisant des
+correspondre aux cœurs physiques disponibles, avec des équipes utilisant des
 threads matériels ou des unités vectorielles. Avec cette approche plus avancée,
 les développeurs obtiennent un contrôle fin sur les ressources matérielles, tel
 que l'exploitation de la mémoire partagée gérée par l'utilisateur sur les GPU ou
@@ -442,9 +442,9 @@ polyédrique étend les polytopes standards en polytopes paramétriques.
   des itérateurs de ses boucles englobantes au moment de l'exécution.
 ]
 
-En reprenant la @fig:scientificbackground:scopexample, le #gls("scop") fourni
-présente deux instructions distinctes imbriquées dans deux nids de boucles. Dans
-ce contexte, une instance de l'instruction $S_1$ ou $S_2$ se produit pour chaque
+En reprenant la @fig:scientificbackground:scopexample, le #gls("scop") présente
+deux instructions distinctes imbriquées dans deux nids de boucles. Dans ce
+contexte, une instance de l'instruction $S_1$ ou $S_2$ se produit pour chaque
 combinaison valide des itérateurs $i$ et $j$.
 
 
@@ -578,15 +578,15 @@ $
 
 Un ordonnancement dicte l'ordre d'exécution des instances d'instruction au sein
 de l'espace d'itération. Dans le modèle polyédrique, cet ordonnancement est
-représenté comme une relation affine mappant le vecteur d'itération d'une
-instruction vers un vecteur de date logique multidimensionnelle.
+représenté comme une relation affine associant au vecteur d'itération d'une
+instruction un vecteur de date logique multidimensionnelle.
 
 #definition(
   title: "Relation d'ordonnancement",
 )[
   Étant donné une instruction $S$, une _relation d'ordonnancement_ $theta_S$
-  détermine l'ordre d'exécution de ses instances. Pour ce faire, elle mappe
-  chaque instance $arrow(x)$ d'une instruction $S$ vers un _temps d'exécution
+  détermine l'ordre d'exécution de ses instances. Pour ce faire, elle associe à
+  chaque instance $arrow(x)$ d'une instruction $S$ un _temps d'exécution
   logique_ (ou _date logique_) $arrow(t)$ :
   $
     theta_S (arrow(p)) = { arrow(x) -> arrow(t) mid(|) T dot.op vec(arrow(x), arrow(t), arrow(p), 1) polyrelcst arrow(0)}
@@ -622,7 +622,7 @@ sur l'ordre lexicographique.
 ]
 
 En revenant à notre exemple de la @fig:scientificbackground:scopexample,
-l'ordonnancement d'exécution original mappe le domaine d'itération 2D vers un
+l'ordonnancement d'exécution original projette le domaine d'itération 2D vers un
 espace de temps logique 3D. La première dimension ($t_0$) encode l'ordre lexical
 des instructions, tandis que les dimensions restantes encodent les itérateurs.
 Les relations d'ordonnancement correspondantes sont :
@@ -688,7 +688,7 @@ manipule deux structures principales :
 
 - *Sets :* Utilisés pour représenter les domaines d'itération.
 - *Maps :* Utilisées pour représenter les fonctions d'accès, les dépendances et
-  les ordonnancements en mappant les éléments d'un ensemble vers un autre.
+  les ordonnancements en associant les éléments d'un ensemble à ceux d'un autre.
 
 #gls("isl") fournit des implémentations hautement optimisées pour les opérations
 polyédriques essentielles, y compris l'intersection, l'union, la différence
@@ -841,7 +841,7 @@ trouve :
 - *Pluto~@pluto1 :* Un compilateur C source-à-source renommé pour son algorithme
   d'ordonnancement, qui calcule automatiquement les transformations affines pour
   maximiser simultanément la localité des données et exposer le parallélisme
-  pour les CPU multicoeurs.
+  pour les CPU multicœurs.
 - *PPCG (Polyhedral Parallel Code Generator)~@ppcg :* Un compilateur
   source-à-source conçu spécifiquement pour les architectures hétérogènes,
   transformant les nids de boucles C séquentiels en code CUDA ou OpenCL optimisé
@@ -868,19 +868,23 @@ de LLVM et de son extension Polly.
 
 
 
-== Plongée au coeur de LLVM Polly <sec:scientificbackground:polly>
+== Plongée au cœur de LLVM Polly <sec:scientificbackground:polly>
 
 Polly~@polly2 est un outil d'analyse et d'optimisation polyédrique de boucles de
-bas niveau, intégré dans l'optimiseur _middle-end_ de LLVM. Il peut être invoqué
-nativement via le _frontend_ du compilateur Clang (en utilisant des arguments de
-ligne de commande comme `-O3 -mllvm -polly`). Un avantage stratégique clé de
-Polly est sa dépendance à l'#gls("ir") de LLVM. En opérant strictement au niveau
-de l'#gls("ir"), Polly est complètement découplé du langage source, lui
-permettant d'optimiser les boucles indépendamment de la syntaxe du code source
-original.
+bas niveau, intégré dans l'optimiseur _middle-end_ de LLVM. Un compilateur
+moderne tel que LLVM s'organise en trois étages : le _frontend_ (Clang pour le
+C++) analyse le code source et le traduit en #gls("ir"), le _middle-end_
+applique sur cette #gls("ir") les optimisations indépendantes de la machine
+cible et le _backend_ génère le code machine. Polly peut être invoqué nativement
+via le _frontend_ du compilateur Clang (en utilisant des arguments de ligne de
+commande comme `-O3 -mllvm -polly`). Un avantage stratégique clé de Polly est sa
+dépendance à l'#gls("ir") de LLVM. En opérant strictement au niveau de l'#gls(
+  "ir",
+), Polly est complètement découplé du langage source, lui permettant d'optimiser
+les boucles indépendamment de la syntaxe du code source original.
 
 Cette architecture basée sur l'#gls("ir") est particulièrement avantageuse lors
-du ciblage de frameworks parallèles modernes de haut niveau tels que Kokkos.
+du ciblage de bibliothèques parallèles modernes de haut niveau tels que Kokkos.
 Kokkos s'appuie fortement sur des fonctionnalités C++ avancées, incluant la
 métaprogrammation par templates, les fonctions lambda et les abstractions
 d'objets complexes, qui sont impossibles à analyser et à parser pour les
@@ -888,9 +892,12 @@ compilateurs polyédriques source-à-source traditionnels. En se positionnant da
 le _middle-end_, Polly n'intercepte le code qu'une fois que le _frontend_ Clang
 a complètement instancié les templates, résolu les abstractions de haut niveau
 et effectué un _inlining_ agressif des fonctions. Par conséquent, Polly opère
-sur une représentation "nettoyée" et canonicalisée où les nids de boucles
-multidimensionnels et les accès mémoire sont explicitement exposés, contournant
-entièrement la complexité syntaxique du code source #box[C++] original.
+sur une représentation "nettoyée" et canonicalisée, c'est-à-dire réécrite sous
+une forme normalisée où chaque construction (boucles, calculs d'indices, accès
+mémoire) suit un motif unique reconnu par les passes d'analyse. Les nids de
+boucles multidimensionnels et les accès mémoire y sont explicitement exposés,
+contournant entièrement la complexité syntaxique du code source #box[C++]
+original.
 
 === Architecture et intégration dans la chaîne de compilation
 
@@ -983,7 +990,7 @@ pointeurs complexe qui ne peut pas être résolu statiquement.
 
 Une fois qu'une région SESE valide est détectée avec succès, la passe `ScopInfo`
 est exécutée pour traduire l'#gls("ir") de LLVM vers les abstractions
-mathématiques du modèle polyédrique. Ce processus implique de mapper les
+mathématiques du modèle polyédrique. Ce processus implique de traduire les
 structures de code en objets #gls("isl").
 
 Pour chaque bloc de base au sein de la région, `ScopInfo` définit une
@@ -991,7 +998,7 @@ instruction mathématique. Ensuite, il construit le *domaine d'itération* exact
 en traduisant les contraintes affines des boucles englobantes obtenues grâce à
 la passe SCEV (_Scalar Evolution_) en structure ISL. De même, les instructions
 mémoire (telles que `load` et `store`) sont converties en relations d'accès ISL,
-mappant l'exécution logique d'une instruction à des adresses mémoire
+associant l'exécution logique d'une instruction à des adresses mémoire
 spécifiques.
 
 Cette phase extrait également l'ordonnancement original du programme non modifié
@@ -1125,11 +1132,11 @@ En prenant l'arbre d'ordonnancement nouvellement optimisé comme entrée, la pas
 `IslAst` génère un #gls("ast") qui représente logiquement la structure du nid de
 boucles transformé. À ce stade, la passe analyse en profondeur les propriétés
 mathématiques du nouvel ordonnancement pour intégrer des directives d'exécution
-dans les noeuds de l'#gls("ast").
+dans les nœuds de l'#gls("ast").
 
 Spécifiquement, si le solveur #gls("isl") a prouvé mathématiquement que
 certaines dimensions de boucles sont complètement dépourvues de dépendances
-portées par la boucle, les noeuds correspondants de l'#gls("ast") sont
+portées par la boucle, les nœuds correspondants de l'#gls("ast") sont
 explicitement annotés comme étant parallèles. De même, les boucles internes sont
 annotées comme vectorisables. Ces annotations sémantiques sont fondamentales,
 car elles servent de directives pour guider la phase de génération de code,
@@ -1139,9 +1146,9 @@ permettant d'activer le multithreading et les instructions SIMD.
 
 La passe `CodeGeneration` est chargée de reconstruire l'#gls("ir") LLVM finale
 et optimisée à partir du nouvel #gls("ast") #gls("isl") généré. En parcourant
-les noeuds de l'#gls("ast"), cette passe utilise l'`IRBuilder` de LLVM pour
+les nœuds de l'#gls("ast"), cette passe utilise l'`IRBuilder` de LLVM pour
 construire les structures de boucles correspondantes et le graphe de flot de
-contrôle. Si les noeuds de l'#gls("ast") parcourus portent les annotations
+contrôle. Si les nœuds de l'#gls("ast") parcourus portent les annotations
 parallèles ou vectorielles intégrées lors de la phase précédente, le générateur
 de code les traduit en appels appropriés de la bibliothèque d'exécution OpenMP
 ou en directives SIMD.
@@ -1183,8 +1190,8 @@ l'analyse de code C++ fortement abstrait comme avec Kokkos.
   complexes, ce processus de reconstruction devient hautement fragile,
   provoquant l'échec de Polly à reconnaître des SCoPs valides.
 - *Manque de prise en charge des GPU :* Polly est conçu pour optimiser la
-  localité des données et le parallélisme pour les CPU multicoeurs (via OpenMP
-  et la vectorisation SIMD). Bien que des extensions expérimentales comme
+  localité des données et le parallélisme pour les CPU multicœurs (via OpenMP et
+  la vectorisation SIMD). Bien que des extensions expérimentales comme
   Polly-ACC~@pollyacc aient été historiquement développées pour générer du code
   GPU, elles ne sont plus activement maintenues dans les versions récentes de
   l'infrastructure LLVM. Par conséquent, Polly manque nativement de la capacité
@@ -1200,7 +1207,7 @@ intermédiaire de bas niveau crée un fossé sémantique majeur face aux
 abstractions C++ modernes.
 
 D'autre part, le fait que la génération de code de Polly soit nativement
-restreinte aux seuls processeurs multicoeurs (via OpenMP) entre en contradiction
+restreinte aux seuls processeurs multicœurs (via OpenMP) entre en contradiction
 directe avec le modèle d'exécution de Kokkos, conçu pour cibler des
 architectures hétérogènes et exploiter les accélérateurs matériels (GPU).
 
@@ -1210,7 +1217,7 @@ utilisation directe se heurte à un verrou double : une incapacité à percevoir
 structure des calculs issus de Kokkos au niveau de l'IR, et une incapacité à
 générer du code pour les accélérateurs hétérogènes ciblés. Surmonter ce double
 verrou en conciliant l'expressivité de Kokkos avec les capacités d'optimisation
-de Polly constitue le coeur de cette thèse. Le @sec:stateoftheart dresse un
+de Polly constitue le cœur de cette thèse. Le @sec:stateoftheart dresse un
 panorama des solutions proposées dans la littérature pour rapprocher ces deux
 mondes, avant de détailler notre approche de co-design dans les chapitres
 suivants.

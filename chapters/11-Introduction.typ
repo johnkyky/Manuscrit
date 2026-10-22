@@ -17,7 +17,7 @@ multiples paradigmes de programmation, rendant le développement de codes
 scientifiques de haute performance de plus en plus complexe. Bien que des
 efforts aient été déployés pour déléguer cette complexité aux compilateurs et
 autres outils automatisés, l'obtention d'une optimisation et d'une
-parallélisation purement automatiques sur les systèmes modernes multicoeurs et
+parallélisation purement automatiques sur les systèmes modernes multicœurs et
 basés sur des accélérateurs reste un défi majeur.
 
 Bien que les compilateurs modernes intègrent de nombreuses passes
@@ -25,12 +25,12 @@ d'optimisation, ils peinent fréquemment à appliquer efficacement des
 parallélisations avancées et des transformations de boucles. Cette limitation
 provient principalement du fossé sémantique entre l'intention de haut niveau du
 programmeur et la représentation intermédiaire de bas niveau comprise par la
-machine. Pour réduire les coûts de développement, la communauté HPC a conçu des
-frameworks de portabilité des performances. Ces bibliothèques fournissent des
-abstractions de haut niveau permettant aux développeurs d'exprimer explicitement
-des motifs de calcul optimisés, des stratégies de parallélisation et la gestion
-de la mémoire, avec la promesse de hautes performances sur diverses
-architectures (CPUs, GPUs) à partir d'un code source unique et unifié.
+machine. Pour réduire les coûts de développement, la communauté du #gls("hpc") a
+conçu des bibliothèques de portabilité des performances. Celles-ci fournissent
+des abstractions de haut niveau permettant aux développeurs d'exprimer
+explicitement des motifs de calcul optimisés, des stratégies de parallélisation
+et la gestion de la mémoire, avec la promesse de hautes performances sur
+diverses architectures (CPUs, GPUs) à partir d'un code source unique et unifié.
 
 Alors que ces environnements facilitent grandement l'expression du parallélisme,
 l'optimisation fine des nids de boucles reste un défi majeur. Le modèle
@@ -73,23 +73,23 @@ performances sur les cibles matérielles choisies.
 
 == Bibliothèques de portabilité des performances
 
-Les frameworks de portabilité des performances sont fournis sous forme de
-bibliothèques logicielles que les développeurs peuvent exploiter pour exprimer
-le parallélisme et gérer la mémoire sur diverses architectures matérielles. Dans
-le domaine du HPC, les bibliothèques les plus utilisées sont Kokkos, RAJA, SYCL
-et le standard de parallélisme C++ (`std::par`). Ces outils permettent le
-développement d'un code source unique pouvant être compilé pour différentes
-cibles, avec la promesse de la portabilité des performances.
+Les bibliothèques de portabilité des performances offrent aux développeurs des
+interfaces logicielles pour exprimer le parallélisme et gérer la mémoire sur
+diverses architectures matérielles. Dans le domaine du HPC, les bibliothèques
+les plus utilisées sont Kokkos, RAJA, SYCL et le standard de parallélisme C++
+(`std::par`). Ces outils permettent le développement d'un code source unique
+pouvant être compilé pour différentes cibles, avec la promesse de la portabilité
+des performances.
 
 Cependant, ces bibliothèques n'effectuent pas intrinsèquement d'optimisation
 automatique du code source. Elles s'appuient sur des optimisations structurelles
 statiques et un parallélisme explicite sans réaliser d'analyse statique profonde
 des noyaux de calcul eux-mêmes. Les performances qu'elles délivrent proviennent
 principalement d'un découpage parallèle robuste et de techniques de placement de
-bas niveau implémentées par les développeurs du framework, plutôt que d'une
-restructuration agressive des boucles. En employant le modèle polyédrique, des
-transformations de boucles complexes peuvent être automatiquement appliquées à
-ces régions de code critiques et coûteuses en calcul pour maximiser
+bas niveau implémentées par les développeurs de la bibliothèque, plutôt que
+d'une restructuration agressive des boucles. En employant le modèle polyédrique,
+des transformations de boucles complexes peuvent être automatiquement appliquées
+à ces régions de code critiques et coûteuses en calcul pour maximiser
 l'utilisation du matériel.
 
 

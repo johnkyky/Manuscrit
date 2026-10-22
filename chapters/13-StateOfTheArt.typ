@@ -3,8 +3,8 @@
 = État de l'art <sec:stateoftheart>
 
 L'évolution de la complexité matérielle des supercalculateurs modernes a conduit
-à une augmentation massive à la fois du nombre de coeurs disponibles et de leur
-puissance de calcul. Ces architectures multicoeurs sont fréquemment couplées à
+à une augmentation massive à la fois du nombre de cœurs disponibles et de leur
+puissance de calcul. Ces architectures multicœurs sont fréquemment couplées à
 des accélérateurs matériels spécialisés, faisant du développement de codes
 scientifiques un véritable défi. Pour répondre à cette problématique, les
 développeurs ont inventé différentes approches de programmation. Dans cette
@@ -13,10 +13,10 @@ performances de haut niveau, conçues pour abstraire le matériel et maintenir u
 code source unique pour de multiples architectures, et les compilateurs
 spécialisés dédiés à l'optimisation de code.
 
-D'une part, les frameworks de portabilité des performances de haut niveau visent
-à fournir aux développeurs une interface unifiée pour gérer le parallélisme et
-la mémoire. D'autre part, les compilateurs spécialisés, tels que les
-compilateurs polyédriques, se concentrent sur la rigueur mathématique de
+D'une part, les bibliothèques de portabilité des performances de haut niveau
+visent à fournir aux développeurs une interface unifiée pour gérer le
+parallélisme et la mémoire. D'autre part, les compilateurs spécialisés, tels que
+les compilateurs polyédriques, se concentrent sur la rigueur mathématique de
 l'optimisation des boucles et l'exposition d'un parallélisme à grain fin à
 travers des transformations avancées basées sur le code source ou sur une IR.
 
@@ -25,7 +25,7 @@ transparente reste un défi majeur pour la communauté de la compilation. Extrai
 un modèle mathématique à partir d'un code fortement abstrait par les structures
 C++ de haut niveau de ces bibliothèques est extrêmement difficile, car le
 compilateur perd des informations sémantiques critiques au cours du processus
-d'abaissement. À l'inverse, les frameworks eux-mêmes manquent de
+d'abaissement. À l'inverse, les bibliothèques elles-mêmes manquent de
 l'infrastructure interne nécessaire pour effectuer des analyses statiques
 complexes et des transformations structurelles automatiques de boucles.
 
@@ -54,7 +54,7 @@ utilisent également des espaces d'exécution et des espaces mémoire pour gére
 distribution des calculs et la localité des données à travers des architectures
 hétérogènes. Pour illustrer cela, le @fig:stateoftheart:frameworks_syntax
 compare les différentes façons d'écrire le même code (une multiplication
-matrice-vecteur) en utilisant ces différents frameworks.
+matrice-vecteur) en utilisant ces différentes bibliothèques.
 
 #[
   #show figure: set block(breakable: true)
@@ -64,7 +64,10 @@ matrice-vecteur) en utilisant ces différents frameworks.
       columns: (auto, 1fr),
       align: (center + horizon, left + horizon),
       stroke: 0.5pt + luma(200),
-      [*Bibliothèque*], [*Exemple de syntaxe (multiplication matrice-vecteur)*],
+      table.header(
+        [*Bibliothèque*],
+        [*Exemple de syntaxe (multiplication matrice-vecteur)*],
+      ),
       [*`Kokkos`*],
       ```cpp
       void matVecMult_kokkos(int N, int M, View<float**> A,
@@ -147,12 +150,12 @@ d'optimiser les noyaux à l'aide d'outils externes comme Apex~@apex ou
 Apollo~@apollotuning afin de spécialiser le code en quête de performances encore
 plus élevées.
 
-Cependant, la limitation fondamentale de ces frameworks réside dans leur nature
-déclarative. Ils agissent principalement comme des moteurs de mapping : ils
-mappent aveuglément les itérations de boucles sur les threads CPU ou les blocs
-GPU, en faisant confiance au code écrit par le développeur. Ces bibliothèques ne
-possèdent pas de moteur d'analyse statique interne capable d'analyser les
-dépendances de données du noyau de calcul.
+Cependant, la limitation fondamentale de ces bibliothèques réside dans leur
+nature déclarative. Ils agissent principalement comme des moteurs de placement :
+ils distribuent aveuglément les itérations de boucles sur les threads CPU ou les
+blocs GPU, en faisant confiance au code écrit par le développeur. Ces
+bibliothèques ne possèdent pas de moteur d'analyse statique interne capable
+d'analyser les dépendances de données du noyau de calcul.
 
 Par conséquent, il leur est techniquement et mathématiquement impossible de
 restructurer le code automatiquement. Les transformations complexes qui
@@ -217,8 +220,8 @@ Pour surmonter la complexité liée à l'analyse syntaxique des langages de haut
 niveau, la communauté de la compilation polyédrique a adopté une nouvelle
 approche : abaisser le niveau d'analyse. En s'appuyant sur des représentations
 intermédiaires (IR) telles que celle de LLVM, les outils polyédriques
-parviennent à s'abstraire du langage source (C, C++, Fortran) et à contourner
-la complexité de son analyse syntaxique et sémantique.
+parviennent à s'abstraire du langage source (C, C++, Fortran) et à contourner la
+complexité de son analyse syntaxique et sémantique.
 
 Graphite~@graphite a été l'un des premiers compilateurs polyédriques largement
 adoptés à utiliser cette méthode, s'intégrant directement dans l'IR de GCC

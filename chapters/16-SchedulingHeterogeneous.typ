@@ -15,7 +15,7 @@ que de diversité des optimisations. D'une part, l'abstraction de programmation
 Kokkos tire une part essentielle de ses performances d'exécution sur
 accélérateurs graphiques (GPU) et machines multiprocesseurs généralistes à
 mémoire partagée, tandis que le flot standard de Polly cible exclusivement les
-processeurs multicoeurs (CPU). D'autre part, Polly se limite aux heuristiques
+processeurs multicœurs (CPU). D'autre part, Polly se limite aux heuristiques
 d'un unique ordonnanceur, celui d'ISL, restreignant l'espace des transformations
 de code explorées.
 
@@ -144,8 +144,8 @@ arbres d'ordonnancement d'ISL) maintient une séparation stricte : le domaine
 d'itération demeure invariant aux transformations. Les transformations telles
 que le tuilage y sont encodées de manière purement relationnelle au sein de la
 fonction d'ordonnancement. Les nouvelles dimensions sont instanciées localement
-dans la structure arborescente, par l'intermédiaire de noeuds spécifiques de
-type *band*.
+dans la structure arborescente, par l'intermédiaire de nœuds spécifiques de type
+*band*.
 
 Afin de résoudre cette incompatibilité structurelle, nous avons conçu une passe
 de conversion intermédiaire destinée à combler ce fossé sémantique. L'algorithme
@@ -239,7 +239,7 @@ subsistait entre les modèles d'exécution de Kokkos et les capacités de Polly 
 matière d'architectures hétérogènes. Tandis que l'abstraction de Kokkos s'appuie
 structurellement sur une compilation CPU/GPU visant la portabilité des
 performances, Polly s'est historiquement restreint à l'optimisation pour
-architectures multicoeurs et multiprocesseurs CPU. Or, un ordonnancement
+architectures multicœurs et multiprocesseurs CPU. Or, un ordonnancement
 polyédrique taillé pour un processeur classique s'avère profondément inadapté au
 modèle d'exécution massivement parallèle d'un GPU. Ce dernier requiert une
 projection spatiale très contrainte des itérations sur une hiérarchie matérielle

@@ -193,7 +193,7 @@ Une fois ce plan d'épluchage fusionné, la modification de l'IR est appliquée 
 la passe `peelLoop` native de LLVM. Une étape supplémentaire est toutefois
 nécessaire pour l'épluchage en fin de boucle. En effet, lors de l'extraction par
 LLVM, les instructions du bloc épluché conservent leurs liens avec la variable
-d'induction d'origine (par exemple via un noeud `%i.peeled = phi [%i, %for.end]`
+d'induction d'origine (par exemple via un nœud `%i.peeled = phi [%i, %for.end]`
 où l'on utilise `%i` de la boucle originale comme valeur de départ de la
 nouvelle boucle épluchée). Pour isoler totalement ce bloc, notre passe remplace
 manuellement toutes les utilisations de l'ancien itérateur de la boucle

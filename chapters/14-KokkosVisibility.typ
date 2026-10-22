@@ -115,7 +115,7 @@ sémantiques jusqu'à l'IR LLVM, ainsi que la modification des backends Kokkos
 pour transmettre le code le plus clair possible à Polly, et d'autre part,
 l'intégration de passes spécialisées au sein de Polly pour exploiter ces
 annotations et émettre du code adapté tant aux CPU qu'aux GPU. Les sections
-suivantes détaillent la mise en oeuvre de ces deux piliers, en débutant par les
+suivantes détaillent la mise en œuvre de ces deux piliers, en débutant par les
 modifications apportées à Kokkos.
 
 
@@ -271,7 +271,7 @@ typeof(expr) __builtin_annotation (typeof(expr) e, const char *string);
 ```
 
 Cette construction associe une chaîne de caractères `string` (faisant office
-d'étiquette sémantique) à une expression `e`, générant ainsi un noeud
+d'étiquette sémantique) à une expression `e`, générant ainsi un nœud
 `llvm.annotate` au sein de l'IR. Elle établit ainsi un pont sémantique robuste
 entre les abstractions C++ de haut niveau et la représentation de bas niveau.
 
@@ -284,7 +284,7 @@ Ces annotations sont notamment employées pour garantir la détection des SCoPs 
 appliquer de manière sécurisée les nouvelles passes de restructuration
 (@sec:kokkosvisibility:restructuration) spécifiques à Kokkos au sein de Polly.
 Elles jouent également un rôle fondamental pour assurer la délinéarisation des
-tableaux multidimensionnels, dont les détails de mise en oeuvre et le
+tableaux multidimensionnels, dont les détails de mise en œuvre et le
 fonctionnement sont exposés à la @sec:kokkosvisibility:delinearization.
 
 
@@ -730,7 +730,7 @@ l'assignation unique de chaque registre, par opposition au code source où une
 même variable peut être réassignée de multiples fois. Dans le contexte de l'IR,
 cette contrainte engendre non seulement une multiplication des registres
 définissant une même donnée, mais introduit également des dépendances entre les
-blocs de base par l'intermédiaire de noeuds PHI.
+blocs de base par l'intermédiaire de nœuds PHI.
 
 La @fig:kokkosvisibility:polly_scalar_dep illustre ce phénomène. La
 @fig:kokkosvisibility:polly_scalar_dep_nodep présente le graphe de flot de
@@ -842,7 +842,7 @@ La passe `ForwardOpTree` de Polly a pour objectif de rompre ces dépendances
 entre _statements_ afin d'élargir l'espace de recherche de l'ordonnanceur. Son
 mécanisme repose sur la remontée d'arbres d'opérandes : au lieu de calculer une
 valeur scalaire dans un _statement_ producteur puis de la transmettre à un
-_statement_ consommateur via un registre ou un noeud PHI, la passe identifie
+_statement_ consommateur via un registre ou un nœud PHI, la passe identifie
 l'arbre d'instructions générant cette valeur et le duplique directement au sein
 du _statement_ consommateur. Dans l'exemple précédent
 (@fig:kokkosvisibility:polly_scalar_dep_dep), la passe remonte l'arbre

@@ -2,7 +2,7 @@
   (
     key: "hpc",
     short: "HPC",
-    long: "High-Performance Computing",
+    long: "calcul haute performance",
   ),
   (
     key: "ir",
