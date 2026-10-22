@@ -911,10 +911,10 @@ Par défaut et utilisé lors de tous les travaux expérimentaux présentés dans
 cette thèse, Polly est planifié à la position `before-vectorizer`. Ce placement
 spécifique est hautement stratégique. Avant même que Polly n'inspecte le code,
 l'#gls("ir") a déjà été fortement optimisée et canonicalisée par les passes
-standards de LLVM. Des passes telles que `mem2reg` (qui promeut les allocations
-mémoire en registres SSA), `simplifycfg` (qui nettoie le graphe de flot de
-contrôle) et un _inlining_ des fonctions ont déjà supprimé le surcoût lié à
-l'abstraction C++ de haut niveau. Par conséquent, Polly opère sur des structures
+standards de LLVM. Des passes telles que `mem2reg`, qui promeut les allocations
+mémoire en registres #gls("ssa"), `simplifycfg`, qui nettoie le graphe de flot de
+contrôle, ou encore l'_inlining_ des fonctions ont déjà supprimé le surcoût lié
+à l'abstraction C++ de haut niveau. Par conséquent, Polly opère sur des structures
 de boucles propres et normalisées et fournit sa sortie hautement optimisée et
 parallélisable directement au vectoriseur natif de LLVM.
 
@@ -1044,7 +1044,7 @@ multiplication de variables d'induction par des paramètres, ce qui briserait le
 conditions de validité du modèle polyédrique.
 
 Pour pallier ce problème, Polly s'appuie sur un algorithme, détaillé dans
-@Delinearization, qui se base sur l'analyse d'évolution scalaire (SCEV).
+@Delinearization, qui se base sur l'analyse d'évolution scalaire SCEV.
 L'algorithme analyse l'expression de l'adresse mémoire calculée et factorise les
 pas d'accès. Dans notre exemple, il observe que l'adresse avance d'un pas de
 $M times P times 8$ à chaque itération de la boucle externe $i$, d'un pas de
@@ -1140,7 +1140,7 @@ portées par la boucle, les nœuds correspondants de l'#gls("ast") sont
 explicitement annotés comme étant parallèles. De même, les boucles internes sont
 annotées comme vectorisables. Ces annotations sémantiques sont fondamentales,
 car elles servent de directives pour guider la phase de génération de code,
-permettant d'activer le multithreading et les instructions SIMD.
+permettant d'activer le multithreading et les instructions #gls("simd").
 
 ==== Génération de code (`Code Generation`) <sec:scientificbackground:codegen>
 
@@ -1155,7 +1155,7 @@ ou en directives SIMD.
 
 Plutôt que de générer les instructions de calcul à partir de zéro, le générateur
 réutilise intelligemment le code d'origine. Il copie les anciennes instructions
-de l'#gls("ir") de LLVM, en tant qu'opérations mathématiques et logique de
+de l'#gls("ir") de LLVM, en tant qu'opérations mathématiques et logiques de
 traitement de données sauvegardées lors de la passe `ScopInfo`, et les injecte
 dans les corps des nouvelles boucles construites. Pendant ce processus de copie,
 les instructions mémoire (`load` et `store`) sont mises à jour. Les indices de

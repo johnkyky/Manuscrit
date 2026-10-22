@@ -111,7 +111,7 @@
 Les besoins croissants en puissance de calcul ont grandement fait évoluer les
 architectures, en commençant par l'augmentation de la fréquence des processeurs,
 puis, pour pallier les contraintes physiques, par la multiplication du nombre de
-coeurs de calcul. Par la suite, d'autres paradigmes de programmation sont
+cœurs de calcul. Par la suite, d'autres paradigmes de programmation sont
 apparus avec l'avènement des architectures hétérogènes, rendant le développement
 de plus en plus complexe. Toutefois, exploiter efficacement ces ressources
 demeure un défi majeur : le développement de codes scientifiques de haute

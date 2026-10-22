@@ -502,7 +502,7 @@ l'exécution, invalidant ainsi les vérifications dynamiques d'exécution.
 
 Pour pallier ce problème, nous avons étendu l'API `View` de Kokkos en
 introduisant un mécanisme de nommage statique. Contrairement aux chaînes de
-caractères utilisées dynamiquement pour le débogage (les `label` standards de
+caractères utilisées dynamiquement pour le débogage (les `label`s standards de
 Kokkos), ce nommage statique est intégré directement dans la signature du type
 de la vue par l'intermédiaire d'un paramètre template. L'implémentation de cette
 fonctionnalité s'appuie sur la structure `ConstExprLabel`, présentée par la

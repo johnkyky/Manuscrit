@@ -15,7 +15,7 @@ de programmation, rendant le développement de codes performants de plus en plus
 complexe pour les scientifiques. De nombreux travaux ont été réalisés pour
 déléguer cette complexité aux compilateurs ou autre outils, dans le but
 d'optimiser et de paralléliser le code automatiquement. Cependant, la
-parallélisation multi-coeurs et l'utilisation d'accélérateurs rendent
+parallélisation multi-cœurs et l'utilisation d'accélérateurs rendent
 l'optimisation purement automatique par le compilateur extrêmement difficile.
 
 Malgré que les compilateurs integrent de nombreuses passes d'optimisation, il

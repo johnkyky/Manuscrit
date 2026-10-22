@@ -30,7 +30,8 @@ conçu des bibliothèques de portabilité des performances. Celles-ci fournissen
 des abstractions de haut niveau permettant aux développeurs d'exprimer
 explicitement des motifs de calcul optimisés, des stratégies de parallélisation
 et la gestion de la mémoire, avec la promesse de hautes performances sur
-diverses architectures (CPUs, GPUs) à partir d'un code source unique et unifié.
+diverses architectures, processeurs (CPU) comme accélérateurs graphiques (GPU),
+à partir d'un code source unique et unifié.
 
 Alors que ces environnements facilitent grandement l'expression du parallélisme,
 l'optimisation fine des nids de boucles reste un défi majeur. Le modèle
