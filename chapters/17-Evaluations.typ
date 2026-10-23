@@ -3,11 +3,12 @@
 = Évaluations <sec:evaluations>
 
 Ce chapitre quantifie et analyse l'impact des contributions présentées. Le but
-principal est de démontrer que la restauration de la visibilité sémantique et
-structurelle au niveau du compilateur permet de débloquer des optimisations de
-boucles agressives grâce au modèle polyédrique. À travers une évaluation sur la
-suite de benchmarks PolyBench~@polybench, nous mettons à l'épreuve notre chaîne
-de compilation sur des architectures hétérogènes (CPU multicœurs et
+principal est de démontrer, comme énoncé dans la
+@sec:introduction:contributions, que la restauration de la visibilité sémantique
+et structurelle au niveau du compilateur permet de débloquer des optimisations
+de boucles agressives grâce au modèle polyédrique. À travers une évaluation sur
+la suite de benchmarks PolyBench~@polybench, nous mettons à l'épreuve notre
+chaîne de compilation sur des architectures hétérogènes (CPU multicœurs et
 accélérateurs GPU). Nous détaillons les accélérations obtenues par rapport à une
 implémentation Kokkos idiomatique et étudions l'impact avec différentes
 architectures et ordonnanceurs.

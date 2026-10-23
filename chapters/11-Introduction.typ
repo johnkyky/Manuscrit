@@ -117,7 +117,7 @@ polyédriques permet aux codes HPC d'être significativement améliorés quant a
 performances à l'exécution.
 
 
-== Plan et contributions
+== Plan et contributions <sec:introduction:contributions>
 
 Cette thèse introduit et implémente une approche hybride combinant le modèle
 polyédrique avec la bibliothèque de portabilité des performances Kokkos~@kokkos
