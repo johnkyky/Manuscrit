@@ -173,6 +173,20 @@
 #set page(numbering: "i", margin: (x: 3cm), footer: context {
   align(center, counter(page).display())
 })
+// Reference supplements, set before the outlines so that they also apply to the
+// captions repeated in the lists of figures, listings and tables
+#set ref(supplement: it => {
+  if it.func() == figure and it.kind == image {
+    [figure]
+  } else if it.func() == figure and it.kind == table {
+    [tableau]
+  } else if it.func() == figure and it.kind == raw {
+    [liste]
+  } else {
+    it.supplement
+  }
+})
+
 // TODO : uncomment these lines when the abstracts and acknowledgments are ready
 #show outline: set heading(outlined: true)
 #counter(page).update(1)
@@ -263,18 +277,6 @@
 })
 
 #show figure.where(kind: image): set figure(supplement: [Figure])
-
-#set ref(supplement: it => {
-  if it.func() == figure and it.kind == image {
-    [figure]
-  } else if it.func() == figure and it.kind == table {
-    [tableau]
-  } else if it.func() == figure and it.kind == raw {
-    [liste]
-  } else {
-    it.supplement
-  }
-})
 
 // Pad lists
 #show list: it => pad(left: 1em, top: 0em, it)
