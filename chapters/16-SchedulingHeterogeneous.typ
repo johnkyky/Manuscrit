@@ -41,7 +41,8 @@ classique de Pluto opère globalement pour extraire des bandes de boucles
 permutables favorisant intrinsèquement le tuilage et le parallélisme par front
 d'onde, ISL adopte une approche incrémentale. Tout en cherchant également à
 minimiser les distances de dépendance, ISL compose l'ordonnancement par
-sous-graphes et intègre l'algorithme de Feautrier comme solution de repli.
+sous-graphes et intègre l'algorithme de Feautrier~@Feautrier92a @Feautrier92b
+comme solution de repli.
 
 De plus, Pluto supporte nativement des transformations géométriques avancées, à
 l'instar du tuilage en diamant (_diamond tiling_) @diamond, non réalisables

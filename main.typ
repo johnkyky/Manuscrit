@@ -430,6 +430,7 @@
   ],
   french-keywords: (
     "Calcul haute performance",
+    "Modèle polyédrique",
     "Compilation",
     "Optimisation de boucles",
     "Représentation intermédiaire",
@@ -440,7 +441,7 @@
     #set text(lang: "en")
     In this thesis, we present a co-design approach aimed at bringing the
     optimizations offered by the polyhedral model to Kokkos, a performance
-    portability framework. While this type of framework allows developers to
+    portability framework. Although this type of framework allows developers to
     write a single codebase for both CPUs and GPUs while guaranteeing
     architecture-independent performance, it does not allow taking advantage of
     the optimizations offered by the polyhedral model. Indeed, polyhedral
@@ -457,6 +458,7 @@
   ],
   english-keywords: (
     "High-performance computing",
+    "Polyhedral model",
     "Compilation",
     "Loop optimization",
     "Intermediate representation",

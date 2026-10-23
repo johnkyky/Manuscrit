@@ -120,9 +120,9 @@ performances à l'exécution.
 == Plan et contributions
 
 Cette thèse introduit et implémente une approche hybride combinant le modèle
-polyédrique avec la bibliothèque de portabilité des performances Kokkos~@kokkos.
-L'objectif principal est de permettre dans Kokkos d'appliquer les capacités
-avancées d'optimisation de boucles fournies par le modèle polyédrique.
+polyédrique avec la bibliothèque de portabilité des performances Kokkos~@kokkos
+@kokkos2. L'objectif principal est de permettre dans Kokkos d'appliquer les
+capacités avancées d'optimisation de boucles fournies par le modèle polyédrique.
 
 Le #chref(<sec:scientificbackground>) détaille le contexte scientifique et
 technique nécessaire pour comprendre les fondations de cette thèse. Il introduit

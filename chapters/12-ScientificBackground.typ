@@ -3,10 +3,10 @@
 = Contexte scientifique <sec:scientificbackground>
 
 Cette thèse se concentre sur l'application du modèle polyédrique pour optimiser
-statiquement les nids de boucles exprimés en Kokkos @kokkos. Étant donné que ces
-travaux font le pont entre les bibliothèques de portabilité des performances de
-haut niveau et les transformations mathématiques de boucles de bas niveau, une
-solide compréhension de ces deux domaines est requise.
+statiquement les nids de boucles exprimés en Kokkos~@kokkos @kokkos2. Étant
+donné que ces travaux font le pont entre les bibliothèques de portabilité des
+performances de haut niveau et les transformations mathématiques de boucles de
+bas niveau, une solide compréhension de ces deux domaines est requise.
 
 Ce chapitre fournit les bases théoriques nécessaires pour la suite du manuscrit.
 Tout d'abord, la @sec:scientificbackground:loopnests présente le concept de nid
@@ -100,13 +100,13 @@ suivante, vise à résoudre.
 == Le modèle de programmation Kokkos <sec:scientificbackground:kokkos>
 
 Initialement développé pour abstraire le parallélisme matériel, le modèle de
-programmation Kokkos s'est imposé comme une bibliothèque de référence dans le
-HPC et la simulation scientifique. Il fournit une interface C++ unifiée pour la
-programmation parallèle hétérogène, avec un accent principal sur la portabilité
-des performances. En offrant des abstractions de haut niveau pour la gestion de
-la mémoire et le contrôle de l'exécution, Kokkos simplifie le processus de
-développement tout en voulant garantir l'obtention de performances, quelle que
-soit l'architecture cible.
+programmation Kokkos~@kokkos2 s'est imposé comme une bibliothèque de référence
+dans le HPC et la simulation scientifique. Il fournit une interface C++ unifiée
+pour la programmation parallèle hétérogène, avec un accent principal sur la
+portabilité des performances. En offrant des abstractions de haut niveau pour la
+gestion de la mémoire et le contrôle de l'exécution, Kokkos simplifie le
+processus de développement tout en voulant garantir l'obtention de performances,
+quelle que soit l'architecture cible.
 
 === Espaces : exécution et mémoire
 
@@ -280,16 +280,16 @@ vues multidimensionnelles.
 
 == Modèle polyédrique <sec:scientificbackground:polyhedral>
 
-Le modèle polyédrique est un outil mathématique permettant l'analyse et la
-transformation précises des nids de boucles. Contrairement aux compilateurs
-traditionnels qui appliquent des transformations locales directement sur une
-représentation intermédiaire (IR) ou un arbre de syntaxe abstrait, le modèle
-polyédrique s'appuie entièrement sur des abstractions algébriques et
-géométriques. Il garantit la correction sémantique des transformations
-appliquées. Pour représenter les nids de boucles, le modèle utilise une
-représentation géométrique en polyèdres des domaines d'itération, des accès
-mémoire, des dépendances de données et des ordonnancements d'instructions, tous
-exprimés par des ensembles et des relations mathématiques.
+Le modèle polyédrique~@polyedric1 @polyedric2 est un outil mathématique
+permettant l'analyse et la transformation précises des nids de boucles.
+Contrairement aux compilateurs traditionnels qui appliquent des transformations
+locales directement sur une représentation intermédiaire (IR) ou un arbre de
+syntaxe abstrait, le modèle polyédrique s'appuie entièrement sur des
+abstractions algébriques et géométriques. Il garantit la correction sémantique
+des transformations appliquées. Pour représenter les nids de boucles, le modèle
+utilise une représentation géométrique en polyèdres des domaines d'itération,
+des accès mémoire, des dépendances de données et des ordonnancements
+d'instructions, tous exprimés par des ensembles et des relations mathématiques.
 
 #definition(
   title: "Ensemble",
@@ -535,7 +535,9 @@ réordonnancement des instructions :
 
 Le modèle polyédrique représente géométriquement ces dépendances de données
 comme des relations affines entre les vecteurs d'itération des instructions
-source et cible.
+source et cible. L'analyse de flot de données proposée par
+Feautrier~@Feautrier91 permet de calculer exactement ces relations pour les
+programmes à contrôle statique.
 
 #definition(
   title: "Relation de dépendance",
@@ -579,7 +581,10 @@ $
 Un ordonnancement dicte l'ordre d'exécution des instances d'instruction au sein
 de l'espace d'itération. Dans le modèle polyédrique, cet ordonnancement est
 représenté comme une relation affine associant au vecteur d'itération d'une
-instruction un vecteur de date logique multidimensionnelle.
+instruction un vecteur de date logique multidimensionnelle. Le calcul
+automatique de tels ordonnancements affines respectant les dépendances a été
+formalisé par Feautrier, d'abord pour des dates unidimensionnelles~@Feautrier92a
+puis multidimensionnelles~@Feautrier92b.
 
 #definition(
   title: "Relation d'ordonnancement",
@@ -701,9 +706,10 @@ ordonnancements affines qui respectent toutes les dépendances de données tout 
 améliorant la localité des données et en exposant du parallélisme.
 
 Enfin, une fois qu'un ordonnancement a été calculé, ISL dispose d'un générateur
-d'AST. Ce composant traduit la représentation polyédrique transformée en une
-structure classique de nids de boucles. Parce qu'elle encapsule la totalité de
-la chaîne de compilation mathématique, ISL sert de moteur fondamental pour la
+d'AST, successeur de CLooG~@Bastoul04, l'outil historique de génération de code
+polyédrique. Ce composant traduit la représentation polyédrique transformée en
+une structure classique de nids de boucles. Parce qu'elle encapsule la totalité
+de la chaîne de compilation mathématique, ISL sert de moteur fondamental pour la
 quasi-totalité des compilateurs polyédriques modernes. La
 @fig:scientificbackground:isl_syntax_example illustre comment un nid de boucles
 C standard est modélisé mathématiquement à l'aide de la syntaxe des Sets et des
@@ -870,15 +876,17 @@ de LLVM et de son extension Polly.
 
 == Plongée au cœur de LLVM Polly <sec:scientificbackground:polly>
 
-Polly~@polly2 est un outil d'analyse et d'optimisation polyédrique de boucles de
-bas niveau, intégré dans l'optimiseur _middle-end_ de LLVM. Un compilateur
-moderne tel que LLVM s'organise en trois étages : le _frontend_ (Clang pour le
-C++) analyse le code source et le traduit en #gls("ir"), le _middle-end_
-applique sur cette #gls("ir") les optimisations indépendantes de la machine
-cible et le _backend_ génère le code machine. Polly peut être invoqué nativement
-via le _frontend_ du compilateur Clang (en utilisant des arguments de ligne de
-commande comme `-O3 -mllvm -polly`). Un avantage stratégique clé de Polly est sa
-dépendance à l'#gls("ir") de LLVM. En opérant strictement au niveau de l'#gls(
+Polly~@polly2 @polly3 est un outil d'analyse et d'optimisation polyédrique de
+boucles de bas niveau, intégré dans l'optimiseur _middle-end_ de LLVM. Un
+compilateur moderne tel que LLVM~@Lattner04 s'organise en trois étages : le
+_frontend_ (Clang pour le C++) analyse le code source et le traduit en #gls(
+  "ir",
+), le _middle-end_ applique sur cette #gls("ir") les optimisations indépendantes
+de la machine cible et le _backend_ génère le code machine. Polly peut être
+invoqué nativement via le _frontend_ du compilateur Clang (en utilisant des
+arguments de ligne de commande comme `-O3 -mllvm -polly`). Un avantage
+stratégique clé de Polly est sa dépendance à l'#gls("ir") de LLVM. En opérant
+strictement au niveau de l'#gls(
   "ir",
 ), Polly est complètement découplé du langage source, lui permettant d'optimiser
 les boucles indépendamment de la syntaxe du code source original.
@@ -912,11 +920,11 @@ cette thèse, Polly est planifié à la position `before-vectorizer`. Ce placeme
 spécifique est hautement stratégique. Avant même que Polly n'inspecte le code,
 l'#gls("ir") a déjà été fortement optimisée et canonicalisée par les passes
 standards de LLVM. Des passes telles que `mem2reg`, qui promeut les allocations
-mémoire en registres #gls("ssa"), `simplifycfg`, qui nettoie le graphe de flot de
-contrôle, ou encore l'_inlining_ des fonctions ont déjà supprimé le surcoût lié
-à l'abstraction C++ de haut niveau. Par conséquent, Polly opère sur des structures
-de boucles propres et normalisées et fournit sa sortie hautement optimisée et
-parallélisable directement au vectoriseur natif de LLVM.
+mémoire en registres #gls("ssa"), `simplifycfg`, qui nettoie le graphe de flot
+de contrôle, ou encore l'_inlining_ des fonctions ont déjà supprimé le surcoût
+lié à l'abstraction C++ de haut niveau. Par conséquent, Polly opère sur des
+structures de boucles propres et normalisées et fournit sa sortie hautement
+optimisée et parallélisable directement au vectoriseur natif de LLVM.
 
 #figure(
   image(fig.scientificbackground-pollypipeline),
@@ -1129,8 +1137,9 @@ vectorisation ou le multithreading.
 ==== Génération de l'AST (`IslAst`) <sec:scientificbackground:islast>
 
 En prenant l'arbre d'ordonnancement nouvellement optimisé comme entrée, la passe
-`IslAst` génère un #gls("ast") qui représente logiquement la structure du nid de
-boucles transformé. À ce stade, la passe analyse en profondeur les propriétés
+`IslAst` génère, à l'aide du générateur d'AST d'#gls("isl")~@Grosser15ast, un
+#gls("ast") qui représente logiquement la structure du nid de boucles
+transformé. À ce stade, la passe analyse en profondeur les propriétés
 mathématiques du nouvel ordonnancement pour intégrer des directives d'exécution
 dans les nœuds de l'#gls("ast").
 
@@ -1150,8 +1159,8 @@ les nœuds de l'#gls("ast"), cette passe utilise l'`IRBuilder` de LLVM pour
 construire les structures de boucles correspondantes et le graphe de flot de
 contrôle. Si les nœuds de l'#gls("ast") parcourus portent les annotations
 parallèles ou vectorielles intégrées lors de la phase précédente, le générateur
-de code les traduit en appels appropriés de la bibliothèque d'exécution OpenMP
-ou en directives SIMD.
+de code les traduit en appels appropriés de la bibliothèque d'exécution
+OpenMP~@pollyomp ou en directives SIMD.
 
 Plutôt que de générer les instructions de calcul à partir de zéro, le générateur
 réutilise intelligemment le code d'origine. Il copie les anciennes instructions
