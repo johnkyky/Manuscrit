@@ -278,9 +278,10 @@ typeof(expr) __builtin_annotation (typeof(expr) e, const char *string);
 ```
 
 Cette construction associe une chaîne de caractères `string` (faisant office
-d'étiquette sémantique) à une expression `e`, générant ainsi un nœud
-`llvm.annotate` au sein de l'IR. Elle établit ainsi un pont sémantique robuste
-entre les abstractions C++ de haut niveau et la représentation de bas niveau.
+d'étiquette sémantique) à une expression `e`, générant ainsi un appel à
+l'intrinsèque `llvm.annotation` au sein de l'IR. Elle établit ainsi un pont
+sémantique robuste entre les abstractions C++ de haut niveau et la
+représentation de bas niveau.
 
 L'injection de ces annotations est réalisée directement au sein des différents
 backends de Kokkos, mais aussi dans les méthodes d'accès aux données
@@ -358,10 +359,11 @@ constantes, simplification du flot de contrôle).
 
 Lorsqu'une annotation est émise dans l'IR par le frontend Clang, elle est
 systématiquement placée à la suite de l'instruction ciblée. Au cours des passes
-d'optimisation préalables, bien que les appels à l'intrinsèque `llvm.annotate`
+d'optimisation préalables, bien que les appels à l'intrinsèque `llvm.annotation`
 soient ignorés et préservés par le compilateur, ces derniers sont susceptibles
-de référencer des valeurs ayant été altérées ou supprimées principalement pour
-le marquage des tableaux constitué d'au moins trois annotations distinctes.
+de référencer des valeurs ayant été altérées ou supprimées. C'est principalement
+le cas pour le marquage des tableaux, constitué d'au moins trois annotations
+distinctes.
 
 Une considération supplémentaire réside dans le fait que le système
 d'annotations cible les variables de boucle originelles, mais pas nécessairement
@@ -589,17 +591,17 @@ sont détaillées ci-dessous.
   pointeurs distincts. Cette étape est cruciale lorsque ces pointeurs sont
   capturés par des fonctions _lambda_ différentes dans le cadre d'une fusion
   inter-noyaux (@sec:complexexecutionpatterns:globalloopvision);
-- Les *contraintes d'hypothèse* : formulation textuelle de relations
-  algébriques (égalités, inégalités) entre paramètres de boucles, injectées sous
-  forme d'hypothèses dans le domaine polyédrique
+- Les *contraintes d'hypothèse* : formulation textuelle de relations algébriques
+  (égalités, inégalités) entre paramètres de boucles, injectées sous forme
+  d'hypothèses dans le domaine polyédrique
   (@sec:complexexecutionpatterns:assumptions).
 
 
 === Simplification et assainissement du CFG <sec:kokkosvisibility:cfg_simplification>
 
 Bien que l'extraction des annotations sémantiques fournisse les informations de
-haut niveau indispensables, elles peuvent ne pas suffire à elles seules pour
-garantir une analyse polyédrique réussie.
+haut niveau indispensables, celle-ci peut ne pas suffire à elle seule à garantir
+une analyse polyédrique réussie.
 
 En effet, pour qu'une région de code puisse être formellement reconnue comme un
 #gls("scop"), l'IR LLVM doit impérativement satisfaire des critères de

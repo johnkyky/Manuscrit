@@ -160,7 +160,7 @@ d'analyser les dépendances de données du noyau de calcul.
 
 Par conséquent, il leur est techniquement et mathématiquement impossible de
 restructurer le code automatiquement. Les transformations complexes qui
-modifient l'ordre d'exécution des itérations de boucles (ex: fission, fusion)
+modifient l'ordre d'exécution des itérations de boucles (ex. fission, fusion)
 sont hors de portée de ces outils. En d'autres termes, si le développeur écrit
 un nid de boucles structurellement sous-optimal, la bibliothèque le
 parallélisera fidèlement, mais de manière sous-optimale. L'optimisation du code
@@ -266,9 +266,9 @@ que Kokkos. Cette limitation découle du fossé sémantique. L'architecture de c
 bibliothèques, conçue pour offrir la meilleure portabilité et généralisation
 possible à l'utilisateur, s'appuie en interne sur un réseau complexe
 d'expressions lambda, de foncteurs et d'arithmétique de pointeurs. Lors de la
-compilation, ces abstractions masquent la linéarité des accès mémoire, génèrent
-des incertitudes liées à l'aliasing, et brisent catégoriquement les heuristiques
-nécessaires à la construction du modèle polyédrique.
+compilation, ces abstractions masquent le caractère affine des accès mémoire,
+génèrent des incertitudes liées à l'aliasing, et brisent catégoriquement les
+heuristiques nécessaires à la construction du modèle polyédrique.
 
 Une autre approche novatrice pour l'optimisation de code est celle utilisée par
 Apollo @apollo. Elle consiste à s'appuyer sur l'IR de LLVM pour appliquer des
@@ -357,7 +357,7 @@ source et l'application du modèle polyédrique.
 
 Tiramisu~@tiramisu illustre parfaitement cette dynamique. Il s'agit d'une
 infrastructure logicielle C++ fonctionnant, dans sa conception, comme un langage
-dédié pour le calcul haute performance, comme illustré en
+dédié pour le calcul haute performance, comme l'illustre la
 @fig:stateoftheart:tiramisu_syntax. L'utilisateur déclare formellement les
 calculs, les tailles des données, le domaine d'itération, ainsi que les
 transformations mathématiques à appliquer (tuilage, déroulage, parallélisation).
@@ -414,7 +414,7 @@ Python de haut niveau. Ces couches d'abstraction permettent de capturer les
 opérations mathématiques de manière hautement abstraite. Avoir accès à cette
 information sémantique préservée est extrêmement bénéfique pour extraire le
 modèle polyédrique, tout en continuant à masquer la complexité matérielle. Un
-exemple de cette syntaxe de haut niveau est fourni en
+exemple de cette syntaxe de haut niveau est fourni dans la
 @fig:stateoftheart:pykokkos_syntax.
 
 #[

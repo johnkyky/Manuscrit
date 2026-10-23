@@ -92,8 +92,8 @@ parallélisation comme Kokkos, présentées dans la
 @sec:scientificbackground:kokkos. L'extraction du parallélisme et l'optimisation
 de la localité des données dans ces nids imparfaits nécessitent des
 transformations de code complexes. Cette complexité mathématique est précisément
-ce que le modèle polyédrique, présenté à la @sec:scientificbackground:polyhedral
-suivante, vise à résoudre.
+ce que le modèle polyédrique, présenté à la
+@sec:scientificbackground:polyhedral, vise à résoudre.
 
 
 
@@ -172,7 +172,7 @@ espaces mémoire de l'hôte et du périphérique est effectuée à l'aide de
 #figure(
   ```cpp
   // ...
-  Kokkos::View<double **, Kokkos::CudaSpace, Kokkos::LayoutLeft> tab_device("tab_device", N, N);
+  Kokkos::View<double **, Kokkos::LayoutLeft, Kokkos::CudaSpace> tab_device("tab_device", N, N);
 
   auto tab_host = Kokkos::create_mirror_view(tab_device);
 
@@ -199,18 +199,18 @@ Dans le modèle de programmation Kokkos, le lancement d'un noyau de calcul
 nécessite de combiner un motif d'exécution, une politique d'exécution et le
 corps du noyau (généralement défini via une fonction lambda C++ ou un foncteur).
 Cette séparation des concepts permet aux développeurs d'exprimer la sémantique
-de leur algorithme indépendamment de leur placement sur le matériel.
+de leur algorithme indépendamment de son placement sur le matériel.
 
 ==== Motifs d'exécution
 
 Pour abstraire les modèles de programmation parallèle spécifiques au matériel
-(ex: OpenMP, CUDA), Kokkos fournit trois motifs d'exécution parallèle
+(ex. OpenMP, CUDA), Kokkos fournit trois motifs d'exécution parallèle
 fondamentaux. Un motif d'exécution dicte la sémantique de l'opération :
 
 - `Kokkos::parallel_for` : Applique une opération indépendante sur un espace
   d'itération. Il représente les boucles standards de parallélisme de données où
   aucune dépendance n'existe entre les itérations.
-- `Kokkos::parallel_reduce` : Calcule une réduction (ex: somme, min, max, ou
+- `Kokkos::parallel_reduce` : Calcule une réduction (ex. somme, min, max ou
   réductions personnalisées) sur un espace d'itération. Kokkos gère
   automatiquement les accès concurrents spécifiques à l'architecture.
 - `Kokkos::parallel_scan` : Effectue une somme préfixe (scan) sur un espace
@@ -237,17 +237,17 @@ Pour des algorithmes plus complexes, les espaces d'itérations unidimensionnels
 ou multidimensionnels et l'ordonnancement de base sont souvent insuffisants.
 `Kokkos::TeamPolicy` résout ce problème en exposant le parallélisme
 hiérarchique, ce qui est utile pour exploiter des topologies matérielles
-spécifiques, en particulier sur les GPU. Il divise logiquement l'espace
-d'itérations en un tableau unidimensionnel de _Ligues_, où chaque ligue est
-constituée de plusieurs _Équipes_ de threads. Lors d'une projection sur un GPU,
-une ligue correspond typiquement à une grille de blocs de threads, tandis qu'une
-équipe correspond à un bloc individuel de threads. Sur un CPU, une ligue peut
-correspondre aux cœurs physiques disponibles, avec des équipes utilisant des
-threads matériels ou des unités vectorielles. Avec cette approche plus avancée,
-les développeurs obtiennent un contrôle fin sur les ressources matérielles, tel
-que l'exploitation de la mémoire partagée gérée par l'utilisateur sur les GPU ou
-la gestion explicite de la mémoire cache sur les CPU, au détriment de la
-simplicité de développement.
+spécifiques, en particulier sur les GPU. Il organise logiquement l'exécution en
+une _ligue_ (_league_), c'est-à-dire un tableau unidimensionnel d'_équipes_
+(_teams_), chaque équipe étant constituée de plusieurs threads. Lors d'une
+projection sur un GPU, une ligue correspond typiquement à une grille de blocs de
+threads, tandis qu'une équipe correspond à un bloc individuel de threads. Sur un
+CPU, les équipes d'une ligue sont réparties sur les cœurs physiques disponibles,
+leurs threads correspondant aux threads matériels ou aux unités vectorielles.
+Avec cette approche plus avancée, les développeurs obtiennent un contrôle fin
+sur les ressources matérielles, tel que l'exploitation de la mémoire partagée
+gérée par l'utilisateur sur les GPU ou la gestion explicite de la mémoire cache
+sur les CPU, au détriment de la simplicité de développement.
 
 Pour illustrer comment Kokkos expose des espaces d'itération multidimensionnels,
 la @code:scientificbackground:mdrangeexample montre une addition de matrices 2D
@@ -655,12 +655,12 @@ $
 $
 
 En transformant le domaine spatial 2D en un domaine temporel 3D,
-l'ordonnancement isole l'ordre d'exécution. Ici, $S_1$ est toujours exécutée
-avant $S_2$ à toute itération donnée car sa dimension temporelle externe est
-statiquement plus petite ($t_0 = 0$ pour $S_1$, tandis que $t_0 = 1$ pour
-$S_2$). Au sein de leurs blocs respectifs, les deux instructions sont exécutées
-séquentiellement en suivant le vecteur d'itération original $(i, j)$ puisque
-$t_1$ et $t_2$ reflètent exactement les itérateurs de la boucle.
+l'ordonnancement isole l'ordre d'exécution. Ici, toutes les instances de $S_1$
+sont exécutées avant celles de $S_2$ car la dimension temporelle externe de
+$S_1$ est statiquement plus petite ($t_0 = 0$ pour $S_1$, tandis que $t_0 = 1$
+pour $S_2$). Au sein de leurs blocs respectifs, les deux instructions sont
+exécutées séquentiellement en suivant le vecteur d'itération original $(i, j)$
+puisque $t_1$ et $t_2$ reflètent exactement les itérateurs de la boucle.
 
 
 
@@ -819,7 +819,7 @@ détaillée à la
         ...
         </OpenScop>
         ```,
-        caption: [Représentation OpenScop du domaine d'itérations, de
+        caption: [Représentation OpenScop du domaine d'itération, de
           l'ordonnancement (scattering) et des fonctions d'accès pour le code
           donné en exemple.],
       ) <code:scientificbackground:openscopexample_representation>
@@ -1135,9 +1135,9 @@ ordonnancement calculé doit strictement respecter les dépendances de données
 exactes extraites lors de la phase précédente.
 
 La sortie de cette passe est un arbre d'ordonnancement optimisé. En isolant les
-dimensions de boucles qui sont complètement dépourvues de dépendances cycliques
-portées par la boucle, le solveur prouve mathématiquement l'absence de
-dépendances de données. Ce parallélisme exposé guide directement les phases
+dimensions de boucles qui sont complètement dépourvues de dépendances portées
+par la boucle, le solveur prouve mathématiquement que ces dimensions peuvent
+être exécutées en parallèle. Ce parallélisme exposé guide directement les phases
 ultérieures de génération du code pour appliquer en toute sécurité la
 vectorisation ou le multithreading.
 

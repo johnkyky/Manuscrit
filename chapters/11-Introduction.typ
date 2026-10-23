@@ -129,12 +129,12 @@ Processing_), qui s'est tenue à Exeter en octobre 2026~@battiston2026ica3pp.
 
 Le @sec:scientificbackground détaille le contexte scientifique et technique
 nécessaire pour comprendre les fondations de cette thèse. Il introduit les
-concepts fondamentaux des nids de boucles, les principes de base de Kokkos, et
+concepts fondamentaux des nids de boucles, les principes de base de Kokkos et
 les fondements mathématiques du modèle polyédrique.
 
 Le @sec:stateoftheart présente l'état de l'art, en passant en revue les
 recherches existantes sur les optimisations dans Kokkos, les outils polyédriques
-spécifiques, les développements de l'écosystème autour de Kokkos, et la
+spécifiques, les développements de l'écosystème autour de Kokkos et la
 recherche sur l'optimisation des bibliothèques logicielles Python à l'aide du
 modèle polyédrique.
 

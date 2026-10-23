@@ -58,7 +58,7 @@ pouvant être optimisés par le modèle polyédrique.
 
 La dernière étape de notre démarche consiste à introduire de nouveaux
 ordonnanceurs, à la fois pour profiter des capacités d'optimisation de ces
-derniers, mais aussi pour permettre d'exploiter des architectures hétérogènes.
+derniers et pour permettre d'exploiter des architectures hétérogènes.
 
 Pour répondre à ce défi, nous avons traduit la représentation polyédrique en un
 format standard, permettant ainsi à d'autres ordonnanceurs, tels que Pluto,
@@ -98,8 +98,8 @@ PPCG ne termine pas en un temps raisonnable sur les stencils `adi`, `fdtd-2d` et
 
 Enfin, l'outil accorde actuellement une confiance totale aux informations
 sémantiques fournies par le développeur (noms statiques, contraintes
-d'hypothèse), ce qui constitue un point de fragilité pouvant mener à des
-erreurs silencieuses en cas de spécification erronée.
+d'hypothèse), ce qui constitue un point de fragilité pouvant mener à des erreurs
+silencieuses en cas de spécification erronée.
 
 == Perspectives <sec:conclusion:perspectives>
 
@@ -119,10 +119,10 @@ Deuxièmement, la robustesse de l'outil face aux spécifications de l'utilisateu
 pourrait être considérablement renforcée. Actuellement, notre approche permet
 aux développeurs d'injecter des informations sémantiques cruciales pour
 l'analyse polyédrique, notamment via le nommage statique des vues et l'ajout de
-suppositions mathématiques. Une perspective de développement majeure
-consisterait à implémenter des mécanismes de vérification statique capables de
-valider la cohérence de ces informations. Cela permettrait de fournir une
-gestion des erreurs robuste, avec des retours pertinents lors de la compilation.
+contraintes d'hypothèse. Une perspective de développement majeure consisterait à
+implémenter des mécanismes de vérification statique capables de valider la
+cohérence de ces informations. Cela permettrait de fournir une gestion des
+erreurs robuste, avec des retours pertinents lors de la compilation.
 
 Dans cette même dynamique d'intégration à l'écosystème Kokkos, une autre
 évolution viserait à contrôler les paramètres d'optimisation, comme la taille

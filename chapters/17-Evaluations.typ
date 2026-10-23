@@ -20,12 +20,12 @@ implémentation idiomatique (parallèle lorsque cela est possible) des noyaux de
 la suite de benchmarks PolyBench en #box[C++] avec Kokkos, telle que l'écrirait
 un utilisateur standard de la bibliothèque. Les nids de boucles sont exprimés à
 l'aide de `parallel_for` et utilisent les structures Kokkos comme les vues
-`Kokkos::View`, sans optimisation spécifique, comme par exemple la fusion ou la
-fission de boucles, la réécriture du calcul pour exposer davantage de
-parallélisme ou l'usage explicite de la mémoire rapide (`Kokkos::ScratchSpace`).
-Cette version est compilée avec la même chaîne de compilation Clang, mais en
-activant ou en désactivant l'utilisation de Polly, sur les backends standards de
-Kokkos : OpenMP pour les CPU et CUDA pour les GPU.
+`Kokkos::View`, sans optimisation spécifique comme la fusion ou la fission de
+boucles, la réécriture du calcul pour exposer davantage de parallélisme ou
+l'usage explicite de la mémoire rapide (`Kokkos::ScratchSpace`). Cette version
+est compilée avec la même chaîne de compilation Clang, mais en activant ou en
+désactivant l'utilisation de Polly, sur les backends standards de Kokkos :
+OpenMP pour les CPU et CUDA pour les GPU.
 
 *Version optimisée.* La version évaluée exprime les mêmes calculs, mais sous la
 forme attendue par notre chaîne de compilation. Chaque noyau est écrit en entier
@@ -104,7 +104,6 @@ du @table:evaluations:flags.
         table.hline(stroke: 0.5pt),
       ),
       [`-polly`], [Active Polly.],
-      [`-polly-parallel`], [Génère du code parallèle OpenMP sur CPU.],
       [`-polly-manual-scop-detection`],
       [Limite la détection des SCoPs aux noyaux annotés par `usePolyOpt`.],
 
@@ -393,8 +392,10 @@ L'ampleur du gain tient à la version de référence. Celle-ci exécute la boucl
   }
 
   // Version analysée par Polly
+  const auto policy_2D =
+      Kokkos::MDRangePolicy<Kokkos::OpenMP, Kokkos::Rank<2>>({0, 0}, {m, n});
   Kokkos::parallel_for<Kokkos::usePolyOpt>(
-      policy, KOKKOS_LAMBDA(const INT_TYPE i, const INT_TYPE j) {
+      policy_2D, KOKKOS_LAMBDA(const INT_TYPE i, const INT_TYPE j) {
         tmp(i, j) = 0;
         for (INT_TYPE k = 0; k < i; k++) {
           C(k, j) += alpha * B(i, j) * A(i, k);
@@ -641,7 +642,8 @@ répartie sur 64 cœurs.
 `adi` sur les deux machines (0.12$times$ et 0.03$times$). ISL l'accélère sur la
 machine AMD (1.64$times$) mais le ralentit sur la machine Intel (0.52$times$).
 Chaque pas de temps de ce noyau enchaîne deux balayages de la grille, l'un selon
-les colonnes et l'autre selon les lignes. Ces colonnes et ces lignes étant
+les colonnes et l'autre selon les lignes, chacun composé d'une descente puis
+d'une remontée, soit quatre phases. Ces colonnes et ces lignes étant
 indépendantes les unes des autres, la version de référence parallélise chacune
 des quatre phases, et ISL préserve ce parallélisme.
 
@@ -657,7 +659,7 @@ chaque phase. Une répartition dynamique des tuiles, où chaque thread prend une
 nouvelle tuile dès qu'il a terminé la précédente, réduit nettement le temps du
 code généré sur cette machine.
 
-Pluto fusionne deux de ces phases, comme l'une parcourt la grille par colonnes
+Pluto fusionne deux de ces phases. Comme l'une parcourt la grille par colonnes
 et l'autre par lignes, le nid fusionné est parcouru diagonale par diagonale
 (@code:evaluations:adi-pluto). Seule une partie du calcul reste alors parallèle,
 le long de chaque diagonale et au prix d'une synchronisation à chacune d'elles.
@@ -785,9 +787,9 @@ sont activées.
 
 Sur les 27 noyaux évalués, 24 sont compilés et produisent des résultats corrects
 avec PPCG. Les trois noyaux restants, `adi`, `fdtd-2d` et `heat-3d`, n'ont pas
-pu être compilés, car l'ordonnancement calculé par PPCG ne termine pas en un
-temps raisonnable, en raison du nombre considérable de contraintes générées pour
-ces nids de boucles.
+pu être compilés, car le calcul de l'ordonnancement par PPCG ne termine pas en
+un temps raisonnable, en raison du nombre considérable de contraintes générées
+pour ces nids de boucles.
 
 La @fig:evaluations:gpu présente les accélérations obtenues sur les 24 noyaux
 restants, et le @table:evaluations:gpu-geomean en résume les moyennes

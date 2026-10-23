@@ -69,8 +69,8 @@ s'exécuteraient en parallèle, et l'une d'elles pourrait lire `x(j)` pendant
 qu'une autre l'écrit.
 
 Bien que ce motif soit sémantiquement simple, son analyse par les compilateurs
-s'avère complexe. En associant ces boucles aux abstractions de Kokkos, la
-linéarité apparente des accès mémoire se perd au niveau de la représentation
+s'avère complexe. En associant ces boucles aux abstractions de Kokkos, le
+caractère affine des accès mémoire se perd au niveau de la représentation
 intermédiaire, empêchant directement la détection de telles régions par les
 outils polyédriques.
 
@@ -96,7 +96,7 @@ compilateur à optimiser les accès au tableau $L$ en extrayant un décalage
 invariant (`%gap_L`) pour la boucle $j$. Par conséquent, le bloc de convergence
 `for.body1.exit` doit traiter deux cas de figure distincts : si l'itérateur `%i`
 est égal à 0, l'accès à $L$ s'effectue avec un décalage statique nul et dans le
-cas contraire, il s'opère avec le décalage constant `%gap_L`.
+cas contraire, il s'opère avec le décalage `%gap_L`.
 
 Lorsque la phase de détection de Polly examine ces accès mémoire, elle s'appuie
 sur l'analyse d'évolution scalaire (SCEV) de LLVM. Pour l'accès `L(i, i)` situé
@@ -220,7 +220,7 @@ appliquée.
 Cette intervention anticipée élimine définitivement les gardes conditionnelles
 parasites inhérentes aux boucles triangulaires. Le graphe de flot de contrôle
 redevient ainsi parfaitement régulier, résolvant de fait les problèmes
-précédents liés aux accès mémoire non linéaires. Cette régularisation autorise
+précédents liés aux accès mémoire non affines. Cette régularisation autorise
 enfin la modélisation complète du noyau Kokkos par Polly.
 
 L'impact de cette transformation est directement visible sur l'évolution du

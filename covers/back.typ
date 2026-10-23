@@ -34,7 +34,7 @@
           #french-abstract
 
           #if french-keywords != none and french-keywords != () {
-            block(above: 2em)[
+            block(above: 1.75em)[
               #text(weight: "bold", "Mots-clés : ")
               #french-keywords.join(", ")
             ]
@@ -50,7 +50,7 @@
           #english-abstract
 
           #if english-keywords != none and english-keywords != () {
-            block(above: 2em)[
+            block(above: 1.75em)[
               #text(weight: "bold", "Keywords: ")
               #english-keywords.join(", ")
             ]

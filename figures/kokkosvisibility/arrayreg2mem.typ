@@ -192,8 +192,8 @@
   [*Dépendance scalaire intra-bloc (lecture réutilisée) :* \
     la valeur `val` est chargée et utilisée à de multiples reprises au sein du
     même bloc. Cette configuration induit une limitation pour l'ordonnanceur :
-    les instructions appartenant au même _statement_, elles sont indissociables
-    et ne peuvent être réordonnancées indépendamment.
+    les instructions appartenant au même _statement_ sont indissociables et ne
+    peuvent être réordonnancées indépendamment.
   ],
   diagram(
     node(

@@ -31,7 +31,7 @@
   node(
     (0, 0),
     align(left)[#raw(
-      "template<class Policy, class Backend>\nparallel_for(Policy<backend>, ...)",
+      "template<class Policy, class Backend>\nparallel_for(Policy<Backend>, ...)",
       lang: "cpp",
     )],
     fill: color-blue,

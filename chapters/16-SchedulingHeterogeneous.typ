@@ -88,12 +88,12 @@ sémantiquement équivalent sous la forme de matrices OpenScop.
 À titre d'illustration, considérons le domaine d'itération et l'ordonnancement
 canonique d'une boucle parfaitement imbriquée parcourant un espace
 bidimensionnel. Au sein d'ISL, cette modélisation s'exprime selon une syntaxe
-quasi-littérale, comme l'illustre la @fig:schedulingheterogeneous:isl_orig.
+quasi littérale, comme l'illustre la @fig:schedulingheterogeneous:isl_orig.
 
 #figure(
   ```isl
-  Domain: { Stmt[i, j] : 0 <= i < N and 0 <= j < N }
-  Schedule: { Stmt[i, j] -> [i, j] }
+  Domain: [N] -> { Stmt[i, j] : 0 <= i < N and 0 <= j < N }
+  Schedule: [N] -> { Stmt[i, j] -> [i, j] }
   ```,
   caption: [Représentation ensembliste et relationnelle d'un domaine et de son
     ordonnancement sous ISL.],
@@ -275,8 +275,8 @@ version récente de LLVM. L'un des principaux défis d'intégration inhérents �
 PPCG réside dans sa conception originelle. PPCG ayant été pensé comme un outil
 opérant exclusivement sur du code source C, ses structures de représentation
 interne faites pour gérer du code source ne prévoient nativement aucun mécanisme
-pour sauvegarder la sémantique et les métadonnées requises par un IR bas niveau
-comme celui de LLVM.
+pour sauvegarder la sémantique et les métadonnées requises par une IR de bas
+niveau comme celle de LLVM.
 
 Pour surmonter ces obstacles structurels, une démarche minutieuse de
 rétro-ingénierie a été entreprise : identifier, isoler puis transposer les
