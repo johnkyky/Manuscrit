@@ -348,19 +348,18 @@ ordonnanceurs et sur les deux machines. Le cas le plus marquant est `symm`, qui
 atteint 34.19$times$ (Pluto) et 27.75$times$ (ISL) sur la machine AMD, et
 24.27$times$ et 26.10$times$ sur la machine Intel. Les produits matriciels `2mm`
 et `3mm` (de 7.08$times$ à 12.23$times$), `covariance` (de 11.15$times$ à
-21.97$times$), `syr2k`, `gramschmidt` et `bicg` présentent un profil similaire.
-Ces noyaux partagent une forte réutilisation des données, avec un volume de
-calcul en $O(n^3)$ pour des données en $O(n^2)$, que la version de référence
-n'exploite pas. Dans ces versions de référence, la boucle la plus interne,
-écrite dans le corps de la lambda, parcourt une colonne d'au moins un tableau
-stocké par lignes, avec un grand pas mémoire entre deux accès successifs. Or
-Kokkos ne tuile que les dimensions d'une `MDRangePolicy`, jamais les boucles
-écrites dans la lambda. La plupart de ces versions reposent sur une
-`RangePolicy` et ne sont pas tuilées du tout, et seules celles de `2mm` et `3mm`
-découpent l'espace `(i, j)` en tuiles de $32 times 32$, sans toucher à la boucle
-de réduction. Le tuilage polyédrique porte au contraire sur l'ensemble du nid,
-boucle de réduction comprise, comme l'illustre `symm` dans le paragraphe
-suivant.
+21.97$times$), `syr2k` et `gramschmidt` présentent un profil similaire. Ces
+noyaux partagent une forte réutilisation des données, avec un volume de calcul
+en $O(n^3)$ pour des données en $O(n^2)$, que la version de référence n'exploite
+pas. Dans ces versions de référence, la boucle la plus interne, écrite dans le
+corps de la lambda, parcourt une colonne d'au moins un tableau stocké par
+lignes, avec un grand pas mémoire entre deux accès successifs. Or Kokkos ne
+tuile que les dimensions d'une `MDRangePolicy`, jamais les boucles écrites dans
+la lambda. La plupart de ces versions reposent sur une `RangePolicy` et ne sont
+pas tuilées du tout, et seules celles de `2mm` et `3mm` découpent l'espace
+`(i, j)` en tuiles de $32 times 32$, sans toucher à la boucle de réduction. Le
+tuilage polyédrique porte au contraire sur l'ensemble du nid, boucle de
+réduction comprise, comme l'illustre `symm` dans le paragraphe suivant.
 
 Le cas de `symm` illustre la combinaison de transformations à l'origine de ces
 gains. Pour chaque élément `(i, j)`, ce noyau accumule une somme partielle
@@ -487,6 +486,13 @@ produit un code tuilé mais toujours séquentiel, qui ne gagne que par la locali
 des données (#box[2.43$times$] et #box[2.92$times$]). Sur les autres noyaux de
 ce groupe, il ne fait au mieux qu'égaler la référence, comme le détaille la
 section suivante.
+
+Le noyau `bicg` gagne lui aussi grâce au parallélisme (de #box[4.83$times$] à
+#box[7.52$times$]), bien que ce produit matrice-vecteur ne réutilise pas ses
+données. Ses deux produits partagent la même boucle, qui accumule les résultats
+de l'un d'eux d'une itération à l'autre et ne peut donc pas être parallélisée
+telle quelle. La version de référence n'en parallélise qu'une partie, alors que
+Polly sépare les deux produits et parallélise chacun d'eux.
 
 === Régressions <sec:evaluations:cpu:regressions>
 
