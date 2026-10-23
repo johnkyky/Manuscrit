@@ -734,14 +734,13 @@ que du nombre de cœurs de la machine AMD.
 
 ==== Régressions liées au tuilage fixe
 
-Pour `cholesky` et `adi`, ISL obtient 4,68$times$ et 1,64$times$ sur la machine
-AMD, mais régresse à 0,74$times$ et 0,52$times$ sur la machine Intel.
-L'accélération de Pluto sur `cholesky` est elle aussi divisée par deux (de
-14,52$times$ à 7,31$times$). Les deux ordonnanceurs utilisent une taille de
-tuile fixe de 32. Or le cache L2 de la machine Intel contient déjà une grande
-partie des données manipulées par la version de référence. Le tuilage n'apporte
-pas de gain de localité et son surcoût le rend contre-productif. Sur la machine
-AMD le tuilage reste bénéfique.
+Pour `cholesky`, ISL obtient 4,68$times$ sur la machine AMD, mais régresse à
+0,74$times$ sur la machine Intel. L'accélération de Pluto est elle aussi divisée
+par deux (de 14,52$times$ à 7,31$times$). Les deux ordonnanceurs utilisent une
+taille de tuile fixe de 32. Or le cache L2 de la machine Intel contient déjà une
+grande partie des données manipulées par la version de référence. Le tuilage
+n'apporte pas de gain de localité et son surcoût le rend contre-productif. Sur
+la machine AMD, le tuilage reste bénéfique.
 
 
 === Bilan de l'évaluation sur CPU <sec:evaluations:cpu:summary>
