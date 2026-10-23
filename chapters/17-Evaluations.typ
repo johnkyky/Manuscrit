@@ -516,15 +516,18 @@ scalaires remises à zéro au début de chaque ligne. Les lignes, comme les
 colonnes, restent donc indépendantes les unes des autres, et la version de
 référence les traite en parallèle.
 
-Le modèle polyédrique ne voit pas cette indépendance. Polly représente chaque
-scalaire par un emplacement mémoire unique, partagé par toutes les lignes. Du
+Sur CPU, Polly ne voit pas cette indépendance. Il représente chaque scalaire par
+un emplacement mémoire unique, partagé par toutes les lignes. Du
 point de vue du modèle, chaque ligne réécrit les valeurs laissées par la
 précédente, ce qui crée de fausses dépendances entre les lignes. Les deux
 ordonnanceurs exécutent alors séquentiellement les quatre passes récursives
 (@code:evaluations:deriche-isl), et le parallélisme se réduit pour l'essentiel
 aux deux passes qui combinent leurs résultats, dépourvues de scalaires.
 Transformer ces scalaires en tableaux indexés par la ligne, ou les privatiser,
-suffirait à lever ces fausses dépendances.
+suffirait à lever ces fausses dépendances. C'est ce que fait PPCG sur GPU. Il
+sait que les scalaires sont remis à zéro à chaque ligne, ignore donc ces fausses
+dépendances et donne à chaque thread sa propre copie des scalaires. Il traite
+ainsi les lignes en parallèle, comme la version de référence.
 
 #figure(
   ```cpp
