@@ -496,9 +496,8 @@ Polly sépare les deux produits et parallélise chacun d'eux.
 
 === Régressions <sec:evaluations:cpu:regressions>
 
-À l'inverse, plusieurs noyaux ne gagnent rien ou régressent, de manière
-identique sur les deux machines. Dans la plupart des cas, le code généré
-exploite moins de parallélisme que la version de référence.
+À l'inverse, plusieurs noyaux ne gagnent rien ou régressent. Dans la plupart des
+cas, le code généré exploite moins de parallélisme que la version de référence.
 
 *Les noyaux sans réutilisation de données.* `gesummv` reste neutre quels que
 soient l'ordonnanceur et la machine (entre #box[0.91$times$] et
@@ -517,17 +516,17 @@ colonnes, restent donc indépendantes les unes des autres, et la version de
 référence les traite en parallèle.
 
 Sur CPU, Polly ne voit pas cette indépendance. Il représente chaque scalaire par
-un emplacement mémoire unique, partagé par toutes les lignes. Du
-point de vue du modèle, chaque ligne réécrit les valeurs laissées par la
-précédente, ce qui crée de fausses dépendances entre les lignes. Les deux
-ordonnanceurs exécutent alors séquentiellement les quatre passes récursives
-(@code:evaluations:deriche-isl), et le parallélisme se réduit pour l'essentiel
-aux deux passes qui combinent leurs résultats, dépourvues de scalaires.
-Transformer ces scalaires en tableaux indexés par la ligne, ou les privatiser,
-suffirait à lever ces fausses dépendances. C'est ce que fait PPCG sur GPU. Il
-sait que les scalaires sont remis à zéro à chaque ligne, ignore donc ces fausses
-dépendances et donne à chaque thread sa propre copie des scalaires. Il traite
-ainsi les lignes en parallèle, comme la version de référence.
+un emplacement mémoire unique, partagé par toutes les lignes. Du point de vue du
+modèle, chaque ligne réécrit les valeurs laissées par la précédente, ce qui crée
+de fausses dépendances entre les lignes. Les deux ordonnanceurs exécutent alors
+séquentiellement les quatre passes récursives (@code:evaluations:deriche-isl),
+et le parallélisme se réduit pour l'essentiel aux deux passes qui combinent
+leurs résultats, dépourvues de scalaires. Transformer ces scalaires en tableaux
+indexés par la ligne, ou les privatiser, suffirait à lever ces fausses
+dépendances. C'est ce que fait PPCG sur GPU. Il sait que les scalaires sont
+remis à zéro à chaque ligne, ignore donc ces fausses dépendances et donne à
+chaque thread sa propre copie des scalaires. Il traite ainsi les lignes en
+parallèle, comme la version de référence.
 
 #figure(
   ```cpp
@@ -631,12 +630,24 @@ pas, sur la machine AMD et ses cœurs plus lents, avec une version parallèle
 répartie sur 64 cœurs.
 
 *Une fusion défavorable.* Avec Pluto, le code généré régresse fortement sur
-`adi` sur les deux machines (0.12$times$ et 0.03$times$), alors qu'ISL
-l'accélère sur la machine AMD (1.64$times$). Chaque pas de temps de ce noyau
-enchaîne deux balayages de la grille, l'un selon les colonnes et l'autre selon
-les lignes. Ces colonnes et ces lignes étant indépendantes les unes des autres,
-la version de référence parallélise chacune des quatre phases, et ISL préserve
-ce parallélisme.
+`adi` sur les deux machines (0.12$times$ et 0.03$times$). ISL l'accélère sur la
+machine AMD (1.64$times$) mais le ralentit sur la machine Intel (0.52$times$).
+Chaque pas de temps de ce noyau enchaîne deux balayages de la grille, l'un selon
+les colonnes et l'autre selon les lignes. Ces colonnes et ces lignes étant
+indépendantes les unes des autres, la version de référence parallélise chacune
+des quatre phases, et ISL préserve ce parallélisme.
+
+L'écart entre les deux machines tient à la répartition du travail entre les
+threads. Le code généré par ISL découpe chaque phase en tuiles de 32 lignes,
+soit seulement 32 tuiles à répartir. Polly les distribue en blocs contigus de
+taille égale, alors que Kokkos distribue les lignes de la version de référence
+par petits paquets, à tour de rôle. Sur la machine AMD, dont les 64 cœurs sont
+identiques, chaque thread reçoit au plus une tuile et la charge reste
+équilibrée. Sur la machine Intel, les 32 tuiles se répartissent sur 20 cœurs de
+vitesses différentes, et tous les threads attendent les plus lents à la fin de
+chaque phase. Une répartition dynamique des tuiles, où chaque thread prend une
+nouvelle tuile dès qu'il a terminé la précédente, réduit nettement le temps du
+code généré sur cette machine.
 
 Pluto fusionne deux de ces phases, comme l'une parcourt la grille par colonnes
 et l'autre par lignes, le nid fusionné est parcouru diagonale par diagonale
@@ -671,10 +682,10 @@ référence.
     renommé `N`.],
 ) <code:evaluations:adi-pluto>
 
-Ces régressions se reproduisent à l'identique sur les deux machines. Aucun des
-deux ordonnanceurs ne dispose d'un modèle de coût capable de détecter qu'une
-transformation réduit le parallélisme ou la localité par rapport au code
-d'origine.
+Hormis `durbin`, et `adi` avec ISL, dont le résultat dépend de la machine, ces
+régressions se reproduisent sur les deux machines. Aucun des deux ordonnanceurs
+ne dispose d'un modèle de coût capable de détecter qu'une transformation réduit
+le parallélisme ou la localité par rapport au code d'origine.
 
 === Sensibilité au matériel <sec:evaluations:cpu:sensitivity>
 
