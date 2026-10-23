@@ -592,7 +592,7 @@ l'optimiseur puisse identifier que les bornes de différentes boucles sont
 identiques ou strictement liées (pour permettre la fusion, par exemple), il est
 nécessaire que l'utilisateur fournisse des contraintes explicites à Polly pour
 permettre d'interpréter correctement les relations entre les bornes des
-différentes boucles. Ce mécanisme, que nous appelons contraintes d'assomption,
+différentes boucles. Ce mécanisme, que nous appelons contraintes d'hypothèse,
 permet de compenser la perte d'informations sémantiques induite par la structure
 interne de Kokkos.
 
