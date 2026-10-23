@@ -1005,7 +1005,7 @@ Kokkos.
     [
       #figure(
         image(fig.kokkosvisibility-kokkosbackendchoise),
-        caption: [Sélection fine et individualisée du backend par noyau
+        caption: [Sélection fine et individualisée du backend par noyaux
           Kokkos.],
       )<fig:kokkosvisibility:backendchoise_kokkos>
     ],

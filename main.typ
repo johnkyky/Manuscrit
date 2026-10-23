@@ -311,7 +311,7 @@
   "Polyhedral Library",
   "PIPLib",
   "Parametric Integer Programming Library",
-  "std::par",
+  "std::execution::par",
 )
 
 #for s in softwares {

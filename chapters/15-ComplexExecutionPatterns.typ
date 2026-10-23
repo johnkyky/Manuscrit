@@ -83,14 +83,14 @@ noyau *trisolv* (@fig:complexexecutionpatterns:trisolv).
 ) <fig:complexexecutionpatterns:trisolv_ir>
 
 Lors du processus de compilation, un branchement conditionnel est inséré dans le
-bloc de base `for.body1` afin d'ignorer la première itération de la boucle
-interne (lorsque $i=0$), l'espace d'itération de l'itérateur $j$ étant alors
-vide. L'insertion de ce branchement autorise le compilateur à optimiser les
-accès au tableau $L$ en extrayant un décalage invariant (`%gap_L`) pour la
-boucle $j$. Par conséquent, le bloc de convergence `for.body1.exit` doit traiter
-deux cas de figure distincts : si l'itérateur `%i` est égal à 0, l'accès à $L$
-s'effectue avec un décalage statique nul et dans le cas contraire, il s'opère
-avec le décalage constant `%gap_L`.
+bloc de base `for.body1` afin d'ignorer la boucle interne lors de la première
+itération de la boucle externe (lorsque $i=0$), l'espace d'itération de
+l'itérateur $j$ étant alors vide. L'insertion de ce branchement autorise le
+compilateur à optimiser les accès au tableau $L$ en extrayant un décalage
+invariant (`%gap_L`) pour la boucle $j$. Par conséquent, le bloc de convergence
+`for.body1.exit` doit traiter deux cas de figure distincts : si l'itérateur `%i`
+est égal à 0, l'accès à $L$ s'effectue avec un décalage statique nul et dans le
+cas contraire, il s'opère avec le décalage constant `%gap_L`.
 
 Lorsque la phase de détection de Polly examine ces accès mémoire, elle s'appuie
 sur l'analyse d'évolution scalaire (SCEV) de LLVM. Pour l'accès `L(i, i)` situé

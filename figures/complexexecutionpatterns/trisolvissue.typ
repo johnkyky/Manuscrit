@@ -27,12 +27,10 @@
     #line(length: 100%, stroke: 0.5pt + gray)
     #v(-15pt)
     ```llvm
-      %i = phi i64 [ 0, %entry ], [ %i.next, %stmt3 ]
+      %i = phi i64 [ 0, %entry ], [ %i.next, %for.body1.exit ]
 
       %b_val = load double, ptr (%addr_b_i + %i)
       store double %b_val, ptr (%addr_x_i + %i)
-
-      %gap_L = %i * %dim_L
 
       %skip_cond = icmp eq i64 %i, 0
       br i1 %skip_cond, label %for.body1.exit, label %for.body2.preheader
@@ -56,7 +54,7 @@
     #line(length: 100%, stroke: 0.5pt + gray)
     #v(-15pt)
     ```llvm
-      %j = phi i64 [ 0, %stmt1.body ], [ %j.next, %stmt2 ]
+      %j = phi i64 [ 0, %for.body2.preheader ], [ %j.next, %for.body2 ]
 
       %x_i = load double, ptr (%addr_x + %i)
       %x_j = load double, ptr (%addr_x + %j)
@@ -78,14 +76,15 @@
     #line(length: 100%, stroke: 0.5pt + gray)
     #v(-15pt)
     ```llvm
-      %gap_L = phi[0, %statement1], [%gap_L, %statement2]
+      %gap_L = phi[0, %for.body1], [%gap_L, %for.body2]
       %L_ii = load double, ptr (%gap_L + %i)
       %x_i = load double, ptr (%addr_x + %i)
       %div = fdiv double %x_i, %L_ii
       store double %div, ptr (%addr_x + %i)
 
       %i.next = add i64 %i, 1
-      br label %for.body1
+      %cmp.i = icmp ult i64 %i.next, %n
+      br i1 %cmp.i, label %for.body1, label %exit
     ```
   ])),
 

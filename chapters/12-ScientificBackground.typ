@@ -320,7 +320,7 @@ d'instructions, tous exprimés par des ensembles et des relations mathématiques
   $l$.
 
   L'élément #box($x in E$) est dit en relation avec #box($y in F$) #box([si
-    $(x, y) in E times F$]). On le note couramment $x space R space y$ ou
+    $(x, y) in R$]). On le note couramment $x space R space y$ ou
   $R space x space y$. Une relation peut également être représentée comme un
   polyèdre paramétrique :
   $

@@ -45,16 +45,17 @@ proposée dans cette thèse.
 Les développeurs de calcul haute performance en C++ s'appuient sur des
 bibliothèques de portabilité des performances comme Kokkos
 (@sec:scientificbackground:kokkos), RAJA~@raja, ou sur des standards émergents
-comme SYCL~@sycl et le standard de parallélisme C++ (`std::par`)~@isostdpar.
-Tous ces outils partagent une philosophie commune : la séparation stricte entre
-l'expression de l'algorithme et son modèle d'exécution. Pour y parvenir, ils
-s'appuient fortement sur les fonctionnalités modernes du C++, en particulier les
-expressions lambda et les foncteurs, pour encapsuler les noyaux de calcul. Ils
-utilisent également des espaces d'exécution et des espaces mémoire pour gérer la
-distribution des calculs et la localité des données à travers des architectures
-hétérogènes. Pour illustrer cela, le @fig:stateoftheart:frameworks_syntax
-compare les différentes façons d'écrire le même code (une multiplication
-matrice-vecteur) en utilisant ces différentes bibliothèques.
+comme SYCL~@sycl et le standard de parallélisme C++
+(`std::execution::par`)~@isostdpar. Tous ces outils partagent une philosophie
+commune : la séparation stricte entre l'expression de l'algorithme et son modèle
+d'exécution. Pour y parvenir, ils s'appuient fortement sur les fonctionnalités
+modernes du C++, en particulier les expressions lambda et les foncteurs, pour
+encapsuler les noyaux de calcul. Ils utilisent également des espaces d'exécution
+et des espaces mémoire pour gérer la distribution des calculs et la localité des
+données à travers des architectures hétérogènes. Pour illustrer cela, le
+@fig:stateoftheart:frameworks_syntax compare les différentes façons d'écrire le
+même code (une multiplication matrice-vecteur) en utilisant ces différentes
+bibliothèques.
 
 #[
   #show figure: set block(breakable: true)
@@ -114,7 +115,7 @@ matrice-vecteur) en utilisant ces différentes bibliothèques.
       }
       ```,
 
-      [*`std::par`*],
+      [*`std::execution::par`*],
       ```cpp
       void matVecMult_std(int N, int M, const double* A,
                           const double* x, double* y) {

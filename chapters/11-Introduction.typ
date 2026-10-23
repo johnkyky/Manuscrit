@@ -78,9 +78,9 @@ Les bibliothèques de portabilité des performances offrent aux développeurs de
 interfaces logicielles pour exprimer le parallélisme et gérer la mémoire sur
 diverses architectures matérielles. Dans le domaine du HPC, les bibliothèques
 les plus utilisées sont Kokkos, RAJA, SYCL et le standard de parallélisme C++
-(`std::par`). Ces outils permettent le développement d'un code source unique
-pouvant être compilé pour différentes cibles, avec la promesse de la portabilité
-des performances.
+(`std::execution::par`). Ces outils permettent le développement d'un code source
+unique pouvant être compilé pour différentes cibles, avec la promesse de la
+portabilité des performances.
 
 Cependant, ces bibliothèques n'effectuent pas intrinsèquement d'optimisation
 automatique du code source. Elles s'appuient sur des optimisations structurelles
