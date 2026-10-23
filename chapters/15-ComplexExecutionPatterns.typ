@@ -155,7 +155,7 @@ De manière générale, on distingue deux grands types de boucles triangulaires 
 fonction de l'évolution de l'espace d'itération interne. L'analyse SCEV du BETC
 permet d'identifier formellement ces deux profils et d'en déduire à la fois la
 stratégie d'épluchage adéquate et le nombre exact d'itérations à extraire :
-- *Triangulaire croissante* (épluchage par l'avant ou *front peeling*) : La
+- *Triangulaire croissante* (épluchage par l'avant ou *front peeling*) : la
   taille de la boucle interne augmente avec l'itérateur externe. L'expression
   SCEV du BETC prend la forme d'une récurrence à pas positif
   `{Start, +, Step}<%for.i>`. Si l'évaluation de cette expression pour la
@@ -164,7 +164,7 @@ stratégie d'épluchage adéquate et le nombre exact d'itérations à extraire :
   alors requis pour extraire l'ensemble des premières itérations. Le nombre
   exact d'itérations à éplucher correspond au nombre de pas nécessaires pour
   atteindre un décompte positif ou nul.
-- *Triangulaire décroissante* (épluchage par l'arrière ou *back peeling*) : À
+- *Triangulaire décroissante* (épluchage par l'arrière ou *back peeling*) : à
   l'inverse, la taille de la boucle interne diminue à mesure que l'itérateur
   externe avance. Le BETC se traduit par une expression avec un pas négatif
   `{Start, +, -Step}<%for.i>`. Le nombre d'itérations internes décroît jusqu'à

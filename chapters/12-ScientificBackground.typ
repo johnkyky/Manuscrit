@@ -146,9 +146,9 @@ en mémoire, abstrayant efficacement les allocations matérielles.
 Une caractéristique cruciale pour la portabilité des performances est la
 disposition en mémoire. Étant donné que les CPU et les GPU gèrent les accès
 mémoire différemment, Kokkos définit des traits de disposition spécifiques :
-- `Kokkos::LayoutRight` (row-major) : Optimise la localité spatiale et
+- `Kokkos::LayoutRight` (row-major) : optimise la localité spatiale et
   l'utilisation des lignes de cache pour les CPU.
-- `Kokkos::LayoutLeft` (column-major) : Assure la coalescence des accès mémoire,
+- `Kokkos::LayoutLeft` (column-major) : assure la coalescence des accès mémoire,
   ce qui est critique pour les performances des GPU.
 
 Par défaut, Kokkos sélectionne automatiquement la disposition optimale à la
@@ -207,13 +207,13 @@ Pour abstraire les modèles de programmation parallèle spécifiques au matérie
 (ex. OpenMP, CUDA), Kokkos fournit trois motifs d'exécution parallèle
 fondamentaux. Un motif d'exécution dicte la sémantique de l'opération :
 
-- `Kokkos::parallel_for` : Applique une opération indépendante sur un espace
+- `Kokkos::parallel_for` : applique une opération indépendante sur un espace
   d'itération. Il représente les boucles standards de parallélisme de données où
   aucune dépendance n'existe entre les itérations.
-- `Kokkos::parallel_reduce` : Calcule une réduction (ex. somme, min, max ou
+- `Kokkos::parallel_reduce` : calcule une réduction (ex. somme, min, max ou
   réductions personnalisées) sur un espace d'itération. Kokkos gère
   automatiquement les accès concurrents spécifiques à l'architecture.
-- `Kokkos::parallel_scan` : Effectue une somme préfixe (scan) sur un espace
+- `Kokkos::parallel_scan` : effectue une somme préfixe (scan) sur un espace
   d'itérations, fournissant une brique de base parallèle.
 
 ==== Politiques d'exécution
@@ -525,11 +525,11 @@ instances d'instruction accèdent aux mêmes emplacements mémoire.
 
 Il existe trois principaux types de dépendances de données qui restreignent le
 réordonnancement des instructions :
-- *Lecture-Après-Écriture ou dépendance de flot :* Une instruction source écrit
+- *Lecture-Après-Écriture ou dépendance de flot :* une instruction source écrit
   dans un emplacement mémoire qui est ensuite lu par une instruction cible.
-- *Écriture-Après-Lecture ou anti-dépendance :* Une instruction source lit un
+- *Écriture-Après-Lecture ou anti-dépendance :* une instruction source lit un
   emplacement mémoire avant qu'il ne soit écrasé par une instruction cible.
-- *Écriture-Après-Écriture ou dépendance de sortie :* Une instruction source
+- *Écriture-Après-Écriture ou dépendance de sortie :* une instruction source
   écrit dans un emplacement mémoire qui est ensuite écrasé par une instruction
   cible.
 
@@ -691,8 +691,8 @@ polyédrique. ISL est une bibliothèque en C conçue pour manipuler des ensemble
 et des relations de points entiers bornés par des contraintes affines. Elle
 manipule deux structures principales :
 
-- *Sets :* Utilisés pour représenter les domaines d'itération.
-- *Maps :* Utilisées pour représenter les fonctions d'accès, les dépendances et
+- *Sets :* utilisés pour représenter les domaines d'itération.
+- *Maps :* utilisées pour représenter les fonctions d'accès, les dépendances et
   les ordonnancements en associant les éléments d'un ensemble à ceux d'un autre.
 
 #gls("isl") fournit des implémentations hautement optimisées pour les opérations
@@ -845,24 +845,24 @@ ciblent différents niveaux de la pile de compilation et diverses architectures
 matérielles. Parmi les compilateurs et outils polyédriques les plus notables, on
 trouve :
 
-- *Pluto~@pluto1 :* Un compilateur C source-à-source renommé pour son algorithme
+- *Pluto~@pluto1 :* un compilateur C source-à-source renommé pour son algorithme
   d'ordonnancement, qui calcule automatiquement les transformations affines pour
   maximiser simultanément la localité des données et exposer le parallélisme
   pour les CPU multicœurs.
-- *PPCG (Polyhedral Parallel Code Generator)~@ppcg :* Un compilateur
+- *PPCG (Polyhedral Parallel Code Generator)~@ppcg :* un compilateur
   source-à-source conçu spécifiquement pour les architectures hétérogènes,
   transformant les nids de boucles C séquentiels en code CUDA ou OpenCL optimisé
   pour l'exécution sur GPU.
-- *Apollo (Automatic speculative POLyhedral Loop Optimizer)~@apollo :* Un outil
+- *Apollo (Automatic speculative POLyhedral Loop Optimizer)~@apollo :* un outil
   qui étend le modèle statique traditionnel en appliquant des transformations
   dynamiquement à l'exécution, permettant l'optimisation des nids de boucles
   avec des accès mémoire non résolus statiquement ou un flux de contrôle
   dépendant des données.
-- *Polygeist~@Polygeist :* Un _frontend_ C/C++ moderne et une infrastructure
+- *Polygeist~@Polygeist :* un _frontend_ C/C++ moderne et une infrastructure
   d'optimisation construite au-dessus de MLIR (Multi-Level Intermediate
   Representation), qui exploite le dialecte affine pour effectuer des
   transformations polyédriques au sein d'une chaîne de compilation LLVM.
-- *LLVM Polly~@polly1 :* Un optimiseur de boucles intégré dans l'infrastructure
+- *LLVM Polly~@polly1 :* un optimiseur de boucles intégré dans l'infrastructure
   du compilateur LLVM qui opère directement sur la représentation intermédiaire,
   s'abstrayant du langage source pour effectuer des optimisations avancées.
 
@@ -946,22 +946,22 @@ spécialisée. Ce système présente le flux de travail polyédrique en une séq
 stricte de passes LLVM séquentielles, comme illustré par la
 @fig:scientificbackground:pollypipeline :
 
-- *`CodePreparation` :* Prépare l'#gls("ir") en scindant le bloc d'entrée afin
+- *`CodePreparation` :* prépare l'#gls("ir") en scindant le bloc d'entrée afin
   d'isoler les allocations mémoire locales (`alloca`) des opérations
   arithmétiques et des accès aux données, préparant ainsi le code à l'analyse et
   à la future génération de code.
-- *`ScopDetect` :* Analyse le graphe de flot de contrôle pour identifier les
+- *`ScopDetect` :* analyse le graphe de flot de contrôle pour identifier les
   régions valides à Entrée Unique et Sortie Unique (Single-Entry Single-Exit,
   SESE) qui sont appropriées pour la représentation polyédrique dans Polly.
-- *`ScopInfo` :* Extrait les instructions de l'#gls("ir") des régions valides et
+- *`ScopInfo` :* extrait les instructions de l'#gls("ir") des régions valides et
   les traduit en représentations mathématiques #gls("isl") (domaines, accès,
   dépendances de données, et ordonnancement original).
-- *`ScheduleOptimizer` :* Invoque le moteur d'ordonnancement intégré d'ISL pour
+- *`ScheduleOptimizer` :* invoque le moteur d'ordonnancement intégré d'ISL pour
   calculer des transformations affines qui améliorent la localité des données et
   exposent du parallélisme.
-- *`IslAst` :* Génère un nouvel #gls("ast") #gls("isl") représentant la
+- *`IslAst` :* génère un nouvel #gls("ast") #gls("isl") représentant la
   structure du nid de boucles ordonnancé de manière optimale.
-- *`CodeGeneration` :* Parcourt l'#gls("ast") #gls("isl") pour construire
+- *`CodeGeneration` :* parcourt l'#gls("ast") #gls("isl") pour construire
   l'#gls("ir") LLVM finale et optimisée, en y intégrant des vérifications à
   l'exécution (_runtime checks_) pour l'analyse d'aliasing et des bornes de
   tableaux lorsque cela est nécessaire.
@@ -1093,13 +1093,13 @@ $
 La séparation des dimensions s'effectue alors étape par étape :
 
 *Itération 1 (Extraction de la taille de l'élément, Term $8$) :* \
-La première étape consiste à extraire la taille du type de donnée en divisant le
+la première étape consiste à extraire la taille du type de donnée en divisant le
 polynôme global par $8$ :
 - Quotient :
   $Q_1 = floor(S / 8) = floor((i times M times P times 8 + j times P times 8 + k times 8) / 8) = i times M times P + j times P + k$
 
 *Itération 2 (Dimension interne $k$, Term $P$) :* \
-Le nouveau polynôme $Q_1$ est ensuite divisé par la dimension suivante ($P$)
+le nouveau polynôme $Q_1$ est ensuite divisé par la dimension suivante ($P$)
 pour en déduire l'indice le plus interne ($k$) :
 - Indice :
   $"Index"_0 = Q_1 mod P = (i times M times P + j times P + k) mod P = k$
@@ -1107,7 +1107,7 @@ pour en déduire l'indice le plus interne ($k$) :
   $Q_2 = floor(Q_1 / P) = floor((i times M times P + j times P + k) / P) = i times M + j$
 
 *Itération 3 (Dimension intermédiaire $j$, Term $M$) :* \
-Enfin, on divise le quotient restant $Q_2$ par la dernière dimension ($M$) pour
+enfin, on divise le quotient restant $Q_2$ par la dernière dimension ($M$) pour
 isoler les indices restants :
 - Indice : $"Index"_1 = Q_2 mod M = (i times M + j) mod M = j$
 - Quotient (Dimension externe $i$) :
@@ -1195,7 +1195,7 @@ choix architectural d'opérer exclusivement au niveau de l'#gls("ir") introduit
 plusieurs limites inhérentes. Ces défis sont particulièrement marqués lors de
 l'analyse de code C++ fortement abstrait comme avec Kokkos.
 
-- *Le fossé sémantique et la reconstruction de l'information :* Opérer sur
+- *Le fossé sémantique et la reconstruction de l'information :* opérer sur
   l'#gls("ir") de LLVM signifie que toutes les constructions du langage de haut
   niveau ont été abaissées et aplanies. Pour appliquer le modèle polyédrique,
   Polly doit reconstituer artificiellement la structure originale du programme à

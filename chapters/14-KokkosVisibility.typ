@@ -406,7 +406,7 @@ bornes se matérialise souvent par des chargements mémoire répétés
 nid de boucles, bien que les valeurs obtenues soient invariantes.
 
 Cette situation est hautement pénalisante à deux égards :
-1. *Pénalité de performance :* À chaque itération, le processeur exécute une
+1. *Pénalité de performance :* à chaque itération, le processeur exécute une
   lecture mémoire redondante pour recharger une valeur de borne que le
   programmeur sait invariante sur l'ensemble de la boucle. L'analyse d'alias
   conservatrice de LLVM ne parvenant pas à prouver qu'aucune écriture dans le
@@ -414,7 +414,7 @@ Cette situation est hautement pénalisante à deux égards :
   déplacement de code invariant (*Loop Invariant Code Motion*, LICM) échoue à
   hisser cette instruction hors de la boucle faute de pouvoir exclure un
   aliasing.
-2. *Incompatibilité avec le modèle polyédrique :* La théorie polyédrique impose
+2. *Incompatibilité avec le modèle polyédrique :* la théorie polyédrique impose
   que les bornes régissant le domaine d'itérations soient des paramètres
   invariants définis strictement en amont de chaque boucle du nid. La présence
   d'un chargement dynamique au sein du corps de boucle disqualifie immédiatement

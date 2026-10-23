@@ -284,16 +284,16 @@ modifications effectuées à l'époque dans le PPCG historique de Polly-ACC vers
 base de code maintenue de PPCG. L'objectif est de rétablir une chaîne de
 compilation hétérogène complète, structurée selon trois axes principaux :
 
-- *Adaptation de PPCG* : Enrichissement des structures de données de PPCG afin
+- *Adaptation de PPCG* : enrichissement des structures de données de PPCG afin
   d'assurer la traçabilité des instructions de l'IR LLVM tout au long du
   processus, et mise en conformité avec les API récentes d'ISL.
-- *Interface de communication Polly-PPCG* : Rétablissement des mécanismes
+- *Interface de communication Polly-PPCG* : rétablissement des mécanismes
   permettant à Polly de déléguer l'analyse des SCoPs à PPCG. Cette interface
   permet à PPCG de produire un ordonnancement GPU, d'établir une stratégie de
   placement mémoire (promotion en mémoire partagée, privatisation) et de
   formuler la projection des itérations sur la topologie d'exécution du GPU
   (grilles et blocs).
-- *Génération de code hybride* : Restauration des passes LLVM responsables de la
+- *Génération de code hybride* : restauration des passes LLVM responsables de la
   synthèse du code final. Cette étape englobe à la fois le code exécuté sur
   l'hôte (orchestration des transferts mémoire et appels aux noyaux de calcul
   via l'API CUDA) et la génération du code PTX des noyaux spécifiques au
