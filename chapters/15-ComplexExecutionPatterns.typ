@@ -43,9 +43,9 @@ boucle externe, décrivant un espace de forme triangulaire.
 
 #figure(
   ```cpp
-  void function(Kokkos::View<"L", float **> L,
-                Kokkos::View<"x", float *> x,
-                Kokkos::View<"b", float *> b,
+  void function(Kokkos::View<"L", double **> L,
+                Kokkos::View<"x", double *> x,
+                Kokkos::View<"b", double *> b,
                 size_t n) {
     auto policy = Kokkos::RangePolicy<OpenMP>(0, n);
 
@@ -105,13 +105,13 @@ tableau $L$.
 L'apparition de la variable `%gap_L` dans l'expression de l'accès mémoire est
 perçue comme un scalaire opaque par la passe d'analyse SCEV. À ce stade de la
 compilation, Polly est dans l'incapacité de déduire que `%gap_L` constitue en
-réalité une combinaison linéaire de la taille de la dimension interne du tableau
-$L$ (une propriété qui ne sera démontrée que lors de l'étape ultérieure
-`ScopInfo`) et de l'itérateur `%i`. Afin de garantir la validité et la sûreté de
-ses transformations, Polly adopte une approche conservatrice et rejette cet
-accès qu'il classifie comme non affine. Cette décision entraîne inéluctablement
-le rejet de la région entière, empêchant de fait l'application de toute
-optimisation polyédrique.
+réalité le produit de la taille de la dimension interne du tableau $L$, qui est
+une constante (une propriété qui ne sera démontrée que lors de l'étape
+ultérieure `ScopInfo`) et de l'itérateur `%i`. Afin de garantir la validité et
+la sûreté de ses transformations, Polly adopte une approche conservatrice et
+rejette cet accès qu'il classifie comme non affine. Cette décision entraîne
+inéluctablement le rejet de la région entière, empêchant de fait l'application
+de toute optimisation polyédrique.
 
 Afin de pallier cette limitation inhérente sans nécessiter de modification
 profonde de l'architecture de détection de Polly, et pour neutraliser d'autres
@@ -137,13 +137,13 @@ s'articule autour de trois étapes principales :
 
 ==== Détection des nids de boucles triangulaires
 L'identification d'une boucle triangulaire s'appuie sur l'analyse de l'évolution
-scalaire de LLVM (SCEV). Le compilateur évalue le nombre d'itérations garanties
-pour la boucle interne, appelé _Backedge Taken Count_ (BETC). Dans le cas d'une
-boucle rectangulaire classique, cette valeur est invariante par rapport à la
-boucle externe. À l'inverse, si le compilateur détecte que l'expression SCEV du
-BETC dépend de la variable d'induction de la boucle englobante (exprimée par
-exemple sous la forme d'une récurrence `AddRec`), la boucle est formellement
-identifiée comme triangulaire.
+scalaire de LLVM (SCEV). Le compilateur évalue le nombre de passages par l'arc
+retour (nombre d'itérations - 1), appelé _Backedge Taken Count_ (BETC). Dans le
+cas d'une boucle rectangulaire classique, cette valeur est invariante par
+rapport à la boucle externe. À l'inverse, si le compilateur détecte que
+l'expression SCEV du BETC dépend de la variable d'induction de la boucle
+englobante (exprimée par exemple sous la forme d'une récurrence `AddRec`), la
+boucle est formellement identifiée comme triangulaire.
 
 De manière générale, on distingue deux grands types de boucles triangulaires en
 fonction de l'évolution de l'espace d'itération interne. L'analyse SCEV du BETC
@@ -190,16 +190,17 @@ restante sera totalement purgée de ses itérations mortes, satisfaisant ainsi l
 contraintes de toutes les boucles internes qu'elle contient.
 
 Une fois ce plan d'épluchage fusionné, la modification de l'IR est appliquée via
-la passe `peelLoop` native de LLVM. Une étape supplémentaire est toutefois
-nécessaire pour l'épluchage en fin de boucle. En effet, lors de l'extraction par
-LLVM, les instructions du bloc épluché conservent leurs liens avec la variable
-d'induction d'origine (par exemple via un nœud `%i.peeled = phi [%i, %for.end]`
-où l'on utilise `%i` de la boucle originale comme valeur de départ de la
-nouvelle boucle épluchée). Pour isoler totalement ce bloc, notre passe remplace
-manuellement toutes les utilisations de l'ancien itérateur de la boucle
-originale par une constante dépendante de la borne de la boucle (par exemple
-`N-2`), puisque l'on connaît statiquement la valeur exacte d'initialisation du
-nouvel itérateur, pour supprimer toute fausse dépendance entre les deux boucles.
+la fonction utilitaire `peelLoop` native de LLVM. Une étape supplémentaire est
+toutefois nécessaire pour l'épluchage en fin de boucle. En effet, lors de
+l'extraction par LLVM, les instructions du bloc épluché conservent leurs liens
+avec la variable d'induction d'origine (par exemple via un nœud
+`%i.peeled = phi [%i, %for.end]` où l'on utilise `%i` de la boucle originale
+comme valeur de départ de la nouvelle boucle épluchée). Pour isoler totalement
+ce bloc, notre passe remplace toutes les utilisations de l'ancien itérateur de
+la boucle originale par une constante dépendante de la borne de la boucle (par
+exemple `N-2`), puisque l'on connaît statiquement la valeur exacte
+d'initialisation du nouvel itérateur, pour supprimer toute fausse dépendance
+entre les deux boucles.
 
 ==== Régularisation du flot de contrôle
 La simple extraction matérielle des itérations rend théoriquement certaines
@@ -207,8 +208,8 @@ conditions de garde obsolètes. Bien que les passes de simplification standards
 de LLVM, exécutées en aval, puissent en résoudre une partie, elles ne
 parviennent pas systématiquement à détruire toutes les comparaisons générées par
 l'abaissement en IR. Afin de garantir formellement que la boucle résultante sera
-parfaitement analysable par les outils polyédriques, une étape de nettoyage
-manuel est appliquée.
+parfaitement analysable par les outils polyédriques, une étape de nettoyage est
+appliquée.
 
 Cette intervention anticipée élimine définitivement les gardes conditionnelles
 parasites inhérentes aux boucles triangulaires. Le graphe de flot de contrôle
@@ -368,8 +369,7 @@ fonctions lambda sont ensuite invoquées séquentiellement.
   }
 
   ```,
-  caption: [Nouvelle signature de `parallel_for` avec le paramètre
-    `usePolyOpt`.],
+  caption: [`parallel_for` variadique.],
 ) <code:complexexecutionpatterns:variadicparallelfor>
 
 
@@ -450,9 +450,9 @@ blocs d'instructions problématiques au-dessus du SCoP global.
 La @code:complexexecutionpatterns:cfglinearizationafter présente l'IR après
 l'application de cette passe de transformation. Le bloc `Preheader B` a été
 déplacé pour être exécuté juste après le `Preheader A` et avant la boucle
-`Loop A`. L'indépendance initiale des noyaux et la propriété SSA de l'IR
-garantissent que les variables manipulées sont indépendantes. Ces blocs peuvent
-ainsi être déplacés sans risquer de corrompre la sémantique du programme.
+`Loop A`. Le bloc remonté ne charge que des captures et des champs de politique
+que le noyau A n’écrit pas. Ces blocs peuvent ainsi être déplacés sans risquer
+de corrompre la sémantique du programme.
 
 #subpar.super(
   grid(
@@ -481,7 +481,7 @@ noyaux fusionnés comme un seul et unique SCoP. Toutefois, le modèle
 d'abstraction de Kokkos pose une dernière difficulté : il empêche Polly
 d'identifier correctement les paramètres du modèle (bornes de boucles, tableaux,
 etc.). En effet, chaque valeur du code source fait l'objet d'un chargement
-mémoire distinct pour chaque noyau dû à la capture par lambda des noyaux,
+mémoire distinct pour chaque noyau du fait de la capture par lambda des noyaux,
 conduisant à la création de multiples variables SSA différentes pour une même
 variable logique. Les sections suivantes exposent les méthodes déployées pour
 résoudre ce problème.
@@ -543,7 +543,7 @@ suivante illustre la création d'une vue bidimensionnelle nommée statiquement
 `"A"` :
 
 ```cpp
-Kokkos::View<"A", float **> A(n, n);
+Kokkos::View<"A", double **> A(n, n);
 ```
 
 Grâce à cette intégration au sein même de la signature du type de la donnée, le
@@ -578,9 +578,9 @@ l'optimiseur puisse identifier que les bornes de différentes boucles sont
 identiques ou strictement liées (pour permettre la fusion, par exemple), il est
 nécessaire que l'utilisateur fournisse des contraintes explicites à Polly pour
 permettre d'interpréter correctement les relations entre les bornes des
-différentes boucles. Ce mécanisme, que nous appelons système de contraintes
-(_assumptions_), permet de compenser la perte d'informations sémantiques induite
-par la structure interne de Kokkos.
+différentes boucles. Ce mécanisme, que nous appelons contraintes d'assomption,
+permet de compenser la perte d'informations sémantiques induite par la structure
+interne de Kokkos.
 
 Pour injecter ces informations au niveau du modèle, le système de contraintes
 repose sur un argument template optionnel de la fonction `parallel_for`,
@@ -647,8 +647,11 @@ Afin de formaliser ces relations, nous définissons une grammaire de contraintes
 sous la forme suivante :
 $ "Contrainte" arrow "Opérande"_G quad "Opérateur" quad "Opérande"_D $
 
+Plusieurs contraintes peuvent ainsi être combinées en les séparant par des
+virgules.
+
 Un opérande peut appartenir à l'une des trois catégories distinctes : une borne
-de boucle issue d'une politique (*Policy Loop Bound*), une variable de boucle
+de boucle issue d'une politique (*Policy Loop Bound*), une borne de boucle
 interne (*Inner Loop Variable*), ou une valeur littérale (un entier constant).
 
 La @fig:complexexecutionpatterns:constraintinjection illustre de manière
@@ -661,12 +664,12 @@ boucle interne à l'analyse.
 
 #figure(
   ```cpp
-  void function(Kokkos::View<"A", float **> &A,
-                Kokkos::View<"B", float **> &B,
-                Kokkos::View<"x", float *> &x,
-                Kokkos::View<"y", float *> &y,
-                Kokkos::View<"tmp", float *> &tmp,
-                float alpha, float beta, size_t n) {
+  void function(Kokkos::View<"A", double **> &A,
+                Kokkos::View<"B", double **> &B,
+                Kokkos::View<"x", double *> &x,
+                Kokkos::View<"y", double *> &y,
+                Kokkos::View<"tmp", double *> &tmp,
+                double alpha, double beta, size_t n) {
     auto policy = Kokkos::RangePolicy<OpenMP>(0, n);
 
     Kokkos::parallel_for<usePolyOpt, "p0.u0 == n">(
@@ -702,10 +705,12 @@ source. Cette approche permet de manipuler un nom de variable depuis le code
 source et de le repérer de façon fiable dans l'IR, alors que cette information
 est habituellement perdue lors de la compilation. L'utilisation de cette macro
 apporte un avantage supplémentaire : si deux variables partagent l'annotation
-avec un nom identique dans deux noyaux du même `parallel_for`, le fonctionnement
-intrinsèque de Kokkos garantit qu'elles représentent la même valeur. Elles sont
-alors considérées comme identiques par l'analyse, et ce, même si l'utilisateur
-n'a pas défini de contrainte explicite.
+avec un nom identique dans deux noyaux du même `parallel_for`, elles désignent
+en général la même variable capturée par les lambdas, et donc la même valeur.
+Elles sont alors considérées comme identiques par l'analyse, même si
+l'utilisateur n'a pas défini de contrainte explicite. Cette identification
+repose toutefois sur une hypothèse de confiance discutée à la
+@sec:complexexecutionpatterns:globalvisionlimitations.
 
 *Opérateurs et utilisation.* Les contraintes peuvent être définies à l'aide des
 opérateurs de comparaison standards (`==`, `<`, `>`, `<=`, `>=`). Afin
@@ -723,14 +728,15 @@ dimensionnalité du système de contraintes transmis au solveur est
 mathématiquement réduite, ce qui diminue considérablement le coût et la durée de
 l'analyse lors de la compilation.
 
-=== Limitations de la vision globale des noyaux
+=== Limitations de la vision globale des noyaux <sec:complexexecutionpatterns:globalvisionlimitations>
 
 Bien que ces transformations permettent d'obtenir une vision globale et unifiée
 des noyaux de calcul, elles présentent actuellement certaines limites inhérentes
 à leur dépendance envers les informations fournies par l'utilisateur. En effet,
-que ce soit pour le nommage statique des tableaux ou l'injection de contraintes,
-le processus de compilation accorde une confiance absolue aux annotations sans
-pouvoir les vérifier formellement de manière statique.
+que ce soit pour le nommage statique des tableaux, l'annotation des bornes de
+boucles internes ou l'injection de contraintes, le processus de compilation
+accorde une confiance absolue aux annotations sans pouvoir les vérifier
+formellement de manière statique.
 
 *Risques liés au nommage des tableaux.* Le mécanisme de nommage statique des
 tableaux repose entièrement sur la justesse des déclarations du développeur. Il
@@ -740,6 +746,16 @@ pointeur de base et partagent les mêmes dimensions. L'utilisation d'un nom
 erroné entraîne alors une fusion silencieuse de tableaux distincts au sein de
 l'IR, ce qui corrompt inévitablement l'analyse des dépendances et fausse
 l'exécution du programme.
+
+*Risques liés à l'annotation des bornes internes.* L'identification de deux
+bornes annotées par `KOKKOS_LOOP_BOUND` repose uniquement sur le nom de la
+variable dans le code source. Or, deux annotations de même nom ne désignent pas
+nécessairement la même valeur : si une lambda déclare une variable locale qui
+masque la variable capturée (par exemple une variable locale `n` redéfinie dans
+le corps du noyau), les deux bornes portent le même nom mais des valeurs
+différentes. L'analyse les fusionne pourtant en un unique paramètre, ce qui
+conduit à des transformations invalides. Cette identification constitue donc une
+hypothèse de confiance supplémentaire envers le développeur.
 
 *Risques liés à l'injection de contraintes.* De manière similaire, l'injection
 de contraintes s'appuie inconditionnellement sur les affirmations de
@@ -751,8 +767,8 @@ des transformations invalides.
 *Vérification dynamique.* Pour pallier ces vulnérabilités, une perspective
 d'évolution consisterait à introduire des vérifications à l'exécution. Des
 assertions dynamiques valideraient que les pointeurs des tableaux fusionnés sont
-bien identiques et que les bornes de boucles respectent les contraintes
-définies.
+bien identiques, que les bornes annotées sous un même nom ont la même valeur et
+que les bornes de boucles respectent les contraintes définies.
 
 Ces extensions permettent ainsi à Polly de modéliser une part bien plus large
 des noyaux Kokkos. Toutefois, leur optimisation reste dépendante du flot

@@ -59,7 +59,7 @@ passerelle d'exportation et d'importation reposant sur le format *OpenScop*
 Premièrement, Pluto étant conçu comme un compilateur source-à-source opérant sur
 du code C, il est agnostique à la représentation intermédiaire de LLVM.
 L'utilisation d'OpenScop permet de franchir cette barrière d'abstraction en
-fournissant un format d'échange formel et standardisé. Secondement, cette
+fournissant un format d'échange formel et standardisé. Deuxièmement, cette
 standardisation induit un découplage fort entre l'infrastructure interne de
 Polly et le moteur d'ordonnancement externe. Une telle architecture garantit non
 seulement une interopérabilité robuste avec Pluto, mais assure également
@@ -153,7 +153,7 @@ de conversion intermédiaire destinée à combler ce fossé sémantique. L'algor
 de conversion procède à une rétro-ingénierie de la fonction de dispersion de
 Pluto afin d'isoler les dimensions relatives aux tuiles, pour ensuite les
 réinjecter sous forme de variables locales au sein de la relation
-d'ordonnancement d'ISL. Cette méthodologie permet de garantir l'immutabilité du
+d'ordonnancement d'ISL. Cette méthodologie permet de garantir l'immuabilité du
 domaine d'itération originel, tout en préservant scrupuleusement l'ordre
 d'exécution lexicographique défini par Pluto.
 

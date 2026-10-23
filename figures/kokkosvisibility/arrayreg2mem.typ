@@ -108,7 +108,7 @@
       ```llvm
       ...
       load NewValReloaded ArrayAddr
-      foo = fadd NewVal + ...
+      foo = fadd NewValReloaded + ...
       ...
       ```
     ])),
@@ -189,7 +189,7 @@
     edge(<body_node>, <body_node>, "->", bend: -105deg, loop-angle: 180deg),
   ),
 
-  [*Dépendance scalaire intra-bloc :* \
+  [*Dépendance scalaire intra-bloc (lecture réutilisée) :* \
     la valeur `val` est chargée et utilisée à de multiples reprises au sein du
     même bloc. Cette configuration induit une limitation pour l'ordonnanceur :
     les instructions appartenant au même _statement_, elles sont indissociables
@@ -244,7 +244,7 @@
     edge(<body_node>, <body_node>, "->", bend: -105deg, loop-angle: 180deg),
   ),
 
-  [*Dépendance scalaire intra-bloc :* \
+  [*Dépendance scalaire intra-bloc (écritures multiples) :* \
     la valeur `val` est écrite à plusieurs reprises à des adresses distinctes,
     générant des dépendances inter-instructions scalaires si le bloc est scindé
     en plusieurs statements.

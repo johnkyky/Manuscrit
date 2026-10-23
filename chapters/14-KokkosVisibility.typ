@@ -354,7 +354,7 @@ systématiquement placée à la suite de l'instruction ciblée. Au cours des pas
 d'optimisation préalables, bien que les appels à l'intrinsèque `llvm.annotate`
 soient ignorés et préservés par le compilateur, ces derniers sont susceptibles
 de référencer des valeurs ayant été altérées ou supprimées principalement pour
-le marquage des tableaux constitué de minimum 3 annotations distinctes.
+le marquage des tableaux constitué d'au moins trois 3 annotations distinctes.
 
 Une considération supplémentaire réside dans le fait que le système
 d'annotations cible les variables de boucle originelles, mais pas nécessairement
@@ -403,7 +403,8 @@ Cette situation est hautement pénalisante à deux égards :
   conservatrice de LLVM ne parvenant pas à prouver qu'aucune écriture dans le
   corps de boucle ne modifie la valeur de la borne, la passe standard de
   déplacement de code invariant (*Loop Invariant Code Motion*, LICM) échoue à
-  hisser cette instruction hors de la boucle en évitant tout risque d'aliasing.
+  hisser cette instruction hors de la boucle faute de pouvoir exclure un
+  aliasing.
 2. *Incompatibilité avec le modèle polyédrique :* La théorie polyédrique impose
   que les bornes régissant le domaine d'itérations soient des paramètres
   invariants définis strictement en amont de chaque boucle du nid. La présence
@@ -608,20 +609,20 @@ d'adopter une structure de type `do-while` facilitant les optimisations. Cette
 transformation canonique impose l'insertion de branchements conditionnels en
 amont, visant à vérifier dynamiquement si une boucle possède au minimum une
 itération avant d'autoriser l'entrée dans le corps de la boucle. Cette
-vérification est redondante à celle déjà présente dans les _backends_ modifiés
-pour l'application du modèle polyédrique.
+vérification est redondante avec celle déjà présente dans les _backends_
+modifiés pour l'application du modèle polyédrique.
 
 Ainsi, au niveau de la représentation intermédiaire, deux constructions
 idiomatiques entravent particulièrement la détection des SCoPs : les
 branchements qui encadrent préventivement les boucles, ainsi que les mécanismes
 de versionnage de boucles.
 
-Bien que Polly ait été conçu pour gérer certaines de ces structures complexes, à
-l'instar de la @fig:kokkosvisibility:versionning, le code intermédiaire généré
-par Kokkos empêche la détection systématique des SCoPs. Les analyses d'évolution
-scalaire deviennent excessivement conservatrices, rompant ainsi la validité du
-#gls("scop"). Il s'avère donc indispensable d'introduire des passes de
-restructuration dédiées afin d'assainir et de simplifier le CFG en amont pour
+Bien que Polly ait été conçu pour gérer certaines de ces structures complexes,
+comme par exemple la @fig:kokkosvisibility:versionning, le code intermédiaire
+généré par Kokkos empêche la détection systématique des SCoPs. Les analyses
+d'évolution scalaire deviennent excessivement conservatrices, rompant ainsi la
+validité du #gls("scop"). Il s'avère donc indispensable d'introduire des passes
+de restructuration dédiées afin d'assainir et de simplifier le CFG en amont pour
 garantir la détection systématique des SCoPs.
 
 #[
@@ -725,7 +726,7 @@ garantissant ainsi la préservation de la sémantique du programme.
 L'analyse et la transformation de la représentation intermédiaire LLVM soulèvent
 des problématiques que l'on ne rencontre pas avec les outils opérant de source à
 source. Au niveau de l'IR, les registres employés pour stocker les données
-obéissent à la forme #gls("ssa"). Cette propriété impose l'immutabilité et
+obéissent à la forme #gls("ssa"). Cette propriété impose l'immuabilité et
 l'assignation unique de chaque registre, par opposition au code source où une
 même variable peut être réassignée de multiples fois. Dans le contexte de l'IR,
 cette contrainte engendre non seulement une multiplication des registres
@@ -864,11 +865,13 @@ Afin de pallier ces limitations, nous avons conçu et implémenté la passe
 la forme #gls("ssa") des tableaux préalablement annotés vers des accès mémoire
 explicites. L'idée est de briser les dépendances scalaires directement au niveau
 de l'IR afin de rétablir une structure sémantique plus proche de celle du code
-source original. Cette passe cible spécifiquement quatre structures de
-dépendance au sein des boucles :
+source original. Cette passe cible spécifiquement quatre types de dépendance au
+sein des boucles :
 - la dépendance scalaire sortante d'une boucle;
 - la dépendance scalaire inter-itérations;
-- la dépendance scalaire intra-bloc;
+- la dépendance scalaire intra-bloc qui se décline en deux variantes : la
+  lecture réutilisée (une valeur chargée puis utilisée plusieurs fois) et les
+  écritures multiples (une valeur écrite à plusieurs adresses distinctes);
 - la dépendance scalaire étendue.
 
 Le @ex:array_reg_to_mem présente ces différents types de structures de
@@ -887,7 +890,7 @@ dépendances ainsi que l'impact de l'application de notre passe sur l'IR.
 
 En définitive, l'application de la passe `ArrayReg2MemPass` s'avère essentielle
 pour lever les verrous structurels induits par les abstractions de Kokkos. En
-substituant ces dépendances scalaires artificielles par des accès mémoire
+remplaçant ces dépendances scalaires artificielles par des accès mémoire
 explicites, cette transformation affranchit l'ordonnanceur polyédrique de
 contraintes de séquencement superflues. Elle rend ainsi possible l'optimisation
 de codes qui, autrement, auraient été bridés par la présence de fausses
@@ -908,7 +911,7 @@ tableau (@sec:scientificbackground:delinearization).
 
 Dans le cas d'un accès complet impliquant l'ensemble des dimensions (par exemple
 `A[i][j][k]`, pour des éléments de 8 octets), la SCEV produit une expression
-polynomiale imbriquée (voir @fig:kokkosvisibility:scev_failure_full).
+polynomiale imbriquée (voir @fig:kokkosvisibility:scev_failure_full[figure]).
 L'algorithme standard de délinéarisation décompose ensuite ce polynôme via des
 divisions successives par les tailles respectives des dimensions afin de
 recouvrer les indices affines canoniques `[i][j][k]`.
@@ -918,12 +921,12 @@ lorsqu'elle est confrontée à des accès dont certains indices sont statiquemen
 évalués à zéro (par exemple, `A[0][j][k]`). Dans une telle configuration,
 l'indice de la dimension externe étant nul (`i = 0`), le terme polynomial
 contenant la taille de la dimension (`%n`) s'annule lors des simplifications
-algébriques opérées par LLVM (voir @fig:kokkosvisibility:scev_failure_partial).
-L'expression SCEV résultante ne contenant plus cette taille intermédiaire, le
-solveur s'avère incapable de la déduire par factorisation. Cette perte
-d'information génère des accès mémoire ambigus : un même pointeur peut alors
-être interprété avec un nombre variable de dimensions selon le motif d'accès
-étudié.
+algébriques opérées par LLVM (voir
+@fig:kokkosvisibility:scev_failure_partial[figure]). L'expression SCEV
+résultante ne contenant plus cette taille intermédiaire, le solveur s'avère
+incapable de la déduire par factorisation. Cette perte d'information génère des
+accès mémoire ambigus : un même pointeur peut alors être interprété avec un
+nombre variable de dimensions selon le motif d'accès étudié.
 
 #subpar.super(
   grid(

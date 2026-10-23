@@ -100,9 +100,12 @@ Les trois noyaux écartés, `correlation`, `nussinov` et `floyd-warshall`, sorte
 du cadre du modèle polyédrique statique, car leur flot de contrôle dépend de
 valeurs calculées pendant l'exécution par le biais d'opérations ternaires, ce
 qui produit dans l'IR LLVM des accès non affines que Polly ne peut pas
-représenter. Les jeux de données ont été agrandis afin d'obtenir des temps
-d'exécution significatifs. Le @table:evaluations:problemsizes donne, pour chaque
-noyau de la suite PolyBench, la taille utilisée.
+représenter. Tous les calculs sont effectués en double précision (`double`), à
+l'exception de `deriche` qui, comme dans la version originale de PolyBench,
+utilise la simple précision (`float`). Les jeux de données ont été agrandis afin
+d'obtenir des temps d'exécution significatifs. Le
+@table:evaluations:problemsizes donne, pour chaque noyau de la suite PolyBench,
+la taille utilisée.
 
 #[
   #show figure: set block(breakable: true)
@@ -174,8 +177,8 @@ reposant sur ISL, et l'ordonnanceur Pluto (@sec:schedulingheterogeneous:pluto).
 Dans les deux cas, le tuilage est appliqué avec une taille de tuile fixe de 32
 sur chaque dimension, et Polly parallélise le code généré au moyen du support
 d'exécution OpenMP. Notons que l'utilisateur peut choisir d'autres tailles de
-tuiles en utilisant le flag de compilation `--polly-tile-size`
-(@sec:conclusion:perspectives).
+tuiles en utilisant le flag de compilation `-mllvm -polly-tile-sizes` ou
+`-mllvm -polly-default-tile-size` (@sec:conclusion:perspectives).
 
 === Étude des résultats CPU <sec:evaluations:cpu:global>
 
@@ -554,15 +557,16 @@ l'ensemble de la factorisation par fronts d'onde. Faute de gain de localité, le
 code généré ne peut au mieux qu'égaler la référence et les surcoûts des calculs
 d'indices polyédriques créent un léger ralentissement.
 
-Le noyau `durbin` régresse sur la machine AMD (#box[0.51$times$]) mais accélère
-légèrement sur la machine Intel (#box[1.28$times$] et #box[1.32$times$]). Ce
-noyau comporte une boucle externe intrinsèquement séquentielle, dont chaque
-itération ne contient que de petites boucles. La version de référence
-parallélise ces petites boucles, au prix de trois synchronisations par
-itération, tandis que le code généré par ISL comme par Pluto est entièrement
-séquentiel. Le résultat dépend donc du matériel. Le code séquentiel profite de
-la fréquence élevée d'un cœur Intel, mais ne rivalise pas, sur la machine AMD et
-ses cœurs plus lents, avec une version parallèle répartie sur 64 cœurs.
+Le noyau `durbin` régresse sur la machine AMD (#box[0.51$times$] et
+#box[0.56$times$]) mais accélère légèrement sur la machine Intel
+(#box[1.28$times$] et #box[1.32$times$]). Ce noyau comporte une boucle externe
+intrinsèquement séquentielle, dont chaque itération ne contient que de petites
+boucles. La version de référence parallélise ces petites boucles, au prix de
+trois synchronisations par itération, tandis que le code généré par ISL comme
+par Pluto est entièrement séquentiel. Le résultat dépend donc du matériel. Le
+code séquentiel profite de la fréquence élevée d'un cœur Intel, mais ne rivalise
+pas, sur la machine AMD et ses cœurs plus lents, avec une version parallèle
+répartie sur 64 cœurs.
 
 *Une fusion défavorable.* Avec Pluto, le code généré régresse fortement sur
 `adi` sur les deux machines (0.12$times$ et 0.03$times$), alors qu'ISL
@@ -712,8 +716,7 @@ géométriques par catégorie.
   image(fig.evaluation-polybench-eugene-gpu),
   caption: [Accélération de Kokkos + Polly (usePolyOpt) par rapport à Kokkos
     (backend CUDA) avec l'ordonnanceur PPCG sur accélérateur NVIDIA RTX 5090 (32
-    Go VRAM, hôte Intel Core Ultra 7 265, 20 threads sans hyperthreading, taille
-    de bloc : auto).],
+    Go VRAM, hôte Intel Core Ultra 7 265, 20 threads sans hyperthreading).],
 ) <fig:evaluations:gpu>
 
 #figure(

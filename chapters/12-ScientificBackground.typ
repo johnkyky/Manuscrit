@@ -88,7 +88,7 @@ instruction `S2`.
 
 Bien que les nids de boucles imparfaits soient naturels à écrire pour les
 développeurs, ils posent un défi important pour les bibliothèques de
-parallélisation comme Kokkos, présentés dans la
+parallélisation comme Kokkos, présentées dans la
 @sec:scientificbackground:kokkos. L'extraction du parallélisme et l'optimisation
 de la localité des données dans ces nids imparfaits nécessitent des
 transformations de code complexes. Cette complexité mathématique est précisément
@@ -172,12 +172,12 @@ espaces mémoire de l'hôte et du périphérique est effectuée à l'aide de
 #figure(
   ```cpp
   // ...
-  Kokkos::View<float **, Kokkos::CudaSpace, Kokkos::LayoutLeft> tab_device("tab_device", N, N);
+  Kokkos::View<double **, Kokkos::CudaSpace, Kokkos::LayoutLeft> tab_device("tab_device", N, N);
 
   auto tab_host = Kokkos::create_mirror_view(tab_device);
 
   for(int i = 0; i < N; i++)
-      tab_host(i, i) = static_cast<float>(i);
+      tab_host(i, i) = static_cast<double>(i);
 
   Kokkos::deep_copy(tab_device, tab_host);
   // ...
@@ -207,13 +207,13 @@ Pour abstraire les modèles de programmation parallèle spécifiques au matérie
 (ex: OpenMP, CUDA), Kokkos fournit trois motifs d'exécution parallèle
 fondamentaux. Un motif d'exécution dicte la sémantique de l'opération :
 
-- `Kokkos::parallel_for` : Mappe une opération indépendante sur un espace
+- `Kokkos::parallel_for` : Applique une opération indépendante sur un espace
   d'itération. Il représente les boucles standards de parallélisme de données où
   aucune dépendance n'existe entre les itérations.
 - `Kokkos::parallel_reduce` : Calcule une réduction (ex: somme, min, max, ou
   réductions personnalisées) sur un espace d'itération. Kokkos gère
   automatiquement les accès concurrents spécifiques à l'architecture.
-- `Kokkos::parallel_scan` : Effectue une préfixe-somme sur un espace
+- `Kokkos::parallel_scan` : Effectue une somme préfixe (scan) sur un espace
   d'itérations, fournissant une brique de base parallèle.
 
 ==== Politiques d'exécution
@@ -226,11 +226,11 @@ d'exécution cible.
 ===== RangePolicy et MDRangePolicy
 `Kokkos::RangePolicy` et `Kokkos::MDRangePolicy` décrivent les espaces
 d'itérations pour les boucles unidimensionnelles et les boucles parfaitement
-imbriquées à $n$ dimensions. Sous le capot, `MDRangePolicy` applique
+imbriquées à $n$ dimensions. La politique `MDRangePolicy` applique
 automatiquement un tuilage spécifique à l'architecture pour maximiser la
 localité du cache ou la coalescence des accès mémoire. Nous verrons au
-@sec:kokkosvisibility que ce tuilage doit être annihilé pour laisser libre cours
-au tuilage automatique du modèle polyédrique.
+@sec:kokkosvisibility que ce tuilage doit être désactivé pour laisser libre
+cours au tuilage automatique du modèle polyédrique.
 
 ===== TeamPolicy
 Pour des algorithmes plus complexes, les espaces d'itérations unidimensionnels
@@ -390,7 +390,7 @@ boucles différents.
 #definition(
   title: "Polyèdre/polytope rationnel",
 )[
-  Un _polyèdre de dimension $d$_ rationnel $cal(P)$ est un sous-espace de
+  Un _polyèdre de dimension $d$_ rationnel $cal(P)$ est un sous-ensemble de
   $bb(Q)^d$ qui peut être défini par un système de $n in bb(N)^+$ inégalités
   affines :
   #math.equation(
@@ -426,7 +426,7 @@ polyédrique étend les polytopes standards en polytopes paramétriques.
   où $arrow(p)$ est le _vecteur $p$_ symbolique des paramètres, et $A$ est une
   matrice d'entiers de taille $m times (d + p + 1)$ encodant les $m$
   contraintes. \
-  Notez que ces contraintes peuvent exprimer à la fois des inégalités et des
+  Notons que ces contraintes peuvent exprimer à la fois des inégalités et des
   égalités. Par exemple, la paire d'inégalités $x_i >= 0$ et $-x_i >= 0$ est
   naturellement utilisée pour représenter l'égalité stricte $x_i = 0$.
 ]
@@ -765,9 +765,10 @@ mathématiques d'inégalités affines (domaines, fonctions d'accès et
 ordonnancements) à l'aide d'un format matriciel structuré, où les colonnes
 correspondent aux itérateurs de boucles, aux paramètres globaux et aux termes
 constants, et où les lignes représentent les contraintes affines. La
-@code:scientificbackground:openscopexample_source montre un nid de boucles
-simple, tandis que sa représentation OpenScop correspondante est détaillée à la
-@code:scientificbackground:openscopexample_representation.
+@code:scientificbackground:openscopexample_source[figure] montre un nid de
+boucles simple, tandis que sa représentation OpenScop correspondante est
+détaillée à la
+@code:scientificbackground:openscopexample_representation[figure].
 
 
 #subpar.super(
@@ -892,20 +893,26 @@ strictement au niveau de l'#gls(
 les boucles indépendamment de la syntaxe du code source original.
 
 Cette architecture basée sur l'#gls("ir") est particulièrement avantageuse lors
-du ciblage de bibliothèques parallèles modernes de haut niveau tels que Kokkos.
-Kokkos s'appuie fortement sur des fonctionnalités C++ avancées, incluant la
-métaprogrammation par templates, les fonctions lambda et les abstractions
+du ciblage de bibliothèques parallèles modernes de haut niveau telles que
+Kokkos. Kokkos s'appuie fortement sur des fonctionnalités C++ avancées, incluant
+la métaprogrammation par templates, les fonctions lambda et les abstractions
 d'objets complexes, qui sont impossibles à analyser et à parser pour les
 compilateurs polyédriques source-à-source traditionnels. En se positionnant dans
 le _middle-end_, Polly n'intercepte le code qu'une fois que le _frontend_ Clang
-a complètement instancié les templates, résolu les abstractions de haut niveau
-et effectué un _inlining_ agressif des fonctions. Par conséquent, Polly opère
-sur une représentation "nettoyée" et canonicalisée, c'est-à-dire réécrite sous
-une forme normalisée où chaque construction (boucles, calculs d'indices, accès
-mémoire) suit un motif unique reconnu par les passes d'analyse. Les nids de
-boucles multidimensionnels et les accès mémoire y sont explicitement exposés,
-contournant entièrement la complexité syntaxique du code source #box[C++]
+a complètement instancié les templates et résolu les abstractions de haut
+niveau. Polly contourne ainsi la complexité syntaxique du code source #box[C++]
 original.
+
+Cependant, Polly ne peut analyser efficacement qu'une représentation "nettoyée"
+et canonicalisée, c'est-à-dire réécrite sous une forme normalisée où chaque
+construction (boucles, calculs d'indices, accès mémoire) suit un motif unique
+reconnu par ses passes d'analyse, et où les nids de boucles multidimensionnels
+et les accès mémoire sont explicitement exposés. Cette forme n'est pas toujours
+obtenue : les abstractions de Kokkos laissent dans l'#gls(
+  "ir",
+) des traces (indirections, appels de fonctions, accès linéarisés) qui masquent
+la structure des boucles et empêchent sa détection. Obtenir cette représentation
+canonique constitue précisément l'un des enjeux de cette thèse.
 
 === Architecture et intégration dans la chaîne de compilation
 
@@ -916,7 +923,7 @@ _middle-end_, et son point exact d'exécution peut être contrôlé via l'argume
 de ligne de commande `-polly-position`.
 
 Par défaut et utilisé lors de tous les travaux expérimentaux présentés dans
-cette thèse, Polly est planifié à la position `before-vectorizer`. Ce placement
+cette thèse, Polly est inséré à la position `before-vectorizer`. Ce placement
 spécifique est hautement stratégique. Avant même que Polly n'inspecte le code,
 l'#gls("ir") a déjà été fortement optimisée et canonicalisée par les passes
 standards de LLVM. Des passes telles que `mem2reg`, qui promeut les allocations
@@ -1172,7 +1179,7 @@ leurs tableaux et l'arithmétique des pointeurs sont réécrits avec les nouvell
 fonctions d'accès affines et les nouvelles variables d'induction de boucle.
 
 Enfin, pour garantir une correction sémantique absolue, Polly emploie un
-mécanisme de versioning de boucle. Étant donné que l'analyse statique ne peut
+mécanisme de versionnage de boucle. Étant donné que l'analyse statique ne peut
 pas toujours prouver définitivement l'absence d'aliasing de pointeurs ou d'accès
 hors limites à la compilation, le générateur de code construit si nécessaire un
 bloc de vérifications de sécurité à l'exécution. Le nid de boucles original et

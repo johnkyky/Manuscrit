@@ -70,12 +70,12 @@ matrice-vecteur) en utilisant ces différentes bibliothèques.
       ),
       [*`Kokkos`*],
       ```cpp
-      void matVecMult_kokkos(int N, int M, View<float**> A,
-                             View<float*> x, View<float*> y) {
+      void matVecMult_kokkos(int N, int M, View<double**> A,
+                             View<double*> x, View<double*> y) {
         auto policy = Kokkos::RangePolicy<>(0, N);
 
         Kokkos::parallel_for(policy, KOKKOS_LAMBDA(const int i) {
-          float sum = 0.0f;
+          double sum = 0.0f;
           for (int j = 0; j < M; ++j)
             sum += A(i, j) * x(j);
           y(i) = sum;
@@ -85,12 +85,12 @@ matrice-vecteur) en utilisant ces différentes bibliothèques.
 
       [*`RAJA`*],
       ```cpp
-      void matVecMult_raja(int N, int M, const float* A,
-                           const float* x, float* y) {
+      void matVecMult_raja(int N, int M, const double* A,
+                           const double* x, double* y) {
         using ExecPolicy = RAJA::omp_parallel_for_exec;
 
         RAJA::forall<ExecPolicy>(RAJA::RangeSegment(0, N), [=](int i) {
-          float sum = 0.0f;
+          double sum = 0.0f;
           for (int j = 0; j < M; ++j)
             sum += A[i * M + j] * x[j];
           y[i] = sum;
@@ -101,12 +101,12 @@ matrice-vecteur) en utilisant ces différentes bibliothèques.
       [*`SYCL`*],
       ```cpp
       void matVecMult_sycl(sycl::queue& q, int N, int M,
-                           const float* A, const float* x, float* y) {
+                           const double* A, const double* x, double* y) {
         auto policy = sycl::range<1>(N);
 
         q.parallel_for(policy, [=](sycl::id<1> idx) {
           int i = idx[0];
-          float sum = 0.0f;
+          double sum = 0.0f;
           for (int j = 0; j < M; ++j)
             sum += A[i * M + j] * x[j];
           y[i] = sum;
@@ -116,14 +116,14 @@ matrice-vecteur) en utilisant ces différentes bibliothèques.
 
       [*`std::par`*],
       ```cpp
-      void matVecMult_std(int N, int M, const float* A,
-                          const float* x, float* y) {
+      void matVecMult_std(int N, int M, const double* A,
+                          const double* x, double* y) {
         std::vector<int> rows(N);
         std::iota(rows.begin(), rows.end(), 0);
 
         std::for_each(std::execution::par_unseq, rows.begin(), rows.end(),
           [=](int i) {
-            float sum = 0.0f;
+            double sum = 0.0f;
             for (int j = 0; j < M; ++j)
               sum += A[i * M + j] * x[j];
             y[i] = sum;
@@ -151,9 +151,9 @@ Apollo~@apollotuning afin de spécialiser le code en quête de performances enco
 plus élevées.
 
 Cependant, la limitation fondamentale de ces bibliothèques réside dans leur
-nature déclarative. Ils agissent principalement comme des moteurs de placement :
-ils distribuent aveuglément les itérations de boucles sur les threads CPU ou les
-blocs GPU, en faisant confiance au code écrit par le développeur. Ces
+nature déclarative. Elles agissent principalement comme des moteurs de placement
+: ils distribuent aveuglément les itérations de boucles sur les threads CPU ou
+les blocs GPU, en faisant confiance au code écrit par le développeur. Ces
 bibliothèques ne possèdent pas de moteur d'analyse statique interne capable
 d'analyser les dépendances de données du noyau de calcul.
 
@@ -374,10 +374,10 @@ le compilateur n'ait à deviner la structure du programme.
         tiramisu::var i("i", 0, N);
         tiramisu::var j("j", 0, M);
 
-        tiramisu::input A("A", {i, j}, tiramisu::p_float32);
-        tiramisu::input x("x", {j}, tiramisu::p_float32);
+        tiramisu::input A("A", {i, j}, tiramisu::p_float64);
+        tiramisu::input x("x", {j}, tiramisu::p_float64);
 
-        tiramisu::computation y_init("y_init", {i}, tiramisu::expr(0.0f));
+        tiramisu::computation y_init("y_init", {i}, tiramisu::expr(0.0));
 
         tiramisu::computation y_update("y_update", {i, j}, y_init(i) + A(i, j) * x(j));
 
@@ -386,9 +386,9 @@ le compilateur n'ait à deviner la structure du programme.
         y_init.parallelize(i);
         y_update.parallelize(i);
 
-        tiramisu::buffer b_A("b_A", {tiramisu::expr(N), tiramisu::expr(M)}, tiramisu::p_float32, tiramisu::a_input);
-        tiramisu::buffer b_x("b_x", {tiramisu::expr(M)}, tiramisu::p_float32, tiramisu::a_input);
-        tiramisu::buffer b_y("b_y", {tiramisu::expr(N)}, tiramisu::p_float32, tiramisu::a_output);
+        tiramisu::buffer b_A("b_A", {tiramisu::expr(N), tiramisu::expr(M)}, tiramisu::p_float64, tiramisu::a_input);
+        tiramisu::buffer b_x("b_x", {tiramisu::expr(M)}, tiramisu::p_float64, tiramisu::a_input);
+        tiramisu::buffer b_y("b_y", {tiramisu::expr(N)}, tiramisu::p_float64, tiramisu::a_output);
 
         A.store_in(&b_A);
         x.store_in(&b_x);
@@ -424,10 +424,10 @@ exemple de cette syntaxe de haut niveau est fourni en
 
     @pk.workunit
     def matVecMult_kernel(i: int, M: int,
-                            A: pk.View2D[pk.float],
-                            x: pk.View1D[pk.float],
-                            y: pk.View1D[pk.float]):
-        sum_val: pk.float = 0.0
+                            A: pk.View2D[pk.double],
+                            x: pk.View1D[pk.double],
+                            y: pk.View1D[pk.double]):
+        sum_val: pk.double = 0.0
         for j in range(M):
             sum_val += A[i, j] * x[j]
         y[i] = sum_val

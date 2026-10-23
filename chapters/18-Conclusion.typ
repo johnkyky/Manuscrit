@@ -97,8 +97,8 @@ PPCG ne termine pas en un temps raisonnable sur les stencils `adi`, `fdtd-2d` et
 `heat-3d`, en raison du nombre de contraintes générées pour ces nids de boucles.
 
 Enfin, l'outil accorde actuellement une confiance totale aux informations
-sémantiques fournies par le développeur (noms statiques, suppositions
-mathématiques), ce qui constitue un point de fragilité pouvant mener à des
+sémantiques fournies par le développeur (noms statiques, contraintes
+d'assomption), ce qui constitue un point de fragilité pouvant mener à des
 erreurs silencieuses en cas de spécification erronée.
 
 == Perspectives <sec:conclusion:perspectives>

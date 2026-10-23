@@ -29,8 +29,8 @@
     ```llvm
       %i = phi i64 [ 0, %entry ], [ %i.next, %stmt3 ]
 
-      %b_val = load float, ptr (%addr_b_i + %i)
-      store float %b_val, ptr (%addr_x_i + %i)
+      %b_val = load double, ptr (%addr_b_i + %i)
+      store double %b_val, ptr (%addr_x_i + %i)
 
       %gap_L = %i * %dim_L
 
@@ -58,13 +58,13 @@
     ```llvm
       %j = phi i64 [ 0, %stmt1.body ], [ %j.next, %stmt2 ]
 
-      %x_i = load float, ptr (%addr_x + %i)
-      %x_j = load float, ptr (%addr_x + %j)
-      %L_ij = load float, ptr (%gap_L + %j)
+      %x_i = load double, ptr (%addr_x + %i)
+      %x_j = load double, ptr (%addr_x + %j)
+      %L_ij = load double, ptr (%gap_L + %j)
 
-      %mul = fmul float %L_ij, %x_j
-      %sub = fsub float %x_i, %mul
-      store float %sub, ptr (%addr_x + %i)
+      %mul = fmul double %L_ij, %x_j
+      %sub = fsub double %x_i, %mul
+      store double %sub, ptr (%addr_x + %i)
 
       %j.next = add i64 %j, 1
       %cmp = icmp ult i64 %j.next, %i
@@ -79,10 +79,10 @@
     #v(-15pt)
     ```llvm
       %gap_L = phi[0, %statement1], [%gap_L, %statement2]
-      %L_ii = load float, ptr (%gap_L + %i)
-      %x_i = load float, ptr (%addr_x + %i)
-      %div = fdiv float %x_i, %L_ii
-      store float %div, ptr (%addr_x + %i)
+      %L_ii = load double, ptr (%gap_L + %i)
+      %x_i = load double, ptr (%addr_x + %i)
+      %div = fdiv double %x_i, %L_ii
+      store double %div, ptr (%addr_x + %i)
 
       %i.next = add i64 %i, 1
       br label %for.body1

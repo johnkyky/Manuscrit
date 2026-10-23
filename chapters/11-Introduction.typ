@@ -124,37 +124,36 @@ polyédrique avec la bibliothèque de portabilité des performances Kokkos~@kokk
 @kokkos2. L'objectif principal est de permettre dans Kokkos d'appliquer les
 capacités avancées d'optimisation de boucles fournies par le modèle polyédrique.
 
-Le #chref(<sec:scientificbackground>) détaille le contexte scientifique et
-technique nécessaire pour comprendre les fondations de cette thèse. Il introduit
-les concepts fondamentaux des nids de boucles, les principes de base de Kokkos,
-et les fondements mathématiques du modèle polyédrique.
+Le @sec:scientificbackground détaille le contexte scientifique et technique
+nécessaire pour comprendre les fondations de cette thèse. Il introduit les
+concepts fondamentaux des nids de boucles, les principes de base de Kokkos, et
+les fondements mathématiques du modèle polyédrique.
 
-Le #chref(<sec:stateoftheart>) présente l'état de l'art, en passant en revue les
+Le @sec:stateoftheart présente l'état de l'art, en passant en revue les
 recherches existantes sur les optimisations dans Kokkos, les outils polyédriques
 spécifiques, les développements de l'écosystème autour de Kokkos, et la
 recherche sur l'optimisation des bibliothèques logicielles Python à l'aide du
 modèle polyédrique.
 
-Au #chref(<sec:kokkosvisibility>), la première partie de l'implémentation de
-l'approche hybride proposée est détaillée. Ce chapitre introduit les
-modifications apportées à Kokkos pour exposer ses noyaux de calcul à
-l'optimisation polyédrique via l'extension Polly de LLVM, qui a elle-même été
-étendue pour traiter les constructions Kokkos.
+Au @sec:kokkosvisibility, la première partie de l'implémentation de l'approche
+hybride proposée est détaillée. Ce chapitre introduit les modifications
+apportées à Kokkos pour exposer ses noyaux de calcul à l'optimisation
+polyédrique via l'extension Polly de LLVM, qui a elle-même été étendue pour
+traiter les constructions Kokkos.
 
-Le #chref(<sec:complexexecutionpatterns>) se penche sur les schémas d'exécution
+Le @sec:complexexecutionpatterns se penche sur les schémas d'exécution
 complexes, détaillant comment la vision polyédrique peut aller au-delà d'un
 noyau Kokkos unique, et comment gérer le cas complexe des boucles triangulaires.
 
-Le #chref(<sec:schedulingheterogeneous>) couvre les phases d'ordonnancement et
-de génération de code hétérogène, incluant l'intégration d'ordonnanceurs
-externes comme Pluto et la génération de code GPU via PPCG.
+Le @sec:schedulingheterogeneous couvre les phases d'ordonnancement et de
+génération de code hétérogène, incluant l'intégration d'ordonnanceurs externes
+comme Pluto et la génération de code GPU via PPCG.
 
-Le #chref(<sec:evaluations>) présente l'évaluation expérimentale de cette chaîne
-d'outils. Notre approche est testée sur divers codes scientifiques, et ses
-performances sont comparées à la fois à des implémentations Kokkos idiomatiques
-parallélisées et à des versions Kokkos optimisées par des techniques
-polyédriques. Ces résultats expérimentaux valident l'efficacité et la viabilité
+Le @sec:evaluations présente l'évaluation expérimentale de cette chaîne
+d'outils. Notre approche est testée sur divers codes scientifiques, ses
+performances sont comparées à des implémentations Kokkos idiomatiques
+parallélisées. Ces résultats expérimentaux valident l'efficacité et la viabilité
 de l'approche hybride proposée et de notre implémentation.
 
-Enfin, le #chref(<sec:conclusion>) conclut ce manuscrit et discute des
-potentielles perspectives de recherche futures.
+Enfin, le @sec:conclusion conclut ce manuscrit et discute des potentielles
+perspectives de recherche futures.
