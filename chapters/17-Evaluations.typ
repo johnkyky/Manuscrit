@@ -1047,12 +1047,12 @@ Pour la grande majorité des noyaux, le surcoût reste faible. Les médianes
 s'établissent à #box[1.05$times$] pour ISL, #box[1.16$times$] pour Pluto et
 #box[1.00$times$] pour PPCG, et 25 des 27 noyaux se compilent en moins de
 #box[1.2$times$] le temps de référence avec ISL. Ce résultat s'explique en
-partie par l'isolation des noyaux (#chref(<sec:kokkosvisibility>)), Polly
-n'analysant que les fonctions marquées par l'option `usePolyOpt` et non
-l'ensemble du module, mais aussi par la réduction de l'usage intensif de
-templates dans les backends modifiés. Le surcoût légèrement plus élevé de Pluto
-provient de l'étape d'ordonnancement et des étapes d'export et d'import au
-format OpenScop (@sec:schedulingheterogeneous:pluto).
+partie par l'isolation des noyaux (@sec:kokkosvisibility), Polly n'analysant que
+les fonctions marquées par l'option `usePolyOpt` et non l'ensemble du module,
+mais aussi par la réduction de l'usage intensif de templates dans les backends
+modifiés. Le surcoût légèrement plus élevé de Pluto provient de l'étape
+d'ordonnancement et des étapes d'export et d'import au format OpenScop
+(@sec:schedulingheterogeneous:pluto).
 
 Quelques noyaux font exception. Le plus marquant est `3mm`, dont la compilation
 est #box[28.82$times$] plus longue avec ISL et #box[17.36$times$] avec PPCG.

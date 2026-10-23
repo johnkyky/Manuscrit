@@ -361,7 +361,7 @@ systématiquement placée à la suite de l'instruction ciblée. Au cours des pas
 d'optimisation préalables, bien que les appels à l'intrinsèque `llvm.annotate`
 soient ignorés et préservés par le compilateur, ces derniers sont susceptibles
 de référencer des valeurs ayant été altérées ou supprimées principalement pour
-le marquage des tableaux constitué d'au moins trois 3 annotations distinctes.
+le marquage des tableaux constitué d'au moins trois annotations distinctes.
 
 Une considération supplémentaire réside dans le fait que le système
 d'annotations cible les variables de boucle originelles, mais pas nécessairement

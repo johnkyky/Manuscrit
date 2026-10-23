@@ -76,7 +76,7 @@ bibliothèques.
         auto policy = Kokkos::RangePolicy<>(0, N);
 
         Kokkos::parallel_for(policy, KOKKOS_LAMBDA(const int i) {
-          double sum = 0.0f;
+          double sum = 0.0;
           for (int j = 0; j < M; ++j)
             sum += A(i, j) * x(j);
           y(i) = sum;
@@ -91,7 +91,7 @@ bibliothèques.
         using ExecPolicy = RAJA::omp_parallel_for_exec;
 
         RAJA::forall<ExecPolicy>(RAJA::RangeSegment(0, N), [=](int i) {
-          double sum = 0.0f;
+          double sum = 0.0;
           for (int j = 0; j < M; ++j)
             sum += A[i * M + j] * x[j];
           y[i] = sum;
@@ -107,7 +107,7 @@ bibliothèques.
 
         q.parallel_for(policy, [=](sycl::id<1> idx) {
           int i = idx[0];
-          double sum = 0.0f;
+          double sum = 0.0;
           for (int j = 0; j < M; ++j)
             sum += A[i * M + j] * x[j];
           y[i] = sum;
@@ -124,7 +124,7 @@ bibliothèques.
 
         std::for_each(std::execution::par_unseq, rows.begin(), rows.end(),
           [=](int i) {
-            double sum = 0.0f;
+            double sum = 0.0;
             for (int j = 0; j < M; ++j)
               sum += A[i * M + j] * x[j];
             y[i] = sum;
@@ -133,7 +133,7 @@ bibliothèques.
       ```,
     ),
     caption: [Comparaison syntaxique des boucles parallèles entre différentes
-      bibliothèques C++ de portabilité des performances.],
+      bibliothèques #box[C++] de portabilité des performances.],
   ) <fig:stateoftheart:frameworks_syntax>
 ]
 
@@ -153,7 +153,7 @@ plus élevées.
 
 Cependant, la limitation fondamentale de ces bibliothèques réside dans leur
 nature déclarative. Elles agissent principalement comme des moteurs de placement
-: ils distribuent aveuglément les itérations de boucles sur les threads CPU ou
+: elles distribuent aveuglément les itérations de boucles sur les threads CPU ou
 les blocs GPU, en faisant confiance au code écrit par le développeur. Ces
 bibliothèques ne possèdent pas de moteur d'analyse statique interne capable
 d'analyser les dépendances de données du noyau de calcul.

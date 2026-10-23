@@ -150,7 +150,7 @@ génération de code hétérogène, incluant l'intégration d'ordonnanceurs exte
 comme Pluto et la génération de code GPU via PPCG.
 
 Le @sec:evaluations présente l'évaluation expérimentale de cette chaîne
-d'outils. Notre approche est testée sur divers codes scientifiques, ses
+d'outils. Notre approche est testée sur divers codes scientifiques et ses
 performances sont comparées à des implémentations Kokkos idiomatiques
 parallélisées. Ces résultats expérimentaux valident l'efficacité et la viabilité
 de l'approche hybride proposée et de notre implémentation.
