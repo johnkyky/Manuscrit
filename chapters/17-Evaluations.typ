@@ -84,8 +84,60 @@ Ultra 7 265 et une carte graphique NVIDIA RTX 5090.
 *Chaîne de compilation.* Les deux machines utilisent une version de
 développement de LLVM/Clang 23.0.0 intégrant nos contributions, la version
 4.6.99 de Kokkos, modifiée comme décrit dans les chapitres précédents, et PPCG
-0.09.3 pour la génération de code GPU. Tous les codes sont compilés en mode
-`Release` (`CMAKE_BUILD_TYPE=Release`).
+0.09.3 pour la génération de code GPU. Tous les codes sont compilés en C++20 en
+mode `Release` (`CMAKE_BUILD_TYPE=Release`), c'est-à-dire avec les options
+`-O3 -DNDEBUG`. La version de référence n'utilise que ces options. La version
+optimisée active en plus Polly et notre chaîne de compilation avec les options
+du @table:evaluations:flags.
+
+#[
+  #set par(justify: false)
+  #figure(
+    table(
+      columns: (auto, 1fr),
+      align: (left + horizon, left + horizon),
+      stroke: none,
+      table.hline(stroke: 1pt),
+      table.header(
+        [*Option*], [*Rôle*],
+        table.hline(stroke: 0.5pt),
+      ),
+      [`-polly`], [Active Polly.],
+      [`-polly-parallel`], [Génère du code parallèle OpenMP sur CPU.],
+      [`-polly-manual-scop-detection`],
+      [Limite la détection des SCoPs aux noyaux annotés par `usePolyOpt`.],
+
+      [`-polly-optimizer=isl|pluto`],
+      [Choisit l'ordonnanceur polyédrique sur CPU.],
+
+      [`-polly-pluto-args="--parallel --tile"`],
+      [Options passées à Pluto.],
+
+      [`-polly-acc-use-shared`, \ `-polly-acc-use-private`],
+      [Active l'usage par PPCG de la mémoire partagée et des registres du GPU.],
+
+      [`-polly-process-unprofitable`],
+      [Analyse les SCoPs que Polly juge peu rentables.],
+
+      [`-polly-stmt-granularity=store`],
+      [Traite une instruction polyédrique par écriture mémoire.],
+
+      [`-polly-dependences-computeout=0`, \ `-polly-schedule-computeout=0`],
+      [Supprime la limite de temps du calcul des dépendances et de
+        l'ordonnancement.],
+
+      [`-polly-matmul-opt=false`],
+      [Désactive l'optimisation propre aux produits de matrices.],
+
+      [`-fno-math-errno`],
+      [Les fonctions mathématiques ne modifient plus `errno`.],
+      table.hline(stroke: 1pt),
+    ),
+    caption: [Options de compilation ajoutées pour la version optimisée. Toutes
+      les options sauf `-fno-math-errno` sont des options LLVM, passées à Clang
+      précédées de `-mllvm`.],
+  ) <table:evaluations:flags>
+]
 
 *Mesures.* Chaque temps est la moyenne de 5 exécutions consécutives, dont la
 dispersion relative reste inférieure à 5 %. Sur CPU, chaque thread OpenMP est
@@ -96,11 +148,12 @@ des calculs de la version optimisée élément par élément à ceux de la versi
 référence, avec une tolérance absolue de $10^(-8)$.
 
 *Noyaux évalués.* L'évaluation porte sur 27 des 30 noyaux de la suite PolyBench.
-Les trois noyaux écartés, `correlation`, `nussinov` et `floyd-warshall`, sortent
-du cadre du modèle polyédrique statique, car leur flot de contrôle dépend de
-valeurs calculées pendant l'exécution par le biais d'opérations ternaires, ce
-qui produit dans l'IR LLVM des accès non affines que Polly ne peut pas
-représenter. Tous les calculs sont effectués en double précision (`double`), à
+Les trois noyaux écartés, `correlation`, `nussinov` et `floyd-warshall`, restent
+pourtant polyédriques. Leurs bornes de boucles et leurs accès mémoire sont
+affines, et seules les valeurs calculées dépendent des données, par le biais
+d'opérations ternaires. L'obstacle vient de la traduction de ces opérations dans
+l'IR LLVM. Il s'agit donc d'une limite de notre implémentation, et non du modèle
+polyédrique. Tous les calculs sont effectués en double précision (`double`), à
 l'exception de `deriche` qui, comme dans la version originale de PolyBench,
 utilise la simple précision (`float`). Les jeux de données ont été agrandis afin
 d'obtenir des temps d'exécution significatifs. Le

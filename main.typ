@@ -373,7 +373,7 @@
   ]
 ]
 
-#bibliography("references.bib", title: "Références")
+#bibliography("references.bib", title: "Références", style: "bibliography.csl")
 
 /**
  * Appendices

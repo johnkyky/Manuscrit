@@ -45,7 +45,7 @@ proposée dans cette thèse.
 Les développeurs de calcul haute performance en C++ s'appuient sur des
 bibliothèques de portabilité des performances comme Kokkos
 (@sec:scientificbackground:kokkos), RAJA~@raja, ou sur des standards émergents
-comme SYCL~@sycl et le standard de parallélisme C++
+comme SYCL~@sycl2020spec et le standard de parallélisme C++
 (`std::execution::par`)~@isostdpar. Tous ces outils partagent une philosophie
 commune : la séparation stricte entre l'expression de l'algorithme et son modèle
 d'exécution. Pour y parvenir, ils s'appuient fortement sur les fonctionnalités

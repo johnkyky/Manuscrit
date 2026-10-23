@@ -57,12 +57,12 @@
   URL = {http://perso.ens-lyon.fr/christophe.alias/impact2011/impact-07.pdf}
 }
 
-@phdthesis{polly2,
+@mastersthesis{polly2,
   author = {Tobias Grosser},
   title = {Enabling Polyhedral Optimizations in LLVM},
-  school = {Department of Computer Science and Engineering, Indian Institute of Technology, Madras},
+  school = {Department of Informatics and Mathematics, University of Passau},
   year = 2011,
-  type = {PhD Thesis},
+  type = {Diploma Thesis},
   url = {https://polly.llvm.org/publications/grosser-diploma-thesis.pdf}
 }
 
@@ -76,17 +76,20 @@
   doi = {10.1142/S0129626412500107}
 }
 
-@phdthesis{pollyomp,
-  author = {Tobias Grosser},
+@mastersthesis{pollyomp,
+  author = {{Raghesh A}},
   title = {A Framework for Automatic OpenMP Code Generation},
-  school = {Department of Informatics and Mathematics University of Passau},
+  school = {Department of Computer Science and Engineering, Indian Institute of Technology, Madras},
   year = 2011,
-  type = {PhD Thesis},
+  type = {Master's Thesis},
   url = {https://polly.llvm.org/publications/raghesh-a-masters-thesis.pdf}
 }
 
-@inbook{polyedric1,
+@incollection{polyedric1,
   author = {Feautrier, Paul and Lengauer, Christian},
+  editor = {Padua, David},
+  booktitle = {Encyclopedia of Parallel Computing},
+  publisher = {Springer},
   year = {2011},
   month = {09},
   pages = {1581-1592},
@@ -103,7 +106,7 @@
   month        = {December},
   type         = {Habilitation to Supervise Research},
   address      = {Paris, France},
-  url          = {https://icps.u-strasbg.fr/~bastoul/research/papers/Bastoul\_HDR.pdf}
+  url          = {https://icps.u-strasbg.fr/~bastoul/research/papers/Bastoul_HDR.pdf}
 }
 
 @article{ppcg,
@@ -120,7 +123,7 @@
 
 @INPROCEEDINGS{kokkos,
   author={Edwards, H. Carter and Trott, Christian R.},
-  booktitle={20k3 Extreme Scaling Workshop (xsw 2013)}, 
+  booktitle={2013 Extreme Scaling Workshop (xsw 2013)}, 
   title={Kokkos: Enabling Performance Portability Across Manycore Architectures}, 
   year={2013},
   volume={},
@@ -150,20 +153,13 @@
   year = {2008},
   month = {April},
   address = {Budapest, Hungary},
-}
-@inproceedings{pluto2,
-  author = {Uday Bondhugula and Albert Hartono and Jayaram Ramanujam and P. Sadayappan},
-  title = {A Practical Automatic Polyhedral Parallelizer and Locality Optimizer},
-  booktitle = {Proceedings of the ACM SIGPLAN Conference on Programming Language Design and Implementation (PLDI)},
-  year = {2008},
-  month = {June},
-  address = {Tucson, Arizona, USA},
+  shorthand = {Bon+08a}
 }
 
 @article{apollo,
   title = {APOLLO: Automatic speculative POLyhedral Loop Optimizer},
   journal = {7th International Workshop on Polyhedral Compilation Techniques (IMPACT)},
-  author = {Juan Manuel Martinez Caamano and Aravind Sukumaran-Rajam and Artiom Baloian and Manuel Selva and Philippe Clauss},
+  author = {Juan Manuel Martinez Caamaño and Aravind Sukumaran-Rajam and Artiom Baloian and Manuel Selva and Philippe Clauss},
   month = {January},
   year = {2017},
   address = {Stockholm, Sweden},
@@ -177,18 +173,6 @@
   year = {2011}
 }
 
-
-@INPROCEEDINGS{polybenchgpu,
-  author={Grauer-Gray, Scott and Xu, Lifan and Searles, Robert and Ayalasomayajula, Sudhee and Cavazos, John},
-  booktitle={2012 Innovative Parallel Computing (InPar)}, 
-  title={Auto-tuning a high-level language targeted to GPU codes}, 
-  year={2012},
-  volume={},
-  number={},
-  pages={1-10},
-  keywords={Graphics processing unit;Abstracts;Programming;Nickel;Tiles;Benchmark testing;Auto-tuning;GPU;CUDA;OpenCL;Optimization;Belief Propagation},
-  doi={10.1109/InPar.2012.6339595}
-}
 
 
 @article{surveypolyedric,
@@ -223,6 +207,16 @@
   month        = {09}
 }
 
+@manual{sycl2020spec,
+  title        = {SYCL 2020 Specification (revision 12)},
+  author       = {{Khronos SYCL Working Group}},
+  organization = {The Khronos Group, Inc.},
+  year         = {2026},
+  month        = {August},
+  address      = {Beaverton, OR, USA},
+  url          = {https://registry.khronos.org/SYCL/specs/sycl-2020/html/sycl-2020.html}
+}
+
 @misc{sycl,
   title={Evaluating SYCL as a Unified Programming Model for Heterogeneous Systems}, 
   author={Ami Marowka},
@@ -233,12 +227,14 @@
   url={https://arxiv.org/abs/2604.16043}, 
 }
 
-@techreport{isostdpar,
-  title       = {Programming Languages --- Technical Specification for C++ Extensions for Parallelism},
-  institution = {ISO/IEC},
-  number      = {ISO/IEC TS 19570:2018},
-  year        = {2018},
-  url         = {https://www.iso.org/standard/70588.html}
+@book{isostdpar,
+  title     = {ISO/IEC 14882:2017 --- Programming Languages --- C++},
+  author    = {{ISO/IEC}},
+  publisher = {International Organization for Standardization},
+  address   = {Genève, Suisse},
+  edition   = {5},
+  year      = {2017},
+  url       = {https://www.iso.org/standard/68564.html}
 }
 
 @INPROCEEDINGS{apex,
@@ -280,14 +276,16 @@
   isbn="978-3-030-02465-9"
 }
 
-@misc{tiramisu,
-  title={Tiramisu: A Polyhedral Compiler for Expressing Fast and Portable Code}, 
-  author={Riyadh Baghdadi and Jessica Ray and Malek Ben Romdhane and Emanuele Del Sozzo and Abdurrahman Akkas and Yunming Zhang and Patricia Suriana and Shoaib Kamil and Saman Amarasinghe},
-  year={2018},
-  eprint={1804.10694},
-  archivePrefix={arXiv},
-  primaryClass={cs.PL},
-  url={https://arxiv.org/abs/1804.10694}, 
+@inproceedings{tiramisu,
+  title={Tiramisu: A Polyhedral Compiler for Expressing Fast and Portable Code},
+  author={Baghdadi, Riyadh and Ray, Jessica and Ben Romdhane, Malek and Del Sozzo, Emanuele and Akkas, Abdurrahman and Zhang, Yunming and Suriana, Patricia and Kamil, Shoaib and Amarasinghe, Saman},
+  booktitle={2019 IEEE/ACM International Symposium on Code Generation and Optimization (CGO'19)},
+  year={2019},
+  month={February},
+  pages={193-205},
+  address={Washington, DC, USA},
+  publisher={IEEE},
+  doi={10.1109/CGO.2019.8661197}
 }
 
 @inproceedings{plutoscheduler,
@@ -305,7 +303,8 @@
   numpages = {13},
   keywords = {tiling, polyhedral model, loop transformations, locality optimization, automatic parallelization, affine transformations},
   location = {Tucson, AZ, USA},
-  series = {PLDI '08}
+  series = {PLDI '08},
+  shorthand = {Bon+08b}
 }
 
 @inproceedings{pollyacc,
@@ -313,7 +312,7 @@
   title={{Polly-ACC: Transparent compilation to heterogeneous hardware}},
   year={2016},
   month={Jun.},
-  booktitle={Proceedings of the the 30th International Conference on Supercomputing (ICS'16)},
+  booktitle={Proceedings of the 30th International Conference on Supercomputing (ICS'16)},
 }
 
 
@@ -330,7 +329,7 @@
 }
 
 @inproceedings{pykokkos,
-  author = {Al Awar, Nader and Zhu, Steven and Biros, George and Gligoric, Milos},
+  author = {{Al} Awar, Nader and Zhu, Steven and Biros, George and Gligoric, Milos},
   title = {A Performance Portability Framework for Python},
   booktitle = {International Conference on Supercomputing},
   pages = {467-478},
@@ -351,12 +350,20 @@
   HAL_VERSION = {v1},
 }
 
-
 @inproceedings{Polygeist,
-  title={Polygeist: Affine C in MLIR},
-  author={William S. Moses},
-  year={2021},
-  url={https://api.semanticscholar.org/CorpusID:231771924}
+author = {Moses, William S. and Chelini, Lorenzo and Zhao, Ruizhe and Zinenko, Oleksandr},
+title = {Polygeist: Raising C to Polyhedral MLIR},
+year = {2024},
+isbn = {9781665442787},
+publisher = {IEEE Press},
+url = {https://doi.org/10.1109/PACT52795.2021.00011},
+doi = {10.1109/PACT52795.2021.00011},
+abstract = {We present Polygeist, a new compilation flow that connects the MLIR compiler infrastructure to cutting edge polyhedral optimization tools. It consists of a C and C++ frontend capable of converting a broad range of existing codes into MLIR suitable for polyhedral transformation and a bi-directional conversion between MLIR and OpenScop exchange format. The Polygeist/MLIR intermediate representation featuring high-level (affine) loop constructs and n-D arrays embedded into a single static assignment (SSA) substrate enables an unprecedented combination of SSA-based and polyhedral optimizations. We illustrate this by proposing and implementing two extra transformations: statement splitting and reduction parallelization. Our evaluation demonstrates that Polygeist outperforms on average both an LLVM IR-level optimizer (Polly) and a source-to-source state-of-the-art polyhedral compiler (Pluto) when exercised on the Polybench/C benchmark suite in sequential (2.53x vs 1.41x, 2.34x) and parallel mode (9.47x vs 3.26x, 7.54x) thanks to the new representation and transformations.},
+booktitle = {Proceedings of the 30th International Conference on Parallel Architectures and Compilation Techniques},
+pages = {45–59},
+numpages = {15},
+location = {Atlanta, GA, USA},
+series = {PACT '21}
 }
 
 @article{ramon2018autoparallel,
@@ -402,7 +409,7 @@
 }
 
 @inproceedings{gccir,
-  title={Generic and gimple: A new tree represen-tation for entire functions},
+  title={Generic and gimple: A new tree representation for entire functions},
   author={Merrill, Jason},
   booktitle={Proceedings of the 2003 GCC Developers' Summit},
   year={2003},
