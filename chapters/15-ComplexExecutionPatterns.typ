@@ -62,6 +62,12 @@ boucle externe, décrivant un espace de forme triangulaire.
     (noyau *trisolv*).],
 ) <fig:complexexecutionpatterns:trisolv>
 
+Ce code n'est valide qu'avec l'option `usePolyOpt`, qui exécute les itérations
+dans l'ordre et laisse Polly décider du parallélisme
+(@sec:kokkosvisibility:usepolyopt). En Kokkos standard, les itérations de `i`
+s'exécuteraient en parallèle, et l'une d'elles pourrait lire `x(j)` pendant
+qu'une autre l'écrit.
+
 Bien que ce motif soit sémantiquement simple, son analyse par les compilateurs
 s'avère complexe. En associant ces boucles aux abstractions de Kokkos, la
 linéarité apparente des accès mémoire se perd au niveau de la représentation
@@ -369,7 +375,7 @@ fonctions lambda sont ensuite invoquées séquentiellement.
   }
 
   ```,
-  caption: [`parallel_for` variadique.],
+  caption: [Implémentation du `parallel_for` variadique.],
 ) <code:complexexecutionpatterns:variadicparallelfor>
 
 
@@ -414,6 +420,14 @@ unifiée, comme le montre la
   caption: [Implémentation du noyau `gemver` en Kokkos, illustrant le
     regroupement en un unique appel au `parallel_for` variadique.],
 ) <code:complexexecutionpatterns:kokkosgemveravariadic>
+
+Comme pour `trisolv`, ce code n'est valide qu'avec l'option `usePolyOpt`
+(@sec:kokkosvisibility:usepolyopt). Le deuxième et le quatrième noyau parcourent
+l'espace `(i, j)` avec une `MDRangePolicy`, et plusieurs itérations mettent à
+jour le même `x(i)` ou `w(i)`. En Kokkos standard, ces itérations
+s'exécuteraient en parallèle et entreraient en conflit. C'est pourquoi la
+version de la @code:complexexecutionpatterns:kokkosgemver parcourt `j` dans une
+boucle interne.
 
 Cependant, le simple regroupement des noyaux au niveau du code source ne suffit
 pas. L'IR LLVM générée initialement demeure fragmentée en raison des multiples

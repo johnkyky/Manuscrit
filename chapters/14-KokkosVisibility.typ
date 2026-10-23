@@ -137,7 +137,7 @@ représentation structurellement simplifiée représentable par Polly, optimisan
 ainsi la détection des #glspl("scop"), tout en garantissant que le reste du
 programme conserve son comportement initial.
 
-=== Option _usePolyOpt_
+=== Option _usePolyOpt_ <sec:kokkosvisibility:usepolyopt>
 
 Par défaut, Polly analyse l'ensemble de l'#gls("ir") d'un module à la recherche
 de #glspl("scop"). Cette approche globale manque de granularité, en augmentant
@@ -173,6 +173,13 @@ permet de déclencher statiquement le chemin de génération de code "annoté et
 isolé" uniquement pour les noyaux ciblés. Si l'option est omise, le comportement
 de compilation standard de Kokkos est conservé sans aucune pénalité sur la
 portabilité ou les performances.
+
+Cette option change toutefois le sens du `parallel_for`. Le backend génère des
+boucles séquentielles, que Polly parallélise lui-même s'il le peut. La politique
+d'exécution ne décrit donc plus le parallélisme, mais l'espace d'itération. Un
+noyau annoté peut ainsi contenir des itérations qui dépendent les unes des
+autres, ce qui serait invalide en Kokkos standard. Un tel noyau ne fonctionne
+donc correctement qu'avec l'option `usePolyOpt`.
 
 #figure(
   ```cpp
@@ -264,7 +271,7 @@ adopter une approche conservatrice, limitant drastiquement les transformations
 applicables.
 
 Afin de pallier ce problème de manière transparente, notre approche exploite la
-fonction intrinsèque suivante du compilateur LLVM :
+fonction intrinsèque de Clang :
 
 ```cpp
 typeof(expr) __builtin_annotation (typeof(expr) e, const char *string);
@@ -277,8 +284,8 @@ entre les abstractions C++ de haut niveau et la représentation de bas niveau.
 
 L'injection de ces annotations est réalisée directement au sein des différents
 backends de Kokkos, mais aussi dans les méthodes d'accès aux données
-multidimensionnelles. Ainsi, le processus demeure totalement transparent pour
-l'utilisateur final, dont le code applicatif reste inchangé.
+multidimensionnelles. L'utilisateur n'a donc pas à écrire ces annotations
+lui-même.
 
 Ces annotations sont notamment employées pour garantir la détection des SCoPs et
 appliquer de manière sécurisée les nouvelles passes de restructuration
@@ -330,7 +337,7 @@ objectif :
 Afin d'établir une passerelle sémantique entre les abstractions C++ de haut
 niveau et le modèle polyédrique, notre approche repose sur l'extraction
 systématique des annotations injectées au sein des backends de Kokkos via les
-intrinsèques `__builtin_annotation`. Ce mécanisme, totalement transparent pour
+fonctions `__builtin_annotation`. Ce mécanisme, totalement transparent pour
 l'utilisateur, permet à Polly de récupérer les informations fondamentales pour
 la modélisation polyédrique :
 - Les bornes de l'espace d'itérations des boucles ;
@@ -555,15 +562,15 @@ modélisation polyédrique.
 ]
 
 *Autres annotations contextuelles.*
-L'étiquette ajoutée grâce à la fonction intrinsèque `__builtin_annotation`
-permet non seulement de déterminer la nature de l'annotation, mais elle peut
-également être exploitée pour extraire des métadonnées d'une plus fine
-granularité. Ainsi, chaque dimension des tableaux utilisés dans le noyau est
-annotée par une chaîne de caractères définissant le type d'accès (ex. `"dim"`),
-tout en précisant le niveau d'imbrication correspondant (ex. `"dim 1"`).
-Concernant les bornes de boucles, un mécanisme analogue est employé afin de
-relier les bornes (inférieure et supérieure) de la politique d'exécution
-utilisée à la profondeur de la boucle au sein du nid de boucles.
+L'étiquette ajoutée grâce à la fonction `__builtin_annotation` permet non
+seulement de déterminer la nature de l'annotation, mais elle peut également être
+exploitée pour extraire des métadonnées d'une plus fine granularité. Ainsi,
+chaque dimension des tableaux utilisés dans le noyau est annotée par une chaîne
+de caractères définissant le type d'accès (ex. `"dim"`), tout en précisant le
+niveau d'imbrication correspondant (ex. `"dim 1"`). Concernant les bornes de
+boucles, un mécanisme analogue est employé afin de relier les bornes (inférieure
+et supérieure) de la politique d'exécution utilisée à la profondeur de la boucle
+au sein du nid de boucles.
 
 Le @sec:complexexecutionpatterns détaillera l'utilisation de ces annotations
 pour étendre les capacités de détection de Polly. Au-delà des métadonnées

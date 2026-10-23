@@ -423,7 +423,7 @@ polyédrique étend les polytopes standards en polytopes paramétriques.
   $
     cal(P)(arrow(p)) = { arrow(x) in bb(Q)^d | A dot.op vec(arrow(x), arrow(p), 1) polyrelcst arrow(0) }
   $
-  où $arrow(p)$ est le _vecteur $p$_ symbolique des paramètres, et $A$ est une
+  où $arrow(p)$ est le _vecteur $p$_ symbolique de paramètres, et $A$ est une
   matrice d'entiers de taille $m times (d + p + 1)$ encodant les $m$
   contraintes. \
   Notons que ces contraintes peuvent exprimer à la fois des inégalités et des
@@ -701,9 +701,9 @@ d'ensembles et le calcul de minimums ou maximums lexicographiques.
 
 Au-delà des opérations d'ensembles de base, l'une des fonctionnalités d'ISL est
 son *moteur d'ordonnancement* intégré. Basée sur une variante de l'algorithme du
-compilateur polyédrique Pluto~@plutoscheduler, ISL peut calculer automatiquement des
-ordonnancements affines qui respectent toutes les dépendances de données tout en
-améliorant la localité des données et en exposant du parallélisme.
+compilateur polyédrique Pluto~@plutoscheduler, ISL peut calculer automatiquement
+des ordonnancements affines qui respectent toutes les dépendances de données
+tout en améliorant la localité des données et en exposant du parallélisme.
 
 Enfin, une fois qu'un ordonnancement a été calculé, ISL dispose d'un générateur
 d'AST, successeur de CLooG~@Bastoul04, l'outil historique de génération de code
