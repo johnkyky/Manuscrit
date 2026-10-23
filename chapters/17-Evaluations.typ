@@ -501,14 +501,14 @@ cas, le code généré exploite moins de parallélisme que la version de référ
 
 *Les noyaux sans réutilisation de données.* `gesummv` reste neutre quels que
 soient l'ordonnanceur et la machine (entre #box[0.91$times$] et
-#box[0.99$times$]), et `doitgen` comme `mvt` n'obtiennent que des gains
-modestes. Ces noyaux de type matrice-vecteur lisent chaque élément de matrice
-une seule fois. Leur performance est bornée par la bande passante mémoire et le
-tuilage n'a aucune localité à exploiter.
+#box[0.99$times$]), et `mvt` n'obtient que des gains modestes. Ces noyaux de
+type matrice-vecteur lisent chaque élément de matrice une seule fois. Leur
+performance est bornée par la bande passante mémoire et le tuilage n'a aucune
+localité à exploiter.
 
-*Les fausses dépendances dues aux scalaires.* Le noyau `deriche` régresse sur
-les deux machines avec les deux ordonnanceurs (de #box[0.35$times$] à
-#box[0.50$times$]). Ce noyau parcourt une image ligne par ligne, puis colonne
+*Les fausses dépendances dues aux variables temporaires.* Le noyau `deriche`
+régresse sur les deux machines avec les deux ordonnanceurs (de #box[0.35$times$]
+à #box[0.50$times$]). Ce noyau parcourt une image ligne par ligne, puis colonne
 par colonne. Le long d'une ligne, chaque pixel dépend des pixels déjà traités,
 dont les valeurs sont transmises d'une itération à l'autre par des variables
 scalaires remises à zéro au début de chaque ligne. Les lignes, comme les
@@ -550,6 +550,13 @@ parallèle, comme la version de référence.
   caption: [Extrait de l'AST généré par Polly avec l'ordonnanceur ISL pour
     `deriche` sur CPU : une passe récursive et une passe de combinaison.],
 ) <code:evaluations:deriche-isl>
+
+Le même problème limite `doitgen` (de #box[0.93$times$] à #box[1.60$times$]). Ce
+noyau réutilise la matrice `C4` pour chaque ligne de `A`, mais il stocke ses
+résultats intermédiaires dans un tableau temporaire `sum` partagé par toutes les
+lignes. Ce tableau crée de fausses dépendances entre les lignes, que les deux
+ordonnanceurs traitent alors une par une. Le tuilage ne peut donc pas exploiter
+la réutilisation de `C4` d'une ligne à l'autre.
 
 *Le parallélisme limité à la boucle la plus interne.* Avec ISL, le code généré
 s'effondre sur `heat-3d` (0.01$times$ et 0.02$times$) et dégrade `jacobi-1d`
