@@ -152,7 +152,7 @@
       // supervisors
       #let columns = (0.8cm, 3.6cm, auto)
       #align(left + bottom, [
-        #upper("Thèse") dirigée par:
+        #upper("Thèse") dirigée par :
         #linebreak()
         #grid(
           columns: columns,
@@ -188,7 +188,7 @@
           ))
           .flatten()
       )
-      #upper("Examinateurs:")
+      #upper("Examinateurs :")
       #grid(
         columns: columns,
         rows: jury-members.len(),

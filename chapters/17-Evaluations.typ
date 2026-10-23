@@ -66,7 +66,7 @@ Ultra 7 265 et une carte graphique NVIDIA RTX 5090.
     [Cache L3],
     [$8 times 16$ Mo par socket, \ un par groupe de 4 cœurs],
     [30 Mo, partagé],
-    [Mémoire], [756 Go DDR4], [32 Go DDR5],
+    [Mémoire], [768 Go DDR4], [32 Go DDR5],
     [Nœuds NUMA], [2, un par socket], [1],
     [Unités vectorielles], [256 bits], [256 bits],
     [Noyau Linux], [5.15.0-142-generic], [6.17.0-1030-oem],
