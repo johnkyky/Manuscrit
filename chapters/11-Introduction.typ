@@ -123,6 +123,9 @@ Cette thèse introduit et implémente une approche hybride combinant le modèle
 polyédrique avec la bibliothèque de portabilité des performances Kokkos~@kokkos
 @kokkos2. L'objectif principal est de permettre dans Kokkos d'appliquer les
 capacités avancées d'optimisation de boucles fournies par le modèle polyédrique.
+Nos travaux ont été présentés lors de la 26#super[e] conférence internationale
+ICA3PP (_International Conference on Algorithms and Architectures for Parallel
+Processing_), qui s'est tenue à Exeter en octobre 2026~@battiston2026ica3pp.
 
 Le @sec:scientificbackground détaille le contexte scientifique et technique
 nécessaire pour comprendre les fondations de cette thèse. Il introduit les
