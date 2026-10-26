@@ -61,7 +61,9 @@
     ```cpp
     Kokkos::View<double**> A("A", n, m), B("B", n, m);
     auto policy = Kokkos::MDRangePolicy<
-        Kokkos::OpenMP, Kokkos::Rank<2>>({1, 1}, {n-1, m-1});
+                            Kokkos::OpenMP, 
+                            Kokkos::Rank<2>
+                          >({1, 1}, {n-1, m-1});
 
     Kokkos::parallel_for("stencil", policy,
       KOKKOS_LAMBDA(long i, long j) {
@@ -69,8 +71,8 @@
                           + A(i-1, j) + A(i+1, j);
       });
     ```
-    #framed[Loops are *regular*: rectangular space, constant bounds, affine
-      accesses. Ideal polyhedral candidates.]
+    #framed[Loops are *regular*: regular iteration space, constant bounds,
+      affine accesses. Ideal polyhedral candidates.]
   ]
 ]
 
@@ -78,9 +80,9 @@
   #cols(columns: (1fr, 1fr), gutter: 1.5em)[
     *Polyhedral model* \
     Mathematical modeling of nested loops:
+    - Kernel = *SCoP* (Static Control Part).
     - Loop nest = set of integer points
-    - Dependences = affine constraints.
-    - Affine bounds and subscripts: a *SCoP* (Static Control Part).
+    - Dependencies = affine constraints.
     - Aggressive loop transformations: *tiling, fusion, skewing, wavefront
       parallelism*.
   ][
@@ -196,7 +198,7 @@
   ]
 ]
 
-#slide(title: "Annotations and delinearization")[
+#slide(title: "Annotations, delinearization and array canonicalization")[
   #cols(columns: (1fr, 1fr), gutter: 1.5em)[
     *Annotations* : \
     `__builtin_annotation` -> `llvm.annotate` in the IR, emitted by the Kokkos
@@ -206,15 +208,21 @@
     - the kernel's *execution space*.
 
     They survive reordering or elimination of loads.
+    #v(1em)
+
+    *Delinearization* : `A(i,j,k)` is one SCEV polynomial; Polly guesses the
+    dimension sizes from its terms and *fails on partial accesses* like
+    `A(0,j,k)`. Annotated sizes make it reliable for any access.
   ][
-    *Delinearization* : `A(i,j,k)` becomes one SCEV polynomial \
-    #small[`{{{%A,+,8·m·o}<i>,+,8·o}<j>,+,8}<k>`] \
-    Polly guesses dimension sizes from its *terms*.
 
-    #framed[`A(0, j, k)` : the term in `i` vanishes, the first dimension cannot
-      be deduced, delinearization *fails*.]
-
-    With annotated sizes, `A[i][j][k]` is recovered for any access.
+    *Array canonicalization* (`ArrayReg2MemPass`) : in SSA form, a loaded value
+    shared between statements becomes a *scalar dependence* that over-constrains
+    the scheduler; Polly's `ForwardOpTree` is too conservative (aliasing).
+    - Demotes SSA registers of *annotated arrays* back to explicit loads and
+      stores.
+    - Targets loop-carried, loop-exit, intra-block (reused read, multiple
+      writes) and extended scalar dependences.
+    - Removes *false dependences*, restores a source-like memory structure.
   ]
 ]
 
@@ -245,17 +253,21 @@
       *Idiomatic Kokkos* (gemver): one `parallel_for` per nest, four separate
       SCoPs, no fusion.
       ```cpp
-      parallel_for(policy2D, KOKKOS_LAMBDA(long i, long j) {
+      parallel_for<Kokkos::usePolyOpt>(policy2D, 
+        KOKKOS_LAMBDA(long i, long j) {
           A(i,j) += u1(i)*v1(j) + u2(i)*v2(j);
         });
-      parallel_for(policy1D, KOKKOS_LAMBDA(long i) {
+      parallel_for<Kokkos::usePolyOpt>(policy1D, 
+        KOKKOS_LAMBDA(long i) {
           for (long j = 0; j < n; j++)
             x(i) += beta * A(j,i) * y(j); 
         });
-      parallel_for(policy1D, KOKKOS_LAMBDA(long i) {
+      parallel_for<Kokkos::usePolyOpt>(policy1D, 
+        KOKKOS_LAMBDA(long i) {
           x(i) += z(i);
         });
-      parallel_for(policy1D, KOKKOS_LAMBDA(long i) {
+      parallel_for<Kokkos::usePolyOpt>(policy1D, 
+        KOKKOS_LAMBDA(long i) {
           w(i) += alpha * x(i) * y(i);
         });
       ```]
@@ -290,7 +302,8 @@
     *Constraint grammar* : `Operand op Operand`
     - `pN.lM` / `pN.uM` : bound of dimension `M` of policy `N`,
     - `KOKKOS_LOOP_BOUND(n)` : a variable of the body,
-    - literals; `==, <, >, <=, >=`.
+    - literals;
+    - Operator : `==, <, >, <=, >=`.
   ][
     ```cpp
     auto policy = Kokkos::RangePolicy(0, n);
@@ -373,7 +386,7 @@
 
     *Coverage*
     - CPU: 53 / 54 variants correct (`atax` + Pluto: bug in Pluto).
-    - GPU: 24 / 27 (PPCG does not terminate on 3 stencils).
+    - GPU: 24 / 27 (PPCG does not terminate scheduling on 3 stencils).
   ]
 ]
 
@@ -452,34 +465,34 @@
     size 32.]
 ]
 
-#slide(title: "Compilation time")[
-  #v(0.5em)
-  #cols(columns: (1fr, 1fr), gutter: 1.5em)[
-    #table(
-      columns: (1fr, 1fr, 1fr, 1fr),
-      align: (left, center, center, center),
-      stroke: none,
-      table.hline(stroke: 1pt),
-      table.header([*Kernel*], [ISL], [Pluto], [PPCG]),
-      table.hline(stroke: 0.5pt),
-      [most kernels], [1.0–1.1], [1.0–1.3], [0.8–1.2],
-      [`gemm`], [2.55], [1.06], [0.97],
-      [`3mm`], [28.82], [1.38], [17.36],
-      [`gesummv`, `syrk`], [1.02], [10.4], [0.99],
-      [`heat-3d`], [1.14], [24.04], [∞],
-      [`jacobi-2d`], [1.05], [2.60], [88.28],
-      [`adi`, `fdtd-2d`], [≤ 1.14], [≤ 1.51], [∞],
-      table.hline(stroke: 1pt),
-    )
-  ][
-    - Scheduling is NP-complete: cost follows kernel complexity and dependences.
-    - *Comparable to the baseline for most kernels.*
-    - Outliers where constraints explode; PPCG never terminates on three
-      stencils.
-    - Parameter fusion via constraints keeps systems small.
-  ]
-  #note[Relative compile time of Kokkos vs Kokkos + Polly (Intel)]
-]
+//#slide(title: "Compilation time")[
+//  #v(0.5em)
+//  #cols(columns: (1fr, 1fr), gutter: 1.5em)[
+//    #table(
+//      columns: (1fr, 1fr, 1fr, 1fr),
+//      align: (left, center, center, center),
+//      stroke: none,
+//      table.hline(stroke: 1pt),
+//      table.header([*Kernel*], [ISL], [Pluto], [PPCG]),
+//      table.hline(stroke: 0.5pt),
+//      [most kernels], [1.0–1.1], [1.0–1.3], [0.8–1.2],
+//      [`gemm`], [2.55], [1.06], [0.97],
+//      [`3mm`], [28.82], [1.38], [17.36],
+//      [`gesummv`, `syrk`], [1.02], [10.4], [0.99],
+//      [`heat-3d`], [1.14], [24.04], [∞],
+//      [`jacobi-2d`], [1.05], [2.60], [88.28],
+//      [`adi`, `fdtd-2d`], [≤ 1.14], [≤ 1.51], [∞],
+//      table.hline(stroke: 1pt),
+//    )
+//  ][
+//    - Scheduling is NP-complete: cost follows kernel complexity and dependences.
+//    - *Comparable to the baseline for most kernels.*
+//    - Outliers where constraints explode; PPCG never terminates on three
+//      stencils.
+//    - Parameter fusion via constraints keeps systems small.
+//  ]
+//  #note[Relative compile time of Kokkos vs Kokkos + Polly (Intel)]
+//]
 
 // ---------------------------------------------------------------- 6. Conclusion
 #title-slide[Conclusion]
@@ -498,8 +511,7 @@
     - Runtime checks for user constraints and static names (today trusted
       as-is).
     - Compilation timeouts on complex stencils.
-    - *Adaptive tile and block sizes* from kernel structure and cache hierarchy.
-    - More backends: HIP, SYCL; `TeamPolicy`.
+    - More Kokkos backends: HIP, SYCL.
 
     #v(0.4em)
     #framed(title: "Artifact")[
